@@ -1,16 +1,23 @@
-#ifndef __VISITOR_H__
-#define __VISITOR_H__
+#ifndef UTBUILDER_VISITOR_H_
+#define UTBUILDER_VISITOR_H_ 
 
 #include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/AST/ASTConsumer.h>
-#include <clang/AST/ASTContext.h>
-#include <clang/Frontend/FrontendAction.h>
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Rewrite/Core/Rewriter.h>
 
-#include <set>
 #include <string>
-#include <sstream>
+
+template <typename Derived> 
+class Visitor : public clang::RecursiveASTVisitor<Derived>
+{
+protected:
+   clang::ASTContext *_context;
+   std::string _fileName;
+
+public:
+
+   explicit Visitor(clang::ASTContext*   context,
+                    std::string          fileName) :  _context(context), _fileName(fileName) {};
+   
+};
 
 
-#endif /* !__VISITOR_H__ */
+#endif // UTBUILDER_VISITOR_H_

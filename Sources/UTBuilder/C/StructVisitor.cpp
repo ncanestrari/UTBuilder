@@ -5,7 +5,8 @@
 #include "utils.h"
 
 
-StructVisitor::StructVisitor(clang::ASTContext* context, std::string fileName):  _context(context), _fileName(fileName)
+StructVisitor::StructVisitor(clang::ASTContext* context, std::string fileName)
+: Visitor(context, fileName)
 {
   results::get().structDecls.clear();
 }

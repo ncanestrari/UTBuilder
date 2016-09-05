@@ -9,7 +9,8 @@
 #include <iostream>
 
 
-TypedefVisitor::TypedefVisitor(clang::ASTContext* context, std::string fileName):  _context(context), _fileName(fileName)
+TypedefVisitor::TypedefVisitor(clang::ASTContext* context, std::string fileName)
+: Visitor(context, fileName)
 {
   results::get().typedefNameDecls.clear();
 }
@@ -22,8 +23,6 @@ bool TypedefVisitor::VisitDecl(clang::Decl* decl)
    const clang::TypedefNameDecl* type_def = llvm::dyn_cast<clang::TypedefNameDecl>(decl);
    if ( type_def == nullptr )
       return true;
-   
-   //const std::string typeName = type_def->getCanonicalDecl()->getNameAsString();   
 
    //canonical Types: http://clang.llvm.org/docs/InternalsManual.html#canonical-types
    const clang::QualType qualType = type_def->getCanonicalDecl()->getUnderlyingType();
@@ -31,9 +30,6 @@ bool TypedefVisitor::VisitDecl(clang::Decl* decl)
    
    if ( declType == nullptr )
       return true;
-   
-   //if ( declType->isBuiltinType() == true )
-     // return true;
    
    // get declaration source location
    const clang::SourceLocation declSrcLoc = type_def->getSourceRange().getBegin();

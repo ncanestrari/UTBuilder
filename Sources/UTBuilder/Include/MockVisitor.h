@@ -1,28 +1,20 @@
-#ifndef _CLangASTBuilder_MockVisitor_h__
-#define _CLangASTBuilder_MockVisitor_h__ 
+#ifndef _UTBuilder_MockVisitor_h__
+#define _UTBuilder_MockVisitor_h__ 
 
-#include <clang/AST/RecursiveASTVisitor.h>
+#include "Visitor.h"
 
-#include <string>
 
-class MockVisitor : public clang::RecursiveASTVisitor<MockVisitor>
+class MockVisitor : public Visitor<MockVisitor>
 {
-
-   clang::ASTContext *_context;
-   std::string _fileName;
-
 public:
-
-   explicit MockVisitor(clang::ASTContext*   context,
-                        std::string          fileName);
    
-   
-   //bool VisitStmt(clang::Stmt* stmt);
-   
+   MockVisitor(clang::ASTContext*   context,
+               std::string          fileName);
+                  
    bool VisitCallExpr(clang::CallExpr *call);
    
 };
 
 
-#endif // _CLangASTBuilder_MockVisitor_h__
+#endif // _UTBuilder_MockVisitor_h__
 

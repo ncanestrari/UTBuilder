@@ -36,7 +36,8 @@ set ( SOURCE_FILES
 
 SET( CMAKE_INCLUDE_CURRENT_DIR TRUE )
 
-include_directories($(CMAKE_CURRENT_SOURCE_DIR)/Include)
+include_directories(${UTBuilder_SOURCE_DIR}/Sources/Plustache/Include)
+include_directories(${UTBuilder_SOURCE_DIR}/Sources/UTBuilder/Include)
 
 # LLVM package
 find_package ( LLVM REQUIRED CONFIG)
@@ -66,7 +67,7 @@ include_directories( /.${Boost_INCLUDE_DIRS})
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES )
 
 
-add_executable( ${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES} )
+add_executable( ${PROJECT_NAME} ${SOURCE_FILES} )
 
 # Find the libraries that correspond to the LLVM components
 # that we wish to use

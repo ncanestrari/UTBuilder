@@ -11,8 +11,8 @@
 #include <boost/filesystem/convenience.hpp>
 #include <clang/AST/Decl.h>
 #include <clang/AST/PrettyPrinter.h>
-#include <plustache/plustache_types.hpp>
-#include <plustache/template.hpp>
+#include <plustache_types.hpp>
+#include <template.hpp>
 
 using std::cout;
 using std::string;
@@ -32,7 +32,6 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
    
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
    
-   //Context              *c = new Context();
    ObjectType            Include;
    ObjectType            Mock;
    std::ostringstream    out;
@@ -82,10 +81,6 @@ void Writer::WriteTemplate(std::shared_ptr<const Plustache::Context>      contex
    
    result = t.render(template_buff, *context);
   
-   //if ( context.get("includes") )
-   //delete context.get("includes");
-   //delete context.get("mocks");
-   
    std::ofstream outputFile;   
    std::string outputFileName = outFileName;   
    outputFile.open( outputFileName, std::fstream::out );
@@ -116,16 +111,11 @@ void Writer::MockFunctionFFF(const clang::FunctionDecl   *funcDecl,
    std::string isVariadic;
 
    if ( funcDecl->isVariadic() )
-   {
       isVariadic = "_VARARG";
-   }
 
-   if ( returnType == "void" )
-   {
+   if ( returnType == "void" ){
       out << "FAKE_VOID_FUNC" << isVariadic << "( ";
-   }
-   else
-   {
+   } else {
       out << "FAKE_VALUE_FUNC" << isVariadic << "( " << returnType << ", ";
    }
    
@@ -141,9 +131,7 @@ void Writer::MockFunctionFFF(const clang::FunctionDecl   *funcDecl,
    }
 
    if ( funcDecl->isVariadic() )
-   {
       out << ", ...";
-   }
 
    out <<" );";
 
@@ -157,8 +145,6 @@ void Writer::CreateMockFile(const std::string& fileName, const clang::SourceMana
 {
    std::ostringstream out;
    std::set<std::string> includePaths;
-
-   //const clang::SourceManager& sourceMgr = _compiler->getSourceManager();
 
    // look for paths to include in the mock file
    for ( auto funcDecl : results::get().functionDecls )
@@ -174,7 +160,7 @@ void Writer::CreateMockFile(const std::string& fileName, const clang::SourceMana
 
    std::shared_ptr<const Plustache::Context> context = CreateMockContext(includePaths, results::get().functionDecls, fileName, sourceMgr);
 
-   Writer::WriteTemplate(context, std::string("../../mock.template"), fileName + "-mocks.h");
+   Writer::WriteTemplate(context, std::string(std::getenv("TEMPLATE_DIR"))+std::string("/mock.template"), fileName + "-mocks.h");
    
 }
 
@@ -187,7 +173,6 @@ std::shared_ptr<const Plustache::Context> Writer::CreateUnitTestContext(const st
    
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
    
-   //Context              *c = new Context();
    ObjectType            Include;
    ObjectType            FunctionToUnitTest;
    
@@ -225,8 +210,6 @@ void Writer::CreateUnitTestFile(const std::string& fileName, const clang::Source
 
    std::set<std::string> includePaths;
 
-   //const clang::SourceManager& sourceMgr = _compiler->getSourceManager();
-
    // look for paths to include in the mock file
    for ( auto funcDecl : results::get().functionToUnitTest )
    {
@@ -241,48 +224,8 @@ void Writer::CreateUnitTestFile(const std::string& fileName, const clang::Source
 
    std::shared_ptr<const Plustache::Context> context = CreateUnitTestContext(includePaths, results::get().functionToUnitTest, fileName, sourceMgr);
    
-   Writer::WriteTemplate(context, std::string("../../UT.template"), fileName + "-ugtest.c" );
-   
-//    out << "/* @owner \\TODO */\n";
-//    out << "/**\n";
-//    out << " * @file  " << fnameUT << "-ugtest.c \n";
-//    out << " * @brief \\TODO.\n";
-//    out << " *\n";
-//    out << " * @copyright Copyright of this program is the property of AMADEUS, without\n";
-//    out << " * whose written permission reproduction in whole or in part is prohibited.\n";
-//    out << " *\n";
-//    out << " */\n\n";
-// 
-//    out << "extern \"C\"{\n";
-//    for ( auto include : includePaths ){
-//       out << "#include \"" << include <<  "\"\n";
-//    }
-//    out << "#include \"" << fnameUT << "-mocks.h\"\n";
-//    out << "}\n\n";
-//    out << "#include <gtest/gtest.h>\n\n";
-// 
-//    out << "class Test_" << fnameUT << " : public ::testing::Test\n";
-//    out << "{\n";
-//    out << "protected:\n";
-//    out << "   void SetUp()\n{\n}\n";
-//    out << "   void TearDown()\n{\n}\n";
-//    out << "};\n";
-// 
-// 
-//    
-//    out << "int main(int argc, char *argv[])\n{\n";
-//    out << "   ::testing::InitGoogleTest(&argc, argv);\n";
-//    out << "   return RUN_ALL_TESTS();\n}\n";
-
-
-//    std::ofstream outputFile;
-//    std::string outputFileName = fileName + "-ugtest.c";
-//    outputFile.open( outputFileName, std::fstream::out );
-//    outputFile << out.str();
-//    outputFile.close();
-  
-//    std::cout << "file written: " << outputFileName << std::endl;
-
+   Writer::WriteTemplate(context, std::string(std::getenv("TEMPLATE_DIR"))+std::string("/UT.template"), fileName + "-ugtest.c" );
+ 
 }
 
 
@@ -398,61 +341,10 @@ void Writer::CreateSerializationFile(const std::string& fileName, const clang::S
       }
 
       else if ( const clang::BuiltinType* typedefType = typedefQualType->getAs<clang::BuiltinType>() ) {
-         
-         //const clang::BuiltinDecl* typedefDecl = typedefType->getDecl();
-         
-         //const clang::QualType canonicalQualType = typedefType->getCanonicalTypeInternal();
-         //const std::string canonicalTypeName = canonicalQualType.getAsString();
-         
-         //const clang::QualType canonicalQualType = typedefDecl->getCanonicalDecl()->getUnderlyingType();
          out << "typedef " << typedefQualType.getAsString() << " " << typedefDecl->getNameAsString()  << ";\n\n";
-         
-         
-         //out << "typedef " << typedefType->getName( clang::PrintingPolicy(clang::LangOptions()) ).str() << " " << typedefDecl->getNameAsString()  << ";\n";
-         
       }
       
    }
-   
-
-//   for ( auto structDecl : results::get().istructDecls )
-//   {
-//      // get declaration source location
-//      const clang::SourceLocation declSrcLoc = structDecl->getSourceRange().getBegin();
-//      
-//      // this way append the row and column to the name string
-//      const std::string declSrcFile = declSrcLoc.printToString(sourceMgr);
-//
-//      out << "/**" <<std::endl;
-//      out << " * name: " << structDecl->getNameAsString() << std::endl;
-//      out << " * file: " << declSrcFile << std::endl;
-//      out << " */" << std::endl;
-//      
-//      if ( structDecl->isAnonymousStructOrUnion() )
-//      {
-//         out << "typedef struct " << "\n{\n";
-//         
-//         for ( const auto field : structDecl->fields() )
-//         {
-//            out << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << "\n";
-//         }
-//         
-//         out << "} " << structDecl->getNameAsString() << ";\n\n";
-//      }
-//      else
-//      {
-//         out << "struct " << structDecl->getNameAsString() << "\n{\n";
-//          
-//         for ( const auto field : structDecl->fields() )
-//         {
-//            out << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << "\n";
-//         }
-//         
-//         out << "};\n\n";
-//      }
-//  
-//   } 
-
    
    
    std::ofstream outputFile;

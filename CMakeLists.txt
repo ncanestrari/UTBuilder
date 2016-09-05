@@ -13,4 +13,3 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 subdirs(Sources/Plustache)
 subdirs(Sources/UTBuilder)
-

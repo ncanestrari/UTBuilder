@@ -1,22 +1,13 @@
-#ifndef _CLangASTBuilder_FuncUTDefVisitor_h__
-#define _CLangASTBuilder_FuncUTDefVisitor_h__ 
+#ifndef _UTBuilder_FuncUTDefVisitor_h__
+#define _UTBuilder_FuncUTDefVisitor_h__ 
 
-#include <clang/AST/RecursiveASTVisitor.h>
-//#include <clang/AST/ASTConsumer.h>
-//#include <clang/AST/ASTContext.h>
-//#include <clang/Frontend/FrontendAction.h>
-//#include <clang/Frontend/CompilerInstance.h>
-//#include <clang/Rewrite/Core/Rewriter.h>
 
-//#include <set>
-#include <string>
-//#include <sstream>
 
-class FuncUTDefVisitor : public clang::RecursiveASTVisitor<FuncUTDefVisitor>
+#include "Visitor.h"
+
+
+class FuncUTDefVisitor : public Visitor<FuncUTDefVisitor>
 {
-
-   clang::ASTContext *_context;
-   std::string _fileName;
 
 public:
 
@@ -29,11 +20,8 @@ public:
 
 
 
-class FuncUTDeclVisitor : public clang::RecursiveASTVisitor<FuncUTDeclVisitor>
+class FuncUTDeclVisitor : public Visitor<FuncUTDeclVisitor>
 {
-
-   clang::ASTContext *_context;
-   std::string _fileName;
 
 public:
 
@@ -45,5 +33,5 @@ public:
 };
 
 
-#endif // _CLangASTBuilder_FuncUTDefVisitor_h__
+#endif // _UTBuilder_FuncUTDefVisitor_h__
 

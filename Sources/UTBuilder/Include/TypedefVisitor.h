@@ -1,14 +1,12 @@
-#ifndef _CLangASTBuilder_TypedefVisitor_h__
-#define _CLangASTBuilder_TypedefVisitor_h__ 
+#ifndef _UTBuilder_TypedefVisitor_h__
+#define _UTBuilder_TypedefVisitor_h__ 
 
-#include <clang/AST/RecursiveASTVisitor.h>
 
-#include <string>
+#include "Visitor.h"
 
-class TypedefVisitor : public clang::RecursiveASTVisitor<TypedefVisitor>
+
+class TypedefVisitor : public Visitor<TypedefVisitor>
 {
-   clang::ASTContext *_context;
-   std::string _fileName;
 
 public:
 
@@ -21,5 +19,5 @@ public:
 };
 
 
-#endif // _CLangASTBuilder_TypedefVisitor_h__
+#endif // _UTBuilder_TypedefVisitor_h__
 

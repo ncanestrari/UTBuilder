@@ -8,7 +8,8 @@
 #include "utils.h"
 
 
-FuncUTDefVisitor::FuncUTDefVisitor(clang::ASTContext* context, std::string fileName):  _context(context), _fileName(fileName)
+FuncUTDefVisitor::FuncUTDefVisitor(clang::ASTContext* context, std::string fileName)
+: Visitor(context, fileName)
 {
 
   results::get().functionToUnitTest.clear();
@@ -39,7 +40,9 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl* decl)
 }
 
 
-FuncUTDeclVisitor::FuncUTDeclVisitor(clang::ASTContext* context, std::string fileName):  _context(context), _fileName(fileName) {}
+FuncUTDeclVisitor::FuncUTDeclVisitor(clang::ASTContext* context, std::string fileName)
+: Visitor(context, fileName)
+{}
 
 
 bool FuncUTDeclVisitor::VisitDecl(clang::Decl* decl)
@@ -55,8 +58,8 @@ bool FuncUTDeclVisitor::VisitDecl(clang::Decl* decl)
       const clang::SourceManager& srcMgr = _context->getSourceManager();
       const clang::SourceLocation declSrcLoc = func->getSourceRange().getBegin();
       const std::string declSrcFile = srcMgr.getFilename(declSrcLoc).str();
-      // check if the funcDecl is in the input argument file
-    
+      
+      // check if the funcDecl is in the input argument file    
       for ( auto func_i : results::get().functionToUnitTest ){
          if( func_i->getNameInfo().getName().getAsString() == 
              func->getNameInfo().getName().getAsString() ){
