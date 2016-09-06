@@ -4,6 +4,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <clang/AST/ASTContext.h>
 
+#include "Results.h"
 #include "utils.h"
 
 
@@ -11,29 +12,28 @@ MockVisitor::MockVisitor(clang::ASTContext*   context,
                          std::string          fileName) 
 : Visitor(context, fileName)
 {
-   results::get().functionDecls.clear();
+
 }
 
 
 
 bool MockVisitor::VisitCallExpr(clang::CallExpr* funcCall)
 {
-      
+   // get the declaration of the funcCall
    const clang::FunctionDecl* funcDecl = funcCall->getDirectCallee();
 
    //std::cout << funcDecl->getNameInfo().getName().getAsString() << "\t";
 
-   // source location
-   const clang::SourceLocation srcLoc = funcCall->getSourceRange().getBegin();
 
    const clang::SourceManager& srcMgr = _context->getSourceManager();
-   const std::string srcFile = srcMgr.getFilename(srcLoc).str();
 
-   // get declaration source location
-   const clang::SourceLocation declSrcLoc = funcDecl->getSourceRange().getBegin();
-   const std::string declSrcFile = srcMgr.getFilename(declSrcLoc).str();
-      
-   // check if the statement is in the input argument file
+  // function call source location
+   const std::string srcFile = utils::getStmtSourceFile( funcCall, srcMgr );
+   
+   // get function declaration source location      
+   const std::string declSrcFile = utils::getDeclSourceFile( funcDecl, srcMgr );
+   
+   // check if the statement is in the input argument file 
    if ( declSrcFile.find( _fileName) != std::string::npos )
    {
       // this function doesn't need to be mocked but tested
@@ -55,7 +55,7 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr* funcCall)
    
    // mock this function
    //std::cout << "accepted" << std::endl;
-   results::get().functionDecls.insert(funcDecl);
+   results::get().functionsToMock.insert(funcDecl);
 
    return true;
 }

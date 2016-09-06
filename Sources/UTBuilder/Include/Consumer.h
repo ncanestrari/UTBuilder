@@ -13,12 +13,6 @@ class MockVisitor;
 class Consumer : public clang::ASTConsumer
 {
 
-   FuncUTDefVisitor*    _defVisitor;
-   FuncUTDeclVisitor*   _declVisitor;
-   StructVisitor*       _structVisitor;
-   MockVisitor*         _mockVisitor;
-   TypedefVisitor*	_typedefVisitor;
-
 public:
 
    Consumer(clang::ASTContext*   context,
@@ -26,6 +20,15 @@ public:
 
    virtual void HandleTranslationUnit(clang::ASTContext& ctx) override;
 
+   
+private:
+  
+   FuncUTDefVisitor*    _defVisitor;
+   FuncUTDeclVisitor*   _declVisitor;
+   StructVisitor*       _structVisitor;
+   MockVisitor*         _mockVisitor;
+   TypedefVisitor*	_typedefVisitor;
+   
 };
 
 

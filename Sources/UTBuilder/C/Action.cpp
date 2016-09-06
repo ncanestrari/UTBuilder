@@ -3,20 +3,25 @@
 
 #include "Consumer.h"
 #include "writer.h"
+#include "Results.h"
 
 #include <clang/AST/ASTContext.h>
 #include <clang/Frontend/CompilerInstance.h>
 
+
 clang::ASTConsumer* Action::CreateASTConsumer(clang::CompilerInstance& compiler,
                                               llvm::StringRef inFile)
 {
+   results::get().clear();
+  
+   _writer = std::make_shared<Writer>( inFile.str(), getCompilerInstance().getSourceManager() );
+  
    return new Consumer(  &compiler.getASTContext(), inFile.str() );
 }
 
 
 void Action::EndSourceFileAction(){
-   Writer::CreateMockFile(  getCurrentFile().str(), getCompilerInstance().getSourceManager() );
-   Writer::CreateUnitTestFile(  getCurrentFile().str(), getCompilerInstance().getSourceManager() );
-   Writer::CreateSerializationFile(  getCurrentFile().str(), getCompilerInstance().getSourceManager() );
+  
+   _writer->createFiles();
 }
 

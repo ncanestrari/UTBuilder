@@ -1,40 +1,16 @@
-#ifndef _CLangASTBuilder_utils_h__
-#define _CLangASTBuilder_utils_h__
+#ifndef _UTBuilder_utils_h__
+#define _UTBuilder_utils_h__
 
 #include <string>
 #include <set>
 #include <vector>
 
-
+#include <clang/Basic/SourceManager.h>
 
 namespace clang {
-   class FunctionDecl;
-   class RecordDecl;
-   class TypedefNameDecl;
-   class Type;
+  class Decl;
+  class Stmt;
 }
-
-
-class results {
-  
-   results(void) {};
-   ~results(void) {};
-   
-public:
-   static results& get(void) {
-      static results instance;
-      return instance;
-   };
-   
-   std::set<const clang::FunctionDecl*>      functionDecls;
-   std::set<const clang::FunctionDecl*>      functionToUnitTest;
-   std::set<const clang::RecordDecl*>        structDecls;
- 
-   std::set<const clang::TypedefNameDecl*>   typedefNameDecls;
-   std::set<std::string>                     includesForUT;
-   
-   std::set<const clang::Type*>              functionDeclTypes;
-};
 
 
 class utils 
@@ -50,9 +26,15 @@ public:
    static std::string removeDashes(const std::string& fileNamePath);
    static std::vector<std::string>* getIncludePaths(const std::string& package);
    static void fillFunctionQualTypes(void);
-
+   static const char* getDeclSourceFile( const clang::Decl* decl, const clang::SourceManager& srcMgr );
+   // append the row and column to the file name name string 
+   static const char* getDeclSourceFileLine( const clang::Decl* decl, const clang::SourceManager& srcMgr );   
+   static const char* getStmtSourceFile( const clang::Stmt* stmt, const clang::SourceManager& srcMgr );  
+   // append the row and column to the file name name string 
+   static const char* getStmtSourceFileLine( const clang::Stmt* stmt, const clang::SourceManager& srcMgr );
+   
 };
 
 
-#endif // _CLangASTBuilder_utils_h__
+#endif // _UTBuilder_utils_h__
 

@@ -1,6 +1,7 @@
 #include "TypedefVisitor.h"
-#include "utils.h"
 
+#include "Results.h"
+#include "utils.h"
 
 #include <clang/AST/ASTContext.h>
 
@@ -12,7 +13,7 @@
 TypedefVisitor::TypedefVisitor(clang::ASTContext* context, std::string fileName)
 : Visitor(context, fileName)
 {
-  results::get().typedefNameDecls.clear();
+
 }
 
 
@@ -32,8 +33,8 @@ bool TypedefVisitor::VisitDecl(clang::Decl* decl)
       return true;
    
    // get declaration source location
-   const clang::SourceLocation declSrcLoc = type_def->getSourceRange().getBegin();
-   const std::string declSrcFile = _context->getSourceManager().getFilename(declSrcLoc).str();
+   const std::string declSrcFile = utils::getDeclSourceFile( type_def, _context->getSourceManager());
+   
    // TO DO: fix this
    // temporary check
    // WEAK CHECK if declaration is in CommercialCode path

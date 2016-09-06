@@ -5,15 +5,14 @@
 #include <clang/Basic/SourceManager.h>
 #include <clang/AST/ASTContext.h>
 
+#include "Results.h"
 #include "utils.h"
 
 
 FuncUTDefVisitor::FuncUTDefVisitor(clang::ASTContext* context, std::string fileName)
 : Visitor(context, fileName)
 {
-
-  results::get().functionToUnitTest.clear();
-  results::get().includesForUT.clear();
+  
 }
 
 
@@ -27,13 +26,13 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl* decl)
       return true;
 
    if ( func->hasBody() ){
-      // get declaration source location
-      const clang::SourceManager& srcMgr = _context->getSourceManager();
-      const clang::SourceLocation declSrcLoc = func->getSourceRange().getBegin();
-      const std::string declSrcFile = srcMgr.getFilename(declSrcLoc).str();
+     
+      // get declaration source location      
+      const std::string declSrcFile = utils::getDeclSourceFile( func, _context->getSourceManager());
+      
       // check if the funcDecl is in the input argument file
       if ( declSrcFile.find( _fileName) != std::string::npos )
-         results::get().functionToUnitTest.insert(func);
+         results::get().functionsToUnitTest.insert(func);
    } 
 
    return true;
@@ -42,7 +41,9 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl* decl)
 
 FuncUTDeclVisitor::FuncUTDeclVisitor(clang::ASTContext* context, std::string fileName)
 : Visitor(context, fileName)
-{}
+{
+  
+}
 
 
 bool FuncUTDeclVisitor::VisitDecl(clang::Decl* decl)
@@ -54,15 +55,13 @@ bool FuncUTDeclVisitor::VisitDecl(clang::Decl* decl)
       return true;
 
    if ( !func->hasBody() ){
+     
       // get declaration source location
-      const clang::SourceManager& srcMgr = _context->getSourceManager();
-      const clang::SourceLocation declSrcLoc = func->getSourceRange().getBegin();
-      const std::string declSrcFile = srcMgr.getFilename(declSrcLoc).str();
+      const std::string declSrcFile = utils::getDeclSourceFile( func, _context->getSourceManager());
       
       // check if the funcDecl is in the input argument file    
-      for ( auto func_i : results::get().functionToUnitTest ){
-         if( func_i->getNameInfo().getName().getAsString() == 
-             func->getNameInfo().getName().getAsString() ){
+      for ( auto func_i : results::get().functionsToUnitTest ){
+         if( func_i->getNameInfo().getName().getAsString() == func->getNameInfo().getName().getAsString() ){
             boost::filesystem::path p(declSrcFile);
             results::get().includesForUT.insert(p.filename().string());
             break;

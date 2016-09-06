@@ -3,10 +3,12 @@
 
 #include <clang/Frontend/FrontendAction.h>
 
+class Writer;
+
 
 class Action : public clang::ASTFrontendAction
 {
-
+  
 public:
 
    Action() {};
@@ -16,6 +18,12 @@ public:
 
    virtual void EndSourceFileAction() override;
    
+   
+   
+private:
+  
+    std::shared_ptr<Writer> _writer;
+    
 };
 
 
