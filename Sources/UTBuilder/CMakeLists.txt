@@ -1,4 +1,11 @@
 
+set(CMAKE_CXX_COMPILER "g++-4.8")
+set(CMAKE_C_COMPILER "gcc-4.8") 
+set(CMAKE_CXX_COMPILER_VERSION "4.8")
+set(CMAKE_C_COMPILER_VERSION "4.8")
+set(CMAKE_CXX_FLAGS "-fmax-errors=10")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 set ( HEADER_FILES
    Include/MockVisitor.h
    Include/FuncUTDefVisitor.h
@@ -7,6 +14,7 @@ set ( HEADER_FILES
    Include/writer.h
    Include/Consumer.h
    Include/Action.h
+   Include/Results.h
    Include/utils.h)
 
 set ( SOURCE_FILES
@@ -18,9 +26,10 @@ set ( SOURCE_FILES
    C/writer.cpp
    C/Consumer.cpp
    C/Action.cpp
+   C/Results.cpp
    C/utils.cpp )
 
-SET( CMAKE_INCLUDE_CURRENT_DIR TRUE )
+set( CMAKE_INCLUDE_CURRENT_DIR TRUE )
 
 include_directories( ${UTBuilder_SOURCE_DIR}/Sources/Plustache/Include )
 include_directories( ${UTBuilder_SOURCE_DIR}/Sources/UTBuilder/Include )
@@ -63,7 +72,7 @@ set( TEMPLATE_DIR
 #create launcher
 set( UTBUILDERLAUNCHER ${PROJECT_BINARY_DIR}/UTBuilderLauncher )
 file(WRITE  ${UTBUILDERLAUNCHER} "#! /bin/bash \n\n")
-file(APPEND ${UTBUILDERLAUNCHER} "TEMPLATE_DIR=${CMAKE_INSTALL_PREFIX}\n")
+file(APPEND ${UTBUILDERLAUNCHER} "TEMPLATE_DIR=${CMAKE_INSTALL_PREFIX}/Template\n")
 file(APPEND ${UTBUILDERLAUNCHER} "UTBuilder $@" )
 
 

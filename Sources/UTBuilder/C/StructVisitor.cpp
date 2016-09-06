@@ -2,13 +2,13 @@
 
 #include <boost/filesystem.hpp>
 
-#include "utils.h"
+#include "Results.h"
 
 
 StructVisitor::StructVisitor(clang::ASTContext* context, std::string fileName)
 : Visitor(context, fileName)
 {
-  results::get().structDecls.clear();
+
 }
 
 

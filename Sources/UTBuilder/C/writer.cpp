@@ -7,6 +7,7 @@
 
 #include "writer.h"
 #include "utils.h"
+#include "Results.h"
 
 #include <boost/filesystem/convenience.hpp>
 #include <clang/AST/Decl.h>
@@ -24,224 +25,85 @@ using Plustache::Context;
 using Plustache::template_t;
 
 
-
-std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::set<std::string>                  &includePaths,
-                                                                    const std::set<const clang::FunctionDecl*>   &funcDecls,
-                                                                    const std::string                            &fileName,
-                                                                    const clang::SourceManager                   &sourceMgr){
-   
-   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
-   
-   ObjectType            Include;
-   ObjectType            Mock;
-   std::ostringstream    out;
-   
-   for(auto iter : includePaths){
-      Include["include"] = iter;
-      context->add("includes", Include);      
-   }
-   
-
-   for ( auto iter : funcDecls ) {
-      Writer::MockFunctionFFF( iter, out, sourceMgr);
-      Mock["definition"] = out.str();
-      context->add("mocks", Mock);
-      out.str("");
-   }
-   
-   context->add("filename", fileName);
-   context->add("newline", "\n");
-   
-   return context;
-}
-
-
-
-void Writer::WriteTemplate(std::shared_ptr<const Plustache::Context>      context,
-                                 const std::string& templateFileName,
-                                 const std::string                      &outFileName){
-   template_t     t;
-   stringstream   buffer;
-   string         result;
-   
-   boost::filesystem::path full_path( boost::filesystem::current_path() );
-   
-   std::cout << full_path.string();
-   
-   ifstream template_file(templateFileName);
-   
-   if (template_file.fail() )
-   {
-      std::cout << "template file for mock functions not found";
-      return;
-   }
-   
-   buffer << template_file.rdbuf();
-   string         template_buff(buffer.str());
-   
-   result = t.render(template_buff, *context);
-  
-   std::ofstream outputFile;   
-   std::string outputFileName = outFileName;   
-   outputFile.open( outputFileName, std::fstream::out );
-   outputFile << result;
-   outputFile.close();
-  
-   std::cout << "file written: " << outputFileName << std::endl;
-}
-
-
-
-void Writer::MockFunctionFFF(const clang::FunctionDecl   *funcDecl,
-                             std::ostringstream          &out,
-                             const clang::SourceManager  &sourceMgr){
-   
-   // get declaration source location
-   const clang::SourceLocation declSrcLoc = funcDecl->getSourceRange().getBegin();
-   // this way append the row and column to the name string
-   const std::string declSrcFile = declSrcLoc.printToString(sourceMgr);
-
-   out << "/**" <<std::endl;
-   out << " * name: " << funcDecl->getNameInfo().getName().getAsString() << std::endl;
-   out << " * file: " << declSrcFile << std::endl;
-   out << " */" << std::endl;   
-   
-   std::string returnType = funcDecl->getReturnType().getAsString();
-
-   std::string isVariadic;
-
-   if ( funcDecl->isVariadic() )
-      isVariadic = "_VARARG";
-
-   if ( returnType == "void" ){
-      out << "FAKE_VOID_FUNC" << isVariadic << "( ";
-   } else {
-      out << "FAKE_VALUE_FUNC" << isVariadic << "( " << returnType << ", ";
-   }
-   
-
-   out << funcDecl->getNameInfo().getName().getAsString();
-       
-   const int numParms = funcDecl->getNumParams();           
-
-   for ( int i=0; i<numParms; ++i)
-   {
-      const clang::ParmVarDecl* _currentParam = funcDecl->getParamDecl(i);
-      out << ", " << _currentParam->getType().getAsString(); 
-   }
-
-   if ( funcDecl->isVariadic() )
-      out << ", ...";
-
-   out <<" );";
-
-   out << std::endl;
-
-}
-
-
-
-void Writer::CreateMockFile(const std::string& fileName, const clang::SourceManager& sourceMgr)
+Writer::Writer( const std::string&            fileName,
+	const clang::SourceManager&   sourceMgr)
+: _fileName(fileName)
+, _sourceMgr(sourceMgr)
 {
-   std::ostringstream out;
-   std::set<std::string> includePaths;
-
-   // look for paths to include in the mock file
-   for ( auto funcDecl : results::get().functionDecls )
-   {
-      // get declaration source location
-      const clang::SourceLocation declSrcLoc = funcDecl->getSourceRange().getBegin();
-      const std::string declSrcFile = sourceMgr.getFilename(declSrcLoc).str();
-
-      boost::filesystem::path p(declSrcFile);
-
-      includePaths.insert( p.filename().string() );
-   }
-
-   std::shared_ptr<const Plustache::Context> context = CreateMockContext(includePaths, results::get().functionDecls, fileName, sourceMgr);
-
-   Writer::WriteTemplate(context, std::string(std::getenv("TEMPLATE_DIR"))+std::string("/mock.template"), fileName + "-mocks.h");
-   
 }
 
-
-
-std::shared_ptr<const Plustache::Context> Writer::CreateUnitTestContext(const std::set<std::string>                  &includePaths,
-                                                                    const std::set<const clang::FunctionDecl*>   &functionToUnitTest,
-                                                                    const std::string                            &fileName,
-                                                                    const clang::SourceManager                   &sourceMgr){
-   
-   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
-   
-   ObjectType            Include;
-   ObjectType            FunctionToUnitTest;
-   
-   for(auto iter : includePaths){
-      Include["include"] = iter;
-      context->add("includes", Include);      
-   }
-   // add mock file in includes list
-   Include["include"] = boost::filesystem::path(fileName).filename().string() + "-mocks.h";
-   context->add("includes", Include); 
-
-   for ( auto iter : functionToUnitTest ) {
-      FunctionToUnitTest["functionName"] = iter->getNameAsString();
-      context->add("functionToUnitTest", FunctionToUnitTest);
-   }
-   
-   // create a C++ class name from the fileName
-   std::string TestFilename = boost::filesystem::path(fileName).filename().string();
-   TestFilename = utils::removeDashes(TestFilename);
-   TestFilename = utils::removeFileExtension(TestFilename);
-   
-   context->add("testFilename", TestFilename);   
-   context->add("filename", fileName);
-   context->add("newline", "\n");
-   
-   return context;
-}
-
-void Writer::CreateUnitTestFile(const std::string& fileName, const clang::SourceManager& sourceMgr)
+void Writer::createFiles(void)
 {
-   std::ostringstream out;
+   CreateMockFile();
+   CreateUnitTestFile();
+   CreateSerializationFile();
+}
 
-   boost::filesystem::path fpathUT(fileName);
-   std::string fnameUT = fpathUT.filename().string();
+
+void Writer::CreateMockFile(void)
+{
 
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for ( auto funcDecl : results::get().functionToUnitTest )
+   for ( auto funcDecl : results::get().functionsToMock )
    {
       // get declaration source location
-      const clang::SourceLocation declSrcLoc = funcDecl->getSourceRange().getBegin();
-      const std::string declSrcFile = sourceMgr.getFilename(declSrcLoc).str();
+      const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
+      
+      includePaths.insert( boost::filesystem::path(declSrcFile).filename().string() );
+   }
 
+   //std::shared_ptr<const Plustache::Context> context = CreateMockContext(includePaths, results::get().functionDecls );
+
+   WriteTemplate( CreateMockContext(includePaths, results::get().functionsToMock ),
+		  std::string(std::getenv("TEMPLATE_DIR"))+std::string("/mock.template"), 
+		  _fileName + "-mocks.h");
+   
+}
+
+
+void Writer::CreateUnitTestFile(void)
+{
+
+   std::string fnameUT = boost::filesystem::path(_fileName).filename().string();
+
+   std::set<std::string> includePaths;
+
+   // look for paths to include in the mock file
+   for ( auto funcDecl : results::get().functionsToUnitTest )
+   {
+      // get declaration source location
+      const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
+      
       boost::filesystem::path p(declSrcFile);
 
       includePaths.insert( utils::changeFileExtension(p.filename().string(), "h") );
    }
 
-   std::shared_ptr<const Plustache::Context> context = CreateUnitTestContext(includePaths, results::get().functionToUnitTest, fileName, sourceMgr);
    
-   Writer::WriteTemplate(context, std::string(std::getenv("TEMPLATE_DIR"))+std::string("/UT.template"), fileName + "-ugtest.c" );
+   //std::shared_ptr<const Plustache::Context> context = CreateUnitTestContext(includePaths, results::get().functionsToUnitTest );
+   
+   WriteTemplate( CreateUnitTestContext(includePaths, results::get().functionsToUnitTest ), 
+		  std::string(std::getenv("TEMPLATE_DIR"))+std::string("/UT.template"), 
+		  _fileName + "-ugtest.c" );
  
 }
 
 
-void Writer::CreateSerializationFile(const std::string& fileName, const clang::SourceManager& sourceMgr){
+void Writer::CreateSerializationFile(void){
    std::ostringstream out;
 
-   boost::filesystem::path fpathUT(fileName);
+   boost::filesystem::path fpathUT(_fileName);
    std::string fnameUT = fpathUT.filename().string();
 
    std::set<std::string> includePaths;
 
    for ( auto typedefDecl : results::get().typedefNameDecls )
    {
-      // get declaration source location
-      const clang::SourceLocation declSrcLoc = typedefDecl->getSourceRange().getBegin();
-      const std::string declSrcFile = sourceMgr.getFilename(declSrcLoc).str();
+      // get declaration source location      
+      const std::string declSrcFile = utils::getDeclSourceFile(typedefDecl, _sourceMgr);
+      
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
       
       if ( !includeFile.empty() )
@@ -253,8 +115,8 @@ void Writer::CreateSerializationFile(const std::string& fileName, const clang::S
    for ( auto structDecl : results::get().structDecls )
    {
       // get declaration source location
-      const clang::SourceLocation declSrcLoc = structDecl->getSourceRange().getBegin();
-      const std::string declSrcFile = sourceMgr.getFilename(declSrcLoc).str();
+      const std::string declSrcFile = utils::getDeclSourceFile(structDecl, _sourceMgr);
+      
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
       
       if ( !includeFile.empty() )
@@ -286,11 +148,8 @@ void Writer::CreateSerializationFile(const std::string& fileName, const clang::S
    {
       const clang::QualType typedefQualType = typedefDecl->getUnderlyingType(); // ->getCanonicalTypeInternal();
       
-       // get declaration source location
-      const clang::SourceLocation declSrcLoc = typedefDecl->getSourceRange().getBegin();
-      
-      // this way append the row and column to the name string
-      const std::string declSrcFile = declSrcLoc.printToString(sourceMgr);
+      // appends the row and column to the name string
+      const std::string declSrcFile = utils::getDeclSourceFileLine(typedefDecl, _sourceMgr);
 
       out << "/**" <<std::endl;
       out << " * name: " << typedefDecl->getNameAsString() << std::endl;
@@ -348,7 +207,7 @@ void Writer::CreateSerializationFile(const std::string& fileName, const clang::S
    
    
    std::ofstream outputFile;
-   std::string outputFileName = fileName + "-serializer.h";
+   std::string outputFileName = _fileName + "-serializer.h";
    outputFile.open( outputFileName, std::fstream::out );
    outputFile << out.str();
    outputFile.close();
@@ -356,4 +215,153 @@ void Writer::CreateSerializationFile(const std::string& fileName, const clang::S
    std::cout << "file written: " << outputFileName << std::endl;
 
 }
+
+
+std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::set<std::string>                  &includePaths,
+                                                                    const std::set<const clang::FunctionDecl*>   &funcDecls ){
+   
+   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
+   
+   ObjectType            Include;
+   ObjectType            Mock;
+   std::ostringstream    out;
+   
+   for(auto iter : includePaths){
+      Include["include"] = iter;
+      context->add("includes", Include);      
+   }
+   
+
+   for ( auto iter : funcDecls ) {
+     
+      MockFunctionFFF( iter, out );
+      Mock["definition"] = out.str();
+      context->add("mocks", Mock);
+      out.str("");
+   }
+   
+   context->add("filename", _fileName);
+   context->add("newline", "\n");
+   
+   return context;
+}
+
+
+std::shared_ptr<const Plustache::Context> Writer::CreateUnitTestContext(const std::set<std::string>                  &includePaths,
+									const std::set<const clang::FunctionDecl*>   &functionToUnitTest ){
+   
+   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
+   
+   ObjectType            Include;
+   ObjectType            FunctionToUnitTest;
+   
+   for(auto iter : includePaths){
+      Include["include"] = iter;
+      context->add("includes", Include);      
+   }
+   // add mock file in includes list
+   Include["include"] = boost::filesystem::path(_fileName).filename().string() + "-mocks.h";
+   context->add("includes", Include); 
+
+   for ( auto iter : functionToUnitTest ) {
+      FunctionToUnitTest["functionName"] = iter->getNameAsString();
+      context->add("functionToUnitTest", FunctionToUnitTest);
+   }
+   
+   // create a C++ class name from the fileName
+   std::string TestFilename = boost::filesystem::path(_fileName).filename().string();
+   TestFilename = utils::removeDashes(TestFilename);
+   TestFilename = utils::removeFileExtension(TestFilename);
+   
+   context->add("testFilename", TestFilename);   
+   context->add("filename", _fileName);
+   context->add("newline", "\n");
+   
+   return context;
+}
+
+
+void Writer::WriteTemplate(std::shared_ptr<const Plustache::Context>      context,
+                                 const std::string& templateFileName,
+                                 const std::string                      &outFileName){
+   template_t     t;
+   stringstream   buffer;
+   string         result;
+   
+   boost::filesystem::path full_path( boost::filesystem::current_path() );
+   
+   std::cout << full_path.string();
+   
+   ifstream template_file(templateFileName);
+   
+   if (template_file.fail() )
+   {
+      std::cout << "template file for mock functions not found";
+      return;
+   }
+   
+   buffer << template_file.rdbuf();
+   string         template_buff(buffer.str());
+   
+   result = t.render(template_buff, *context);
+  
+   std::ofstream outputFile;   
+   std::string outputFileName = outFileName;   
+   outputFile.open( outputFileName, std::fstream::out );
+   outputFile << result;
+   outputFile.close();
+  
+   std::cout << "file written: " << outputFileName << std::endl;
+}
+
+
+
+void Writer::MockFunctionFFF(const clang::FunctionDecl   *funcDecl,
+                             std::ostringstream          &out ){
+   
+   // get declaration source location
+   // appends the row and column to the name string
+   const std::string declSrcFile = utils::getDeclSourceFileLine(funcDecl, _sourceMgr);
+   
+   
+   out << "/**" <<std::endl;
+   out << " * name: " << funcDecl->getNameInfo().getName().getAsString() << std::endl;
+   out << " * file: " << declSrcFile << std::endl;
+   out << " */" << std::endl;   
+   
+   std::string returnType = funcDecl->getReturnType().getAsString();
+
+   std::string isVariadic;
+
+   if ( funcDecl->isVariadic() )
+      isVariadic = "_VARARG";
+
+   if ( returnType == "void" ){
+      out << "FAKE_VOID_FUNC" << isVariadic << "( ";
+   } else {
+      out << "FAKE_VALUE_FUNC" << isVariadic << "( " << returnType << ", ";
+   }
+   
+
+   out << funcDecl->getNameInfo().getName().getAsString();
+       
+   const int numParms = funcDecl->getNumParams();           
+
+   for ( int i=0; i<numParms; ++i)
+   {
+      const clang::ParmVarDecl* _currentParam = funcDecl->getParamDecl(i);
+      out << ", " << _currentParam->getType().getAsString(); 
+   }
+
+   if ( funcDecl->isVariadic() )
+      out << ", ...";
+
+   out <<" );";
+
+   out << std::endl;
+
+}
+
+
+
 

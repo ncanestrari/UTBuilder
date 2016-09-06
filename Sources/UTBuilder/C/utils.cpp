@@ -1,6 +1,10 @@
 #include "utils.h"
 
+#include "Results.h"
+
 #include <clang/AST/Decl.h>
+#include <clang/AST/Stmt.h>
+
 #include <boost/filesystem/convenience.hpp>
 
 
@@ -50,7 +54,7 @@ void utils::fillFunctionQualTypes(void)
    
    //canonical Types: http://clang.llvm.org/docs/InternalsManual.html#canonical-types
    
-   for ( const clang::FunctionDecl* funcDecl : results::get().functionDecls )
+   for ( const clang::FunctionDecl* funcDecl : results::get().functionsToMock )
    {
       const clang::QualType returnType = funcDecl->getReturnType();
       
@@ -68,7 +72,7 @@ void utils::fillFunctionQualTypes(void)
    }
    
    
-   for ( const clang::FunctionDecl* funcDecl : results::get().functionToUnitTest )
+   for ( const clang::FunctionDecl* funcDecl : results::get().functionsToUnitTest )
    {
       const clang::QualType returnType = funcDecl->getReturnType();
       
@@ -84,4 +88,34 @@ void utils::fillFunctionQualTypes(void)
       }
    }
    
+}
+
+
+const char* utils::getDeclSourceFile( const clang::Decl* decl, const clang::SourceManager& srcMgr )
+{
+  // source location
+   const clang::SourceLocation srcLoc = decl->getSourceRange().getBegin();
+   return srcMgr.getFilename(srcLoc).str().c_str();
+}
+
+const char* utils::getDeclSourceFileLine( const clang::Decl* decl, const clang::SourceManager& srcMgr )
+{
+   // source location
+   const clang::SourceLocation srcLoc = decl->getSourceRange().getBegin();
+   return srcLoc.printToString(srcMgr).c_str();
+}
+
+
+const char* utils::getStmtSourceFile( const clang::Stmt* stmt, const clang::SourceManager& srcMgr )
+{
+  // source location
+   const clang::SourceLocation srcLoc = stmt->getSourceRange().getBegin();
+   return srcMgr.getFilename(srcLoc).str().c_str();
+}
+
+const char* utils::getStmtSourceFileLine( const clang::Stmt* stmt, const clang::SourceManager& srcMgr )
+{
+   // source location
+   const clang::SourceLocation srcLoc = stmt->getSourceRange().getBegin();
+   return srcLoc.printToString(srcMgr).c_str();
 }

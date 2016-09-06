@@ -17,41 +17,49 @@ namespace Plustache {
 }
 
 class Writer 
-{   
-   
-   static std::shared_ptr<const Plustache::Context> CreateMockContext(  const std::set<std::string>            &includePaths,
-                                                                        const std::set<const clang::FunctionDecl*>   &funcDecls,
-                                                                        const std::string                      &fileName,
-                                                                        const clang::SourceManager             &sourceMgr);
-   
-   static std::shared_ptr<const Plustache::Context> CreateUnitTestContext( const std::set<std::string>            &includePaths,
-                                                                           const std::set<const clang::FunctionDecl*>   &funcDecls,
-                                                                           const std::string                      &fileName,
-                                                                           const clang::SourceManager             &sourceMgr);
+{  
+  
+public:
+  
+   Writer(const std::string&            fileName,
+	  const clang::SourceManager&   sourceMgr);
+  
+   ~Writer() {}
    
    
-   static void MockFunctionFFF(const clang::FunctionDecl* const    funcDecl,
-                               std::ostringstream&           out,
-                               const clang::SourceManager&   sourceMgr);
+   void createFiles();
    
-   static void WriteTemplate(   std::shared_ptr<const Plustache::Context>      context,
+   
+private:  
+   
+   void CreateMockFile(void);
+   
+   void CreateUnitTestFile(void);
+   
+   void CreateSerializationFile(void);
+   
+   
+   
+   std::shared_ptr<const Plustache::Context> CreateMockContext(  const std::set<std::string>            &includePaths,
+                                                                        const std::set<const clang::FunctionDecl*>   &funcDecls );
+   
+   std::shared_ptr<const Plustache::Context> CreateUnitTestContext( const std::set<std::string>            &includePaths,
+                                                                           const std::set<const clang::FunctionDecl*>   &funcDecls );
+   
+   
+   
+   void WriteTemplate(   std::shared_ptr<const Plustache::Context>      context,
                                 const std::string& templateFileName,
                                 const std::string  &outFileName);
    
-public:
    
-   static void CreateMockFile(const std::string&            fileName,
-                              const clang::SourceManager&   sourceMgr);
-   
-   static void CreateUnitTestFile(const std::string&           fileName,
-                                  const clang::SourceManager&  sourceMgr);
-   
-   static void CreateSerializationFile(const std::string&            filename,
-                                       const clang::SourceManager&   sourceMgr);
-  
+   void MockFunctionFFF(const clang::FunctionDecl* const    funcDecl,
+                               std::ostringstream&           out );
    
    
    
+   const std::string  _fileName;
+   const clang::SourceManager&   _sourceMgr;
    
 };
 
