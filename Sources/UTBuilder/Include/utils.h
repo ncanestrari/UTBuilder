@@ -3,6 +3,9 @@
 
 #include <string>
 #include <set>
+#include <vector>
+
+
 
 namespace clang {
    class FunctionDecl;
@@ -39,13 +42,15 @@ class utils
 
 public:
    
+   static std::string extractCommercialCodePath(const std::string& fileNamePath);
+   static std::string extractPackagePath(const std::string& fileNamePath);
    static std::string removeFileExtension(const std::string& fileName);
-
-   static std::string changeFileExtension(const std::string& fileName, const std::string& newExtension);
-
-   static std::string removeDashes( const std::string& fileNamePath);
-   
+   static std::string changeFileExtension(const std::string& fileName,
+                                          const std::string& newExtension);
+   static std::string removeDashes(const std::string& fileNamePath);
+   static std::vector<std::string>* getIncludePaths(const std::string& package);
    static void fillFunctionQualTypes(void);
+
 };
 
 

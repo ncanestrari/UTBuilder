@@ -1,24 +1,28 @@
 
 set ( HEADER_FILES
-   Include/MockVisitor.h
+   Include/Action.h
+   Include/Consumer.h
    Include/FuncUTDefVisitor.h
+   Include/globber.h
+   Include/MockVisitor.h
    Include/StructVisitor.h
    Include/TypedefVisitor.h
+   Include/utils.h
    Include/writer.h
-   Include/Consumer.h
-   Include/Action.h
-   Include/utils.h)
+   )
 
 set ( SOURCE_FILES
    C/main.cpp
-   C/MockVisitor.cpp
+   C/Action.cpp
+   C/Consumer.cpp
    C/FuncUTDefVisitor.cpp
+   C/globber.cpp
+   C/MockVisitor.cpp
    C/StructVisitor.cpp
    C/TypedefVisitor.cpp
+   C/utils.cpp 
    C/writer.cpp
-   C/Consumer.cpp
-   C/Action.cpp
-   C/utils.cpp )
+   )
 
 SET( CMAKE_INCLUDE_CURRENT_DIR TRUE )
 
