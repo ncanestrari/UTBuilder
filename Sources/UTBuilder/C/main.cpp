@@ -23,11 +23,12 @@ static llvm::cl::extrahelp additionalHelp("\n .... some more help");
 int main(int argc, const char *argv[])
 {
    string fileNamePath(argv[1]);
+   vector<string> include_folders;
    string comcode = utils::extractCommercialCodePath(fileNamePath);
    string package = utils::extractPackagePath(fileNamePath);
 
-   vector<string>* include_folders = utils::getIncludePaths(comcode+package);
-   for(const auto inc : *include_folders)
+   utils::getIncludePaths(comcode+package, include_folders);
+   for(const auto inc : include_folders)
       cout << inc << "\n";
 
    clang::tooling::CommonOptionsParser _optionParser(argc, argv, testToolCategory);

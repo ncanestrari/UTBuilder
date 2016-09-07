@@ -1,0 +1,5 @@
+#! /bin/bash
+
+TEMPLATE_DIR=${CMAKE_INSTALL_PREFIX}/Template
+UTBuilder $@
+
