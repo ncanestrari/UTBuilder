@@ -2,7 +2,7 @@
 #include "Action.h"
 
 #include "Consumer.h"
-#include "writer.h"
+
 #include "Results.h"
 
 #include <clang/AST/ASTContext.h>
@@ -14,7 +14,7 @@ clang::ASTConsumer* Action::CreateASTConsumer(clang::CompilerInstance& compiler,
 {
    results::get().clear();
   
-   _writer = std::make_shared<Writer>( inFile.str(), getCompilerInstance().getSourceManager() );
+   _writer = std::unique_ptr<Writer>( new Writer(inFile.str(), getCompilerInstance().getSourceManager()) );
   
    return new Consumer(  &compiler.getASTContext(), inFile.str() );
 }

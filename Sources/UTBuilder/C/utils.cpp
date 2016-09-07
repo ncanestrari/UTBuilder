@@ -28,8 +28,9 @@ string utils::extractPackagePath(const string& fileNamePath){
 }
 
 
-vector<string>* utils::getIncludePaths(const string& package){
-   vector<string> *include_folders = new vector<string>(0);
+void utils::getIncludePaths(std::vector<std::string>& include_folders, const string& package){
+   
+   include_folders.clear();
    string repo(package);
    //now str is the Repository
    const string matchers_[] = { "/Sources/*/Include/", "/Input_API/*/API/", "/Input_API/*/API/*/" };
@@ -37,13 +38,13 @@ vector<string>* utils::getIncludePaths(const string& package){
    for( const auto matcher : matchers ){
       string path = repo + matcher;
       vector<string> ret = glob(path);
-      include_folders->insert(include_folders->end(), ret.begin(), ret.end());
+      include_folders.insert(include_folders.end(), ret.begin(), ret.end());
    }
    
-   for( string &str : *include_folders )
-      str.insert(0,"-I");
+   //for( string &str : include_folders )
+      //str.insert(0,"-I");
 
-   return include_folders;
+   return;
 }
 
 

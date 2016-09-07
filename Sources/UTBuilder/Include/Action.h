@@ -1,7 +1,10 @@
 #ifndef __ACTION_H__
 #define __ACTION_H__
 
+#include "writer.h"
+
 #include <clang/Frontend/FrontendAction.h>
+
 
 class Writer;
 
@@ -22,7 +25,7 @@ public:
    
 private:
   
-    std::shared_ptr<Writer> _writer;
+    std::unique_ptr<Writer> _writer;
     
 };
 

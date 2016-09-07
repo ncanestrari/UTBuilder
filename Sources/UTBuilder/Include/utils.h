@@ -24,7 +24,7 @@ public:
    static std::string changeFileExtension(const std::string& fileName,
                                           const std::string& newExtension);
    static std::string removeDashes(const std::string& fileNamePath);
-   static std::vector<std::string>* getIncludePaths(const std::string& package);
+   static void getIncludePaths(std::vector<std::string>& paths, const std::string& package);
    static void fillFunctionQualTypes(void);
    static const char* getDeclSourceFile( const clang::Decl* decl, const clang::SourceManager& srcMgr );
    // append the row and column to the file name name string 
