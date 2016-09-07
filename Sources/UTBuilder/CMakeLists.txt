@@ -74,10 +74,9 @@ set( TEMPLATE_DIR
    ${UTBuilder_SOURCE_DIR}/Template )
 
 #create launcher
+set( UTBUILDERTEMPLATE ${UTBuilder_SOURCE_DIR}/cmake/launcher.cmake-template )
 set( UTBUILDERLAUNCHER ${PROJECT_BINARY_DIR}/UTBuilderLauncher )
-file(WRITE  ${UTBUILDERLAUNCHER} "#! /bin/bash \n\n")
-file(APPEND ${UTBUILDERLAUNCHER} "TEMPLATE_DIR=${CMAKE_INSTALL_PREFIX}/Template\n")
-file(APPEND ${UTBUILDERLAUNCHER} "UTBuilder $@\n" )
+configure_file( ${UTBUILDERTEMPLATE} ${UTBUILDERLAUNCHER} )
 
 
 # install 

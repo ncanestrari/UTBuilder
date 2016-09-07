@@ -33,9 +33,9 @@ static llvm::cl::extrahelp additionalHelp("\n .... some more help");
 int main(int argc, const char *argv[])
 {
    string fileNamePath(argv[1]);
+   vector<string> include_folders;
    string comcode = utils::extractCommercialCodePath(fileNamePath);
    string package = utils::extractPackagePath(fileNamePath);
-
 
    /*
    vector<string> argument_list;
@@ -57,7 +57,7 @@ int main(int argc, const char *argv[])
    */
    
    vector<string> includePaths;
-   utils::getIncludePaths(includePaths, comcode+package);
+   utils::getIncludePaths( comcode+package, includePaths );
    
    // CompilerInstance
    clang::CompilerInstance compiler;

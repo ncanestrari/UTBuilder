@@ -9,6 +9,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_INSTALL_PREFIX /opt/UTBuilder)
 
-subdirs(Sources/Plustache)
-subdirs(Sources/UTBuilder)
+add_subdirectory(Sources/Plustache)
+add_subdirectory(Sources/UTBuilder)
 

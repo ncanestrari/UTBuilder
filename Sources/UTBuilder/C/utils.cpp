@@ -28,8 +28,10 @@ string utils::extractPackagePath(const string& fileNamePath){
 }
 
 
-void utils::getIncludePaths(std::vector<std::string>& include_folders, const string& package){
-   
+
+void utils::getIncludePaths(const string   &package,
+                            vector<string> &include_folders){
+
    include_folders.clear();
    string repo(package);
    //now str is the Repository
