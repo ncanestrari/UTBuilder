@@ -10,6 +10,7 @@
 
 namespace clang {
    class FunctionDecl;
+   class TypedefNameDecl;
 }
 
 namespace Plustache {
@@ -46,6 +47,9 @@ private:
    std::shared_ptr<const Plustache::Context> CreateUnitTestContext( const std::set<std::string>            &includePaths,
                                                                            const std::set<const clang::FunctionDecl*>   &funcDecls );
    
+   
+   std::shared_ptr<const Plustache::Context> CreateSerializationContext( const std::set<std::string>            &includePaths,
+                                                                         const std::set<const clang::TypedefNameDecl*>&   typedefNameDecls );
    
    
    void WriteTemplate(   std::shared_ptr<const Plustache::Context>      context,

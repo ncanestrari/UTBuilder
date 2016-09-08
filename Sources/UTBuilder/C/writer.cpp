@@ -206,6 +206,11 @@ void Writer::CreateSerializationFile(void){
    }
    
    
+   WriteTemplate( CreateSerializationContext(includePaths, results::get().typedefNameDecls ), 
+                  std::string(std::getenv("TEMPLATE_DIR"))+std::string("/serialization.template"), 
+                  _fileName + "-serialization.h" );
+   
+   
    std::ofstream outputFile;
    std::string outputFileName = _fileName + "-serializer.h";
    outputFile.open( outputFileName, std::fstream::out );
@@ -276,6 +281,123 @@ std::shared_ptr<const Plustache::Context> Writer::CreateUnitTestContext(const st
    context->add("testFilename", TestFilename);   
    context->add("filename", _fileName);
    context->add("newline", "\n");
+   
+   return context;
+}
+
+
+std::shared_ptr<const Plustache::Context> Writer::CreateSerializationContext(
+   const std::set<std::string>                  &includePaths, 
+   const std::set<const clang::TypedefNameDecl*>&   typedefNameDecls ) {
+
+   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
+                
+   PlustacheTypes::ObjectType            Include;
+   PlustacheTypes::ObjectType            objectToSerialize;
+
+   
+   std::ostringstream    out;
+   
+   context->add("filename", _fileName);
+   context->add("newline", "\n");
+   context->add("indent", "   ");
+   
+   for(auto iter : includePaths){
+      Include["include"] = iter;
+      context->add("includes", Include);      
+   }
+   
+
+   for ( auto typedefDecl : typedefNameDecls  )
+   {
+      
+      objectToSerialize.clear();
+      
+      const clang::QualType typedefQualType = typedefDecl->getUnderlyingType(); // ->getCanonicalTypeInternal();
+      
+      // appends the row and column to the name string
+      const std::string declSrcFile = utils::getDeclSourceFileLine(typedefDecl, _sourceMgr);
+
+      objectToSerialize["name"] = typedefDecl->getNameAsString();
+      objectToSerialize["file"] = declSrcFile;         
+     
+         
+      if( const clang::RecordType* structType = typedefQualType->getAsStructureType() ){
+
+         
+         const clang::RecordDecl* structDecl = structType->getDecl();
+//          out << "typedef struct " << structDecl->getNameAsString() << "\n{\n";
+      
+         objectToSerialize["typedefStructName"] = structDecl->getNameAsString();
+         
+         out.str("");
+         
+         for ( const auto field : structDecl->fields() ){
+
+            out << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << ";\n";
+         }
+      
+         objectToSerialize["fieldsToSerialize"] = out.str();
+         
+         objectToSerialize["typedefStructDeclName"] = typedefDecl->getNameAsString();
+      
+//          out << "} " << typedefDecl->getNameAsString() << ";\n\n";
+
+         //context->add( "fieldsToSerialize", structToSerialize);
+         context->add( "structsToSerialize", objectToSerialize);
+         
+      }
+      
+      else if ( const clang::EnumType* enumType = typedefQualType->getAs<clang::EnumType>() ) {
+   
+         
+         const clang::EnumDecl* enumDecl = enumType->getDecl();
+         
+//          out << "typedef enum " << enumDecl->getNameAsString()  << " {\n";
+         objectToSerialize["typedefEnumName"] = enumDecl->getNameAsString();
+         
+         out.str("");
+         
+         for ( auto iter : enumDecl->enumerators() )
+         {
+            out << "   " << iter->getNameAsString() << "\t = " << iter->getInitVal().toString(10) << ",\n";
+         }
+         
+         objectToSerialize["valuesToSerialize"] = out.str();
+         
+         const std::string qualTypeName = typedefQualType.getAsString();
+         
+         const clang::QualType canonicalQualType = typedefQualType->getCanonicalTypeInternal();
+         const std::string canonicalTypeName = canonicalQualType.getAsString();
+         
+         objectToSerialize["typedefEnumDeclName"] = canonicalTypeName;
+      
+         context->add("enumsToSerialize", objectToSerialize);
+//          out << "} " << canonicalTypeName << ";\n\n";         
+      }
+      
+      else if ( const clang::TypedefType* typedefType = typedefQualType->getAs<clang::TypedefType>() ) {
+         
+         const clang::TypedefNameDecl* typedefDecl = typedefType->getDecl();
+         
+         const clang::QualType canonicalQualType = typedefType->getCanonicalTypeInternal();
+         const std::string canonicalTypeName = canonicalQualType.getAsString();
+         
+         objectToSerialize["typedefType"] = canonicalTypeName;
+         objectToSerialize["typedefDeclName"] = typedefDecl->getNameAsString();
+         
+         context->add("typedefToSerialize", objectToSerialize);
+         
+      }
+
+      else if ( const clang::BuiltinType* typedefType = typedefQualType->getAs<clang::BuiltinType>() ) {
+
+         objectToSerialize["typedefType"] = typedefQualType.getAsString();
+         objectToSerialize["typedefDeclName"] = typedefDecl->getNameAsString();
+         
+         context->add("typedefToSerialize", objectToSerialize);
+      }
+   }
    
    return context;
 }
