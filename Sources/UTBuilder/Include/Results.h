@@ -30,7 +30,7 @@ public:
    std::set<const clang::RecordDecl*>        structDecls;
  
    std::set<const clang::TypedefNameDecl*>   typedefNameDecls;
-   std::set<std::string>                     includesForUT;
+   std::set<std::string>                     includesForUnitTest;
    
    std::set<const clang::Type*>              functionDeclTypes;
 };

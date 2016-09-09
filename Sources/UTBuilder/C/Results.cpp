@@ -15,7 +15,7 @@ void results::clear()
    functionsToUnitTest.clear();
    structDecls.clear();
    typedefNameDecls.clear();
-   includesForUT.clear();
+   includesForUnitTest.clear();
    functionDeclTypes.clear();     
 }
 

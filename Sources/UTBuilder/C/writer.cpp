@@ -125,100 +125,16 @@ void Writer::CreateSerializationFile(void){
       }
    }
 
-
-   out << "/* @owner \\TODO */\n";
-   out << "/**\n";
-   out << " * @file  " << fnameUT << "-serializer.h \n";
-   out << " * @brief \\TODO.\n";
-   out << " *\n";
-   out << " * @copyright Copyright of this program is the property of AMADEUS, without\n";
-   out << " * whose written permission reproduction in whole or in part is prohibited.\n";
-   out << " *\n";
-   out << " */\n\n";
-
-   out << "extern \"C\"{\n";
-   for ( auto include : includePaths ){
-      out << "#include \"" << include <<  "\"\n";
-   }
-   out << "}\n\n\n";
-   
-   
-   
-   for ( auto typedefDecl : results::get().typedefNameDecls )
-   {
-      const clang::QualType typedefQualType = typedefDecl->getUnderlyingType(); // ->getCanonicalTypeInternal();
-      
-      // appends the row and column to the name string
-      const std::string declSrcFile = utils::getDeclSourceFileLine(typedefDecl, _sourceMgr);
-
-      out << "/**" <<std::endl;
-      out << " * name: " << typedefDecl->getNameAsString() << std::endl;
-      out << " * file: " << declSrcFile << std::endl;
-      out << " */" << std::endl;
-         
-     
-      if( const clang::RecordType* structType = typedefQualType->getAsStructureType() ){
-
-         const clang::RecordDecl* structDecl = structType->getDecl();
-         out << "typedef struct " << structDecl->getNameAsString() << "\n{\n";
-      
-         for ( const auto field : structDecl->fields() ){
-            out << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << "\n";
-         }
-      
-         out << "} " << typedefDecl->getNameAsString() << ";\n\n";
-      }
-      
-      else if ( const clang::EnumType* enumType = typedefQualType->getAs<clang::EnumType>() ) {
-   
-         const clang::EnumDecl* enumDecl = enumType->getDecl();
-         
-         out << "typedef enum " << enumDecl->getNameAsString()  << " {\n";
-         
-         for ( auto iter : enumDecl->enumerators() )
-         {
-            out << "   " << iter->getNameAsString() << "\t = " << iter->getInitVal().toString(10) << ",\n";
-         }
-         
-         const std::string qualTypeName = typedefQualType.getAsString();
-         
-         const clang::QualType canonicalQualType = typedefQualType->getCanonicalTypeInternal();
-         const std::string canonicalTypeName = canonicalQualType.getAsString();
-         
-         out << "} " << canonicalTypeName << ";\n\n";         
-      }
-      
-      else if ( const clang::TypedefType* typedefType = typedefQualType->getAs<clang::TypedefType>() ) {
-         
-         const clang::TypedefNameDecl* typedefDecl = typedefType->getDecl();
-         
-         const clang::QualType canonicalQualType = typedefType->getCanonicalTypeInternal();
-         const std::string canonicalTypeName = canonicalQualType.getAsString();
-         
-         out << "typedef " << canonicalTypeName << " " << typedefDecl->getNameAsString()  << "\n\n";
-         
-      }
-
-      else if ( const clang::BuiltinType* typedefType = typedefQualType->getAs<clang::BuiltinType>() ) {
-         out << "typedef " << typedefQualType.getAsString() << " " << typedefDecl->getNameAsString()  << ";\n\n";
-      }
-      
-   }
-   
    
    WriteTemplate( CreateSerializationContext(includePaths, results::get().typedefNameDecls ), 
                   std::string(std::getenv("TEMPLATE_DIR"))+std::string("/serialization.template"), 
                   _fileName + "-serialization.h" );
-   
-   
-   std::ofstream outputFile;
-   std::string outputFileName = _fileName + "-serializer.h";
-   outputFile.open( outputFileName, std::fstream::out );
-   outputFile << out.str();
-   outputFile.close();
 
-   std::cout << "file written: " << outputFileName << std::endl;
-
+   
+   WriteTemplate( CreateSerializationStructuresContext(includePaths, results::get().functionsToUnitTest ), 
+                  std::string(std::getenv("TEMPLATE_DIR"))+std::string("/serialization-struct.template"), 
+                  _fileName + "-serialization-struct.h" );
+   
 }
 
 
@@ -402,6 +318,60 @@ std::shared_ptr<const Plustache::Context> Writer::CreateSerializationContext(
    return context;
 }
 
+
+
+std::shared_ptr<const Plustache::Context> Writer::CreateSerializationStructuresContext(const std::set<std::string>& includePaths,
+                                                                        const std::set<const clang::FunctionDecl*>& functionToUnitTest ){
+   
+   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
+   
+   ObjectType            Include;
+   ObjectType            paramsStructsObject;
+   std::ostringstream    out;
+ 
+   
+   for(auto iter : includePaths){
+      Include["include"] = iter;
+      context->add("includes", Include);      
+   }
+
+   
+//    context->add("testFilename", TestFilename);   
+   context->add("filename", _fileName);
+   context->add("newline", "\n");
+   
+   
+   
+   // write function support structures
+   for ( auto funcDecl : results::get().functionsToUnitTest )
+   {
+      // get declaration source location
+//       const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
+//       boost::filesystem::path p(declSrcFile);
+//       includePaths.insert( utils::changeFileExtension(p.filename().string(), "h") );
+      
+      paramsStructsObject["functionName"] = funcDecl->getNameInfo().getName().getAsString();
+      
+      std::string returnType = funcDecl->getReturnType().getAsString();
+      paramsStructsObject["returnType"] = returnType;
+      
+      out.str("");
+      const int numParms = funcDecl->getNumParams();           
+
+      for ( int i=0; i<numParms; ++i)
+      {
+         const clang::ParmVarDecl* _currentParam = funcDecl->getParamDecl(i);
+         out << _currentParam->getType().getUnqualifiedType().getAsString() << "\t" << _currentParam->getQualifiedNameAsString() << ";\n   ";
+         
+         //out << _currentParam->getType().getAsString() << "\t" << _currentParam->getQualifiedNameAsString() << ";\n   "; 
+      }
+   
+      paramsStructsObject["paramTypesAndNames"] = out.str();
+      context->add("functionParamsStructs", paramsStructsObject);
+   }   
+   
+   return context;
+}
 
 void Writer::WriteTemplate(std::shared_ptr<const Plustache::Context>      context,
                                  const std::string& templateFileName,

@@ -52,6 +52,10 @@ private:
                                                                          const std::set<const clang::TypedefNameDecl*>&   typedefNameDecls );
    
    
+   std::shared_ptr<const Plustache::Context> CreateSerializationStructuresContext( const std::set<std::string>            &includePaths,
+                                                                          const std::set<const clang::FunctionDecl*>   &funcDecls );
+   
+   
    void WriteTemplate(   std::shared_ptr<const Plustache::Context>      context,
                                 const std::string& templateFileName,
                                 const std::string  &outFileName);

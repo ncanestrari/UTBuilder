@@ -1,0 +1,35 @@
+/* @owner TODO */
+/**
+ * @file  {{filename}} 
+ * @brief TODO.
+ *
+ * @copyright Copyright of this program is the property of AMADEUS, without
+ * whose written permission reproduction in whole or in part is prohibited.
+ *
+ */
+
+
+extern "C"{
+{{# includes}}
+#include "{{include}}" {{newline}}
+{{/ includes}}
+}
+
+
+{{# functionParamsStructs}}
+/**
+ *  structure for {{functionName}} arguments
+ *  file {{functionFileName}}
+ */
+typedef struct {
+
+   {{returnType}} returnValue;     
+   
+   // args
+   {{paramTypesAndNames}}   
+} {{functionName}}_params;
+{{newline}}
+{{newline}}
+{{/ functionParamsStructs}}
+
+
