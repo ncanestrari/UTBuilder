@@ -21,11 +21,7 @@ extern "C"{
  *  structure for {{functionName}} arguments
  *  file {{functionFileName}}
  */
-typedef struct {
-
-   {{returnType}} returnValue;     
-   
-   // args
+typedef struct {   
    {{paramTypesAndNames}}   
 } {{functionName}}_params;
 {{newline}}

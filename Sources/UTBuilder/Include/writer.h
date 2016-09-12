@@ -40,6 +40,8 @@ private:
    void CreateSerializationFile(void);
    
    
+   void CreateSerializationJSONfile(void);
+   
    
    std::shared_ptr<const Plustache::Context> CreateMockContext(  const std::set<std::string>            &includePaths,
                                                                         const std::set<const clang::FunctionDecl*>   &funcDecls );
@@ -53,6 +55,9 @@ private:
    
    
    std::shared_ptr<const Plustache::Context> CreateSerializationStructuresContext( const std::set<std::string>            &includePaths,
+                                                                          const std::set<const clang::FunctionDecl*>   &funcDecls );
+   
+   std::shared_ptr<const Plustache::Context> CreateStructuresToSerializeContext( const std::set<std::string>            &includePaths,
                                                                           const std::set<const clang::FunctionDecl*>   &funcDecls );
    
    

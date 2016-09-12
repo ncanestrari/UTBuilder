@@ -9,6 +9,8 @@
 #include "utils.h"
 #include "Results.h"
 
+#include "FuncParamsStructure.h"
+
 #include <boost/filesystem/convenience.hpp>
 #include <clang/AST/Decl.h>
 #include <clang/AST/PrettyPrinter.h>
@@ -130,11 +132,80 @@ void Writer::CreateSerializationFile(void){
                   std::string(std::getenv("TEMPLATE_DIR"))+std::string("/serialization.template"), 
                   _fileName + "-serialization.h" );
 
-   
+   /*
    WriteTemplate( CreateSerializationStructuresContext(includePaths, results::get().functionsToUnitTest ), 
                   std::string(std::getenv("TEMPLATE_DIR"))+std::string("/serialization-struct.template"), 
                   _fileName + "-serialization-struct.h" );
+   */
    
+   WriteTemplate( CreateStructuresToSerializeContext(includePaths, results::get().functionsToUnitTest ), 
+                  std::string(std::getenv("TEMPLATE_DIR"))+std::string("/serialization-struct.template"), 
+                  _fileName + "-serialization-struct.h" );
+   
+   
+//    CreateSerializationJSONfile();
+   
+}
+
+static const char* getStructureField( const clang::QualType& qualType)
+{
+   
+   const clang::RecordType* structType = qualType->getAsStructureType();
+         
+   if ( structType == nullptr )
+   {
+      return qualType.getUnqualifiedType().getAsString().c_str();
+   }
+   
+   /*
+   if ( qualType->isUnionType() == false.
+      return;
+*/
+   const clang::RecordDecl* structDecl = structType->getDecl();
+   
+   std::cout << "struct " << qualType.getAsString() << " { \n";
+   
+   for ( const auto field : structDecl->fields() ){
+
+      std::cout << getStructureField( field->getType() ) << "\t" << field->getNameAsString() << "\n";
+      //out << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << ";\n";
+   }
+         
+   std::cout << "} "; // << qualType.getAsString() << ";\n\n"; // qualType->getCanonicalTypeInternal().getAsString()
+   
+ 
+   return "";
+}
+         
+void Writer::CreateSerializationJSONfile(void)
+{
+   std::vector<FuncParamsStruct> funcParamsStructures;
+   
+   FuncParamsStruct funcParamsStruct;
+   
+   for ( auto funcDecl : results::get().functionsToUnitTest )
+   {
+      
+      funcParamsStruct.clear();
+      
+      funcParamsStruct.setName( funcDecl->getNameAsString().c_str() );
+      funcParamsStruct.setReturnType( funcDecl->getReturnType() );
+
+      const int numParms = funcDecl->getNumParams();           
+      for ( int i=0; i<numParms; ++i)
+      {
+         funcParamsStruct.addParam( funcDecl->getParamDecl(i)->getType() );
+      }
+      
+      funcParamsStructures.push_back(funcParamsStruct);
+   }
+   
+   
+   for (auto iter : funcParamsStructures )
+   {
+      iter.writeAsStruct();
+      iter.serialize();
+   }
 }
 
 
@@ -294,12 +365,13 @@ std::shared_ptr<const Plustache::Context> Writer::CreateSerializationContext(
       
       else if ( const clang::TypedefType* typedefType = typedefQualType->getAs<clang::TypedefType>() ) {
          
-         const clang::TypedefNameDecl* typedefDecl = typedefType->getDecl();
+//          const clang::TypedefNameDecl* typedefDecl = typedefType->getDecl();
          
          const clang::QualType canonicalQualType = typedefType->getCanonicalTypeInternal();
          const std::string canonicalTypeName = canonicalQualType.getAsString();
          
-         objectToSerialize["typedefType"] = canonicalTypeName;
+//          objectToSerialize["typedefType"] = canonicalTypeName;
+         objectToSerialize["typedefType"] = typedefQualType.getAsString();
          objectToSerialize["typedefDeclName"] = typedefDecl->getNameAsString();
          
          context->add("typedefToSerialize", objectToSerialize);
@@ -366,6 +438,63 @@ std::shared_ptr<const Plustache::Context> Writer::CreateSerializationStructuresC
          //out << _currentParam->getType().getAsString() << "\t" << _currentParam->getQualifiedNameAsString() << ";\n   "; 
       }
    
+      paramsStructsObject["paramTypesAndNames"] = out.str();
+      context->add("functionParamsStructs", paramsStructsObject);
+   }   
+   
+   return context;
+}
+
+std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeContext(const std::set<std::string>& includePaths,
+                                                                        const std::set<const clang::FunctionDecl*>& functionToUnitTest ){
+   
+   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
+   
+   ObjectType            Include;
+   ObjectType            paramsStructsObject;
+   std::ostringstream    out;
+ 
+   
+   for(auto iter : includePaths){
+      Include["include"] = iter;
+      context->add("includes", Include);      
+   }
+
+   
+//    context->add("testFilename", TestFilename);   
+   context->add("filename", _fileName);
+   context->add("newline", "\n");
+   
+   
+   // fill the FuncParamsStruct vector
+   std::vector<FuncParamsStruct> funcParamsStructures;
+   
+   FuncParamsStruct funcParamsStruct;
+   
+   for ( auto funcDecl : results::get().functionsToUnitTest )
+   {
+      
+      funcParamsStruct.clear();
+      
+      funcParamsStruct.setName( funcDecl->getNameAsString().c_str() );
+      funcParamsStruct.setReturnType( funcDecl->getReturnType() );
+
+      const int numParms = funcDecl->getNumParams();           
+      for ( int i=0; i<numParms; ++i)
+      {
+         funcParamsStruct.addParam( funcDecl->getParamDecl(i)->getType() );
+      }
+      
+      funcParamsStructures.push_back(funcParamsStruct);
+   }
+   
+   
+   for (auto iter : funcParamsStructures )
+   {      
+      out.str("");
+      out << iter;
+     
+      paramsStructsObject["functionName"] = iter.getName();
       paramsStructsObject["paramTypesAndNames"] = out.str();
       context->add("functionParamsStructs", paramsStructsObject);
    }   
