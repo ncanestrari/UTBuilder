@@ -143,7 +143,7 @@ void Writer::CreateSerializationFile(void){
                   _fileName + "-serialization-struct.h" );
    
    
-//    CreateSerializationJSONfile();
+    CreateSerializationJSONfile();
    
 }
 
@@ -194,7 +194,7 @@ void Writer::CreateSerializationJSONfile(void)
       const int numParms = funcDecl->getNumParams();           
       for ( int i=0; i<numParms; ++i)
       {
-         funcParamsStruct.addParam( funcDecl->getParamDecl(i)->getType() );
+         funcParamsStruct.addParam( funcDecl->getParamDecl(i) );
       }
       
       funcParamsStructures.push_back(funcParamsStruct);
@@ -203,8 +203,8 @@ void Writer::CreateSerializationJSONfile(void)
    
    for (auto iter : funcParamsStructures )
    {
-      iter.writeAsStruct();
       iter.serialize();
+      iter.writeAsStruct();
    }
 }
 
@@ -482,7 +482,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
       const int numParms = funcDecl->getNumParams();           
       for ( int i=0; i<numParms; ++i)
       {
-         funcParamsStruct.addParam( funcDecl->getParamDecl(i)->getType() );
+         funcParamsStruct.addParam( funcDecl->getParamDecl(i) );
       }
       
       funcParamsStructures.push_back(funcParamsStruct);
@@ -497,6 +497,12 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
       paramsStructsObject["functionName"] = iter.getName();
       paramsStructsObject["paramTypesAndNames"] = out.str();
       context->add("functionParamsStructs", paramsStructsObject);
+   }   
+   
+   // temp to test
+   for (auto iter : funcParamsStructures )
+   {      
+      iter.serialize();
    }   
    
    return context;

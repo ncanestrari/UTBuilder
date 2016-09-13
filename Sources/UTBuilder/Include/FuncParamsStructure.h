@@ -1,11 +1,14 @@
 #ifndef _UTBuilder_FuncParamsStructure_h__
 #define _UTBuilder_FuncParamsStructure_h__
 
-#include <clang/AST/Type.h>
+// #include <clang/AST/Type.h>
+#include <clang/AST/Decl.h>
 
 #include <string>
 #include <vector>
 #include <iostream>
+
+#include <json/json.h>
 
 /*
 namespace clang {
@@ -23,20 +26,20 @@ public:
     
     void clear();
     
-    void setName(const char* name);
+    void setName(const char* name) { _name = name; }
     
-    const char* getName(void) const;
+    const char* getName(void) const { return _name.c_str(); }
     
     
-    void setReturnType( const clang::QualType& returnType);
+    void setReturnType( const clang::QualType& returnType) { _returnType = returnType; }
     
-    const clang::QualType& getReturnType(void) const;
+    const clang::QualType& getReturnType(void) const { return _returnType; }
     
-    size_t getNumParams(clang::QualType qualType ) const;
+    size_t getNumParams(void) const { return _args.size(); }
     
-    void addParam(const clang::QualType& qualType );
+    void addParam(const clang::DeclaratorDecl* fieldDecl ) { _args.push_back(fieldDecl); }
     
-    const clang::QualType getParam( const int index ) const;
+    const clang::DeclaratorDecl* getParam( const int index ) const { return _args[index]; }
     
     
     void serialize(void);
@@ -45,18 +48,20 @@ public:
     
 private:
    
-   const std::vector<clang::QualType>& getParams(void) const;
+   const std::vector<const clang::DeclaratorDecl*>& getParams(void) const { return _args; }
    
    static const char* getStructureField( const clang::QualType& qualType);
    
    static const char* getStructureField( std::ostream& os, const clang::QualType& qualType);
+   
+   static void getStructureField( Json::Value& value, const clang::QualType& qualType, const char* fieldName = "\0" );
    
    
    std::string _name;
    
    clang::QualType _returnType;
    
-   std::vector<clang::QualType> _args;
+   std::vector<const clang::DeclaratorDecl*> _args;
    
    friend std::ostream& operator << (std::ostream& os, const FuncParamsStruct& obj);
    

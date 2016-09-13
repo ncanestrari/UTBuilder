@@ -10,5 +10,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_INSTALL_PREFIX /opt/UTBuilder)
 
 add_subdirectory(Sources/Plustache)
+add_subdirectory(Sources/JsonCpp)
 add_subdirectory(Sources/UTBuilder)
 

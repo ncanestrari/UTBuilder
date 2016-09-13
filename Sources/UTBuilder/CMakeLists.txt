@@ -39,6 +39,7 @@ set( CMAKE_INCLUDE_CURRENT_DIR TRUE )
 
 include_directories( ${UTBuilder_SOURCE_DIR}/Sources/Plustache/Include )
 include_directories( ${UTBuilder_SOURCE_DIR}/Sources/UTBuilder/Include )
+include_directories( ${UTBuilder_SOURCE_DIR}/Sources/JsonCpp/Include )
 
 # LLVM package
 find_package ( LLVM REQUIRED CONFIG)
@@ -70,7 +71,7 @@ add_executable( UTBuilder ${SOURCE_FILES} )
 
 # statically link with LibClang
 link_directories("/./usr/lib64")
-target_link_libraries(UTBuilder ${Boost_LIBRARIES} ${LLVM_LIB_LIBRARY} ${CLANG_LIBS} Plustache)
+target_link_libraries(UTBuilder ${Boost_LIBRARIES} ${LLVM_LIB_LIBRARY} ${CLANG_LIBS} Plustache JsonCpp)
 
 set( TEMPLATE_DIR 
    ${UTBuilder_SOURCE_DIR}/Template )
