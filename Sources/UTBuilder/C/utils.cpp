@@ -28,7 +28,6 @@ string utils::extractPackagePath(const string& fileNamePath){
 }
 
 
-
 void utils::getIncludePaths(const string   &package,
                             vector<string> &include_folders){
 
