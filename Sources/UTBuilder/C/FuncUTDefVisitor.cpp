@@ -32,7 +32,11 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl* decl)
       
       // check if the funcDecl is in the input argument file
       if ( declSrcFile.find( _fileName) != std::string::npos )
-         results::get().functionsToUnitTest.insert(func);
+      {
+//          results::get().functionsToUnitTest.insert(func);
+         // add to map with an empty set
+         results::get().functionsToUnitTestMap[func] = FunctionDeclSet();
+      }
    } 
 
    return true;
@@ -60,9 +64,11 @@ bool FuncUTDeclVisitor::VisitDecl(clang::Decl* decl)
       const std::string declSrcFile = utils::getDeclSourceFile( func, _context->getSourceManager());
       
       // check if the funcDecl is in the input argument file    
-      for ( auto funcToUnitTest : results::get().functionsToUnitTest ){
+      for ( auto funcToUnitTest : results::get().functionsToUnitTestMap ){
          
-         if( funcToUnitTest->getNameInfo().getName().getAsString() == func->getNameInfo().getName().getAsString() ){
+         const clang::FunctionDecl* funcDecl = funcToUnitTest.first;
+         
+         if( funcDecl->getNameInfo().getName().getAsString() == func->getNameInfo().getName().getAsString() ){
             boost::filesystem::path p(declSrcFile);
             results::get().includesForUnitTest.insert(p.filename().string());
             break;

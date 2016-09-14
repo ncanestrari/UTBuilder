@@ -81,10 +81,14 @@ string utils::removeDashes( const string& fileNamePath){
 
 
 void utils::fillFunctionQualTypes(void){
+   
    results::get().functionDeclTypes.clear();
    
    //canonical Types: http://clang.llvm.org/docs/InternalsManual.html#canonical-types
-   for ( const clang::FunctionDecl* funcDecl : results::get().functionsToMock ){
+   for ( auto funcToMock : results::get().functionsToMockMap ){
+      
+      const clang::FunctionDecl* funcDecl = funcToMock.first;
+      
       const clang::QualType returnType = funcDecl->getReturnType();
       results::get().functionDeclTypes.insert( returnType->getCanonicalTypeInternal().getTypePtrOrNull() );
       
@@ -96,7 +100,10 @@ void utils::fillFunctionQualTypes(void){
       }
    }
    
-   for ( const clang::FunctionDecl* funcDecl : results::get().functionsToUnitTest ){
+   for ( auto functionToTest : results::get().functionsToUnitTestMap ){
+      
+      const clang::FunctionDecl* funcDecl = functionToTest.first;
+      
       const clang::QualType returnType = funcDecl->getReturnType();
       results::get().functionDeclTypes.insert( returnType->getCanonicalTypeInternal().getTypePtrOrNull() );
          

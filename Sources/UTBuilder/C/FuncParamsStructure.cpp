@@ -49,7 +49,7 @@ void FuncParamsStruct::writeAsStruct(void)
 }
 
 
-void FuncParamsStruct::getStructureField( Json::Value& value, const clang::QualType& qualType, const char* fieldName )
+void FuncParamsStruct::traverseStructureField( Json::Value& value, const clang::QualType& qualType, const char* fieldName )
 {
    const clang::RecordType* structType = qualType->getAsStructureType();
    if ( structType == nullptr )
@@ -72,7 +72,7 @@ void FuncParamsStruct::getStructureField( Json::Value& value, const clang::QualT
          // must be a field
          key = fieldName;
          comment = "// type" + qualType.getAsString() + " (" + canonicalQualType.getAsString() + ") ";
-         value[key] =  "";  
+         value[key] =  ""; 
          value[key].setComment(comment.c_str(), comment.length(), Json::commentAfterOnSameLine);
       }
       
@@ -89,59 +89,71 @@ void FuncParamsStruct::getStructureField( Json::Value& value, const clang::QualT
 //       std::cout << FuncParamsStruct::getStructureField( qualType ) << "\t" << field->getNameAsString() << "\n";
       //out << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << ";\n";
       
-      FuncParamsStruct::getStructureField( value[qualType.getAsString()], field->getType(), field->getNameAsString().c_str() );
+      FuncParamsStruct::traverseStructureField( value[qualType.getAsString()], field->getType(), field->getNameAsString().c_str() );
    }
          
    return;
 }
 
-void FuncParamsStruct::serialize(void)
+void FuncParamsStruct::serializeJson(Json::Value& jsonParent)
 {
-   Json::Value root;
+   Json::Value jsonChild;
    Json::Value retItem;
    Json::Value item;
+   Json::Value mockItem;
    
 //    root["struct"] = _name.append("_params").c_str(); 
    //item["name"] =  _name.c_str();
-   root["functions"]["name"] =  _name.c_str();
+   jsonChild["name"] =  _name.c_str();
    
    
-   FuncParamsStruct::getStructureField(retItem, _returnType );
+   FuncParamsStruct::traverseStructureField(retItem, _returnType );
    
    //retItem["returnValue"] = FuncParamsStruct::getStructureField(_returnType);
-   root["functions"]["tests"][0]["output"] = retItem;
-   root["functions"]["tests"][1]["output"] = retItem;
-  
+   jsonChild["tests"][0]["return"] = retItem;
+   jsonChild["tests"][1]["return"] = retItem;
    
-   //root["struct"]["params"] = Json::Value::nullRef;
+//    jsonRoot["struct"]["params"] = Json::Value::nullRef;
    
-   const char* paramstring = "param";
-   char counterValue[16];
-   
-   std::string valStr;
-   std::string comment;
-   
-//    root["struct"]["params"] = Json::Value::nullRef;
-   
-   for ( int i=0; i< _args.size(); ++i )
+   for ( auto field : _args )
    {
-      FuncParamsStruct::getStructureField(item, _args[i]->getType(), _args[i]->getNameAsString().c_str() );
-      /*
-      const clang::QualType qualType = _args[i]->getType();
-      const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
-      sprintf(counterValue,"%d",i);
-      valStr = paramstring;
-      valStr.append(counterValue);
-      item[_args[i]->getNameAsString()] = "";
-      comment = "// " + valStr + ": type" + qualType.getAsString() + " (" + canonicalQualType.getAsString() + ") ";
-      item[_args[i]->getNameAsString()].setComment(comment.c_str(), comment.length(), Json::commentAfterOnSameLine );
-      */
+      FuncParamsStruct::traverseStructureField(item, field->getType(), field->getNameAsString().c_str() );
    }
-  
-  root["functions"]["tests"][0]["input"] = item;
-  root["functions"]["tests"][1]["input"] = item;
-  
-  std::cout << root;
+   
+   jsonChild["tests"][0]["args"] = item;
+   jsonChild["tests"][1]["args"] = item;
+
+   if ( _mockFunctions.size() > 0 )
+   {
+      std::string key, val;
+      std::string comment;
+      
+      for ( auto mock : _mockFunctions )
+      {
+         key = mock->getNameAsString();
+         val = key + "[0]";
+         mockItem[key] = val;
+      }
+      
+      jsonChild["tests"][0]["mock-funcs"] = mockItem;
+      jsonChild["tests"][1]["mock-funcs"] = mockItem;
+      
+      const std::string mock_comment("// defined in the -mock.json file");
+      jsonChild["tests"][0]["mock-funcs"].setComment( mock_comment.c_str(), mock_comment.length(), Json::commentBefore);
+      jsonChild["tests"][1]["mock-funcs"].setComment( mock_comment.c_str(), mock_comment.length(), Json::commentBefore);
+   }
+      
+    
+      
+   std::string baseComment = "// ";
+   baseComment.append( _name.c_str() );
+   baseComment.append("_test");
+   std::string comment = baseComment + "[0]";
+   jsonChild["tests"][0].setComment(comment.c_str(), comment.length(), Json::commentBefore);
+   comment =  baseComment + "[1]";
+   jsonChild["tests"][1].setComment(comment.c_str(), comment.length(), Json::commentBefore);
+   
+   jsonParent.append( jsonChild );
 }
 
 

@@ -29,10 +29,12 @@ Consumer::Consumer(clang::ASTContext*  context,
 
 void Consumer::HandleTranslationUnit(clang::ASTContext& ctx) 
 {
-   _mockVisitor->TraverseDecl(ctx.getTranslationUnitDecl());
+   
    _defVisitor->TraverseDecl(ctx.getTranslationUnitDecl());
    _declVisitor->TraverseDecl(ctx.getTranslationUnitDecl());
 
+   _mockVisitor->TraverseDecl(ctx.getTranslationUnitDecl());
+   
    // fill the function params set
    utils::fillFunctionQualTypes();
    

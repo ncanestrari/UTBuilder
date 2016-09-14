@@ -48,8 +48,9 @@ void Writer::CreateMockFile(void)
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for ( auto funcDecl : results::get().functionsToMock )
+   for ( auto funcToMock : results::get().functionsToMockMap )
    {
+      const clang::FunctionDecl* funcDecl = funcToMock.first;
       // get declaration source location
       const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
       
@@ -58,7 +59,7 @@ void Writer::CreateMockFile(void)
 
    //std::shared_ptr<const Plustache::Context> context = CreateMockContext(includePaths, results::get().functionDecls );
 
-   WriteTemplate( CreateMockContext(includePaths, results::get().functionsToMock ),
+   WriteTemplate( CreateMockContext(includePaths, results::get().functionsToMockMap ),
 		  std::string(std::getenv("TEMPLATE_DIR"))+std::string("/mock.template"), 
 		  _fileName + "-mocks.h");
    
@@ -73,8 +74,9 @@ void Writer::CreateUnitTestFile(void)
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for ( auto funcDecl : results::get().functionsToUnitTest )
+   for ( auto funcToUnitTest : results::get().functionsToUnitTestMap )
    {
+      const clang::FunctionDecl* funcDecl = funcToUnitTest.first;
       // get declaration source location
       const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
       
@@ -86,7 +88,7 @@ void Writer::CreateUnitTestFile(void)
    
    //std::shared_ptr<const Plustache::Context> context = CreateUnitTestContext(includePaths, results::get().functionsToUnitTest );
    
-   WriteTemplate( CreateUnitTestContext(includePaths, results::get().functionsToUnitTest ), 
+   WriteTemplate( CreateUnitTestContext(includePaths, results::get().functionsToUnitTestMap ), 
 		  std::string(std::getenv("TEMPLATE_DIR"))+std::string("/UT.template"), 
 		  _fileName + "-ugtest.c" );
  
@@ -138,12 +140,13 @@ void Writer::CreateSerializationFile(void){
                   _fileName + "-serialization-struct.h" );
    */
    
-   WriteTemplate( CreateStructuresToSerializeContext(includePaths, results::get().functionsToUnitTest ), 
+   WriteTemplate( CreateStructuresToSerializeContext(includePaths, results::get().functionsToUnitTestMap ), 
                   std::string(std::getenv("TEMPLATE_DIR"))+std::string("/serialization-struct.template"), 
                   _fileName + "-serialization-struct.h" );
    
    
-    CreateSerializationJSONfile();
+    CreateSerializationJsonfile( results::get().functionsToMockMap, "mocks", _fileName + "-mocks");
+    CreateSerializationJsonfile( results::get().functionsToUnitTestMap, "unitTest", _fileName + "-tests", true );
    
 }
 
@@ -177,12 +180,63 @@ static const char* getStructureField( const clang::QualType& qualType)
    return "";
 }
          
-void Writer::CreateSerializationJSONfile(void)
+         
+void Writer::CreateSerializationJsonfile(const FunctionDeclKeySetMap& funcDeclMap, 
+                                         const std::string & objectName, 
+                                         const std::string & outFileName,
+                                         const bool addMocks )
 {
    std::vector<FuncParamsStruct> funcParamsStructures;
    
+   Json::Value jsonRoot;
+   
    FuncParamsStruct funcParamsStruct;
    
+   // functions to mock
+   for ( auto funDecl : funcDeclMap) // results::get().functionsToMock )
+   {
+      const clang::FunctionDecl* decl = funDecl.first;
+      
+      funcParamsStruct.clear();
+      
+      funcParamsStruct.setName( decl->getNameAsString().c_str() );
+      funcParamsStruct.setReturnType( decl->getReturnType() );
+
+      const int numParms = decl->getNumParams();           
+      for ( int i=0; i<numParms; ++i)
+      {
+         funcParamsStruct.addParam( decl->getParamDecl(i) );
+      }
+      
+      if ( addMocks )
+      {
+         const std::set<const clang::FunctionDecl*>& declSet = funDecl.second;
+         
+         for ( auto iter : declSet )
+         {
+            funcParamsStruct.addMockFunction(iter);
+         }
+      }
+      funcParamsStructures.push_back(funcParamsStruct);
+   }
+   
+   
+   for (auto iter : funcParamsStructures )
+   {
+//       iter.serializeJson(jsonRoot["mocks"]["mocks_funcs"]);
+//       iter.serializeJson(jsonRoot[objectName]["funcs"]);
+      iter.serializeJson(jsonRoot[objectName]);
+   }
+   
+   std::ofstream outputFile;   
+   std::string outputFileName = outFileName + ".json";   
+   outputFile.open( outputFileName, std::fstream::out );
+   outputFile << jsonRoot;
+   outputFile.close();
+   
+   
+   /*
+   // functions to test
    for ( auto funcDecl : results::get().functionsToUnitTest )
    {
       
@@ -203,14 +257,26 @@ void Writer::CreateSerializationJSONfile(void)
    
    for (auto iter : funcParamsStructures )
    {
-      iter.serialize();
-      iter.writeAsStruct();
+      iter.serializeJson(jsonRoot["funcs"]["UnitTests"]);
+//       iter.writeAsStruct();
    }
+   
+   
+//    std::ofstream outputFile;   
+   outputFileName = outFileName + "-tests.json";   
+   outputFile.open( outputFileName, std::fstream::out );
+   outputFile << jsonRoot;
+   outputFile.close();
+  */
+   
+   std::cout << "file written: " << outputFileName << std::endl;
+
+   return;
 }
 
 
 std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::set<std::string>                  &includePaths,
-                                                                    const std::set<const clang::FunctionDecl*>   &funcDecls ){
+                                                                    const FunctionDeclKeySetMap   &funcDeclsMap ){
    
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
    
@@ -224,9 +290,10 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
    }
    
 
-   for ( auto iter : funcDecls ) {
+   for ( auto iter : funcDeclsMap ) {
      
-      MockFunctionFFF( iter, out );
+      const clang::FunctionDecl* funcDecl = iter.first;
+      MockFunctionFFF( funcDecl, out );
       Mock["definition"] = out.str();
       context->add("mocks", Mock);
       out.str("");
@@ -240,7 +307,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
 
 
 std::shared_ptr<const Plustache::Context> Writer::CreateUnitTestContext(const std::set<std::string>                  &includePaths,
-									const std::set<const clang::FunctionDecl*>   &functionToUnitTest ){
+									const FunctionDeclKeySetMap   &functionToUnitTestMap ){
    
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
    
@@ -255,8 +322,9 @@ std::shared_ptr<const Plustache::Context> Writer::CreateUnitTestContext(const st
    Include["include"] = boost::filesystem::path(_fileName).filename().string() + "-mocks.h";
    context->add("includes", Include); 
 
-   for ( auto iter : functionToUnitTest ) {
-      FunctionToUnitTest["functionName"] = iter->getNameAsString();
+   for ( auto iter : functionToUnitTestMap ) {
+      const clang::FunctionDecl* funcDecl = iter.first;
+      FunctionToUnitTest["functionName"] = funcDecl->getNameAsString();
       context->add("functionToUnitTest", FunctionToUnitTest);
    }
    
@@ -393,7 +461,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateSerializationContext(
 
 
 std::shared_ptr<const Plustache::Context> Writer::CreateSerializationStructuresContext(const std::set<std::string>& includePaths,
-                                                                        const std::set<const clang::FunctionDecl*>& functionToUnitTest ){
+                                                                        const FunctionDeclKeySetMap   &funcDeclsMap ){
    
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
    
@@ -415,8 +483,9 @@ std::shared_ptr<const Plustache::Context> Writer::CreateSerializationStructuresC
    
    
    // write function support structures
-   for ( auto funcDecl : results::get().functionsToUnitTest )
+   for ( auto iter : funcDeclsMap )
    {
+      const clang::FunctionDecl* funcDecl = iter.first;
       // get declaration source location
 //       const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
 //       boost::filesystem::path p(declSrcFile);
@@ -446,7 +515,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateSerializationStructuresC
 }
 
 std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeContext(const std::set<std::string>& includePaths,
-                                                                        const std::set<const clang::FunctionDecl*>& functionToUnitTest ){
+                                                                        const FunctionDeclKeySetMap   &funcDeclsMap ){
    
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
    
@@ -471,8 +540,9 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
    
    FuncParamsStruct funcParamsStruct;
    
-   for ( auto funcDecl : results::get().functionsToUnitTest )
+   for ( auto iter : funcDeclsMap )
    {
+      const clang::FunctionDecl* funcDecl = iter.first;
       
       funcParamsStruct.clear();
       
@@ -500,11 +570,11 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
    }   
    
    // temp to test
-   for (auto iter : funcParamsStructures )
-   {      
-      iter.serialize();
-   }   
-   
+//    for (auto iter : funcParamsStructures )
+//    {      
+//       iter.serialize();
+//    }   
+//    
    return context;
 }
 

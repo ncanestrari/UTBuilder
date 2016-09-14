@@ -37,12 +37,14 @@ public:
     
     size_t getNumParams(void) const { return _args.size(); }
     
-    void addParam(const clang::DeclaratorDecl* fieldDecl ) { _args.push_back(fieldDecl); }
+    void addParam(const clang::DeclaratorDecl* decl ) { _args.push_back(decl); }
     
     const clang::DeclaratorDecl* getParam( const int index ) const { return _args[index]; }
     
+    void addMockFunction(const clang::DeclaratorDecl* decl) { _mockFunctions.push_back(decl); }
     
-    void serialize(void);
+    
+    void serializeJson(Json::Value& jsonRoot);
     
     void writeAsStruct(void);
     
@@ -54,7 +56,7 @@ private:
    
    static const char* getStructureField( std::ostream& os, const clang::QualType& qualType);
    
-   static void getStructureField( Json::Value& value, const clang::QualType& qualType, const char* fieldName = "\0" );
+   static void traverseStructureField( Json::Value& value, const clang::QualType& qualType, const char* fieldName = "\0" );
    
    
    std::string _name;
@@ -62,6 +64,9 @@ private:
    clang::QualType _returnType;
    
    std::vector<const clang::DeclaratorDecl*> _args;
+
+   std::vector<const clang::DeclaratorDecl*> _mockFunctions;
+   
    
    friend std::ostream& operator << (std::ostream& os, const FuncParamsStruct& obj);
    

@@ -11,8 +11,8 @@ results& results::get(void) {
    
 void results::clear() 
 {
-   functionsToMock.clear();
-   functionsToUnitTest.clear();
+   functionsToMockMap.clear();
+   functionsToUnitTestMap.clear();
    structDecls.clear();
    typedefNameDecls.clear();
    includesForUnitTest.clear();

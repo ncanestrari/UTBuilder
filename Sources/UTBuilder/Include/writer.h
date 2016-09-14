@@ -7,6 +7,8 @@
 #include <sstream>
 #include <set>
 
+#include "Results.h"
+
 
 namespace clang {
    class FunctionDecl;
@@ -40,14 +42,17 @@ private:
    void CreateSerializationFile(void);
    
    
-   void CreateSerializationJSONfile(void);
+   void CreateSerializationJsonfile(const FunctionDeclKeySetMap& funcDeclMap
+                                    , const std::string & objectName
+                                    , const std::string  &outFileName
+                                    , const bool addMocks = false );
    
    
    std::shared_ptr<const Plustache::Context> CreateMockContext(  const std::set<std::string>            &includePaths,
-                                                                        const std::set<const clang::FunctionDecl*>   &funcDecls );
+                                                                        const FunctionDeclKeySetMap   &funcDeclsMap );
    
    std::shared_ptr<const Plustache::Context> CreateUnitTestContext( const std::set<std::string>            &includePaths,
-                                                                           const std::set<const clang::FunctionDecl*>   &funcDecls );
+                                                                           const FunctionDeclKeySetMap   &funcDeclsMap );
    
    
    std::shared_ptr<const Plustache::Context> CreateSerializationContext( const std::set<std::string>            &includePaths,
@@ -55,10 +60,10 @@ private:
    
    
    std::shared_ptr<const Plustache::Context> CreateSerializationStructuresContext( const std::set<std::string>            &includePaths,
-                                                                          const std::set<const clang::FunctionDecl*>   &funcDecls );
+                                                                          const FunctionDeclKeySetMap   &funcDeclsMap );
    
    std::shared_ptr<const Plustache::Context> CreateStructuresToSerializeContext( const std::set<std::string>            &includePaths,
-                                                                          const std::set<const clang::FunctionDecl*>   &funcDecls );
+                                                                          const FunctionDeclKeySetMap   &funcDeclsMap );
    
    
    void WriteTemplate(   std::shared_ptr<const Plustache::Context>      context,

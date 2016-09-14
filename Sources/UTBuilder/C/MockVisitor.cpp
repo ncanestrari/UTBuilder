@@ -16,6 +16,20 @@ MockVisitor::MockVisitor(clang::ASTContext*   context,
 }
 
 
+bool MockVisitor::VisitDecl(clang::Decl* decl)
+{
+   const clang::FunctionDecl* func = llvm::dyn_cast<clang::FunctionDecl>(decl);
+
+   if (func == nullptr)
+      return true;
+
+   if ( func->hasBody() ){
+     
+      _lastFuncDecl = func;
+   } 
+
+   return true;
+}
 
 bool MockVisitor::VisitCallExpr(clang::CallExpr* funcCall)
 {
@@ -55,7 +69,32 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr* funcCall)
    
    // mock this function
    //std::cout << "accepted" << std::endl;
-   results::get().functionsToMock.insert(funcDecl);
+//    results::get().functionsToMock.insert(funcDecl);
 
+   FunctionDeclKeySetMap::iterator iter = results::get().functionsToMockMap.find(funcDecl); 
+   if ( iter != results::get().functionsToMockMap.end() )
+   {
+      // already in the map. add the caller
+      iter->second.insert(_lastFuncDecl);
+   }
+   else{
+      // insert funcDecl with an empty set of callers
+      results::get().functionsToMockMap[funcDecl] = FunctionDeclSet();
+   }
+   
+   
+   if ( results::get().functionsToUnitTestMap.size() > 0 )
+   {
+      iter = results::get().functionsToUnitTestMap.find(_lastFuncDecl); 
+      if ( iter != results::get().functionsToUnitTestMap.end() )
+      {
+         iter->second.insert( funcDecl );
+      }
+      else{
+         // just a temporary check to debug
+         std::cout <<  funcDecl->getNameAsString() << " mock function caller doesn't need to be tested\n";
+      }
+   }
+   
    return true;
 }
