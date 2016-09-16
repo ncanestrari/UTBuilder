@@ -15,8 +15,69 @@ namespace clang {
 
 typedef std::set<const clang::FunctionDecl*> FunctionDeclSet;
 typedef std::map<const clang::FunctionDecl*, FunctionDeclSet > FunctionDeclKeySetMap;
+
+typedef std::map< std::string, const clang::FunctionDecl* > FunctionNameDeclMap;
    
+
+
+class FunctionsToUnitTest
+{
+   FunctionsToUnitTest(void) {};
+   ~FunctionsToUnitTest(void) {};
    
+public:
+   
+   static FunctionsToUnitTest& get(void);
+   
+   void clear();
+   
+   /**
+    * each key is a FunctionDecl* of functions ro unit test 
+    * each set stores the FunctionDecl* of the mock functions called inside the function to unit test
+    *
+    * this map is filled in two steps
+    * 
+    * 1st step: in FuncUTDefVisitor::VisitDecl
+    * the map is filled with keys of FunctionDecl* to unit test and with empty set value
+    * 
+    * 2nd step: the mockVisitor::VisitCallExpr function
+    * for each key of FunctionDecl* to unit test the set is filled with the FunctionDecl* of functions to mock
+    */
+   FunctionDeclKeySetMap      declKeySetMap; //functionsToUnitTestMap;
+   
+   // only for C: no overloaded and overriden functions
+   FunctionNameDeclMap nameDeclMap; //functionsToUnitTestName;
+   
+};
+
+
+
+class FunctionsToMock
+{
+   FunctionsToMock(void) {};
+   ~FunctionsToMock(void) {};
+   
+public:
+   
+   static FunctionsToMock& get(void);
+   
+   void clear();
+   
+   /**
+    * each key is a FunctionDecl* of mock functions
+    * each set stores the FunctionDecl* of the caller ( all the functions to unit test that call the mock function of the key 
+    * this map is filled in the mockVisitor::VisitCallExpr function
+    */
+   FunctionDeclKeySetMap      declKeySetMap; // functionsToMockMap;
+   
+   // only for C: no overloaded and overriden functions
+   FunctionNameDeclMap nameDeclMap;
+   
+};
+
+
+
+
 class results {
   
    results(void) {};
@@ -36,6 +97,10 @@ public:
     */
    FunctionDeclKeySetMap      functionsToMockMap;
    
+   // only for C: no overloaded and overriden functions
+   FunctionNameDeclMap functionsToMockName;
+   
+   
    /**
     * each key is a FunctionDecl* of functions ro unit test 
     * each set stores the FunctionDecl* of the mock functions called inside the function to unit test
@@ -49,6 +114,10 @@ public:
     * for each key of FunctionDecl* to unit test the set is filled with the FunctionDecl* of functions to mock
     */
    FunctionDeclKeySetMap      functionsToUnitTestMap;
+   
+   // only for C: no overloaded and overriden functions
+   FunctionNameDeclMap functionsToUnitTestName;
+   
    
    /*
    std::set<const clang::FunctionDecl*>      functionsToMock;

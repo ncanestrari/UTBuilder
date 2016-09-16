@@ -19,20 +19,21 @@ Consumer::Consumer(clang::ASTContext*  context,
    , _typedefVisitor( nullptr )
    , _structVisitor( nullptr )
 {
-   _mockVisitor =  new MockVisitor( context, fileName );
-   _defVisitor = new FuncUTDefVisitor( context, fileName );
-   _declVisitor = new FuncUTDeclVisitor( context, fileName );
-   _typedefVisitor = new TypedefVisitor( context, fileName );
-   _structVisitor = new StructVisitor( context, fileName );
+   _mockVisitor = std::make_shared<MockVisitor>( context, fileName );
+   _defVisitor = std::make_shared<FuncUTDefVisitor>( context, fileName );
+   _declVisitor = std::make_shared<FuncUTDeclVisitor>( context, fileName );
+   _typedefVisitor = std::make_shared<TypedefVisitor>( context, fileName );
+   _structVisitor = std::make_shared<StructVisitor>( context, fileName );
 }
 
 
 void Consumer::HandleTranslationUnit(clang::ASTContext& ctx) 
 {
-   
+   // the order of the next three lines is IMPORTANT!
+   // the filling of the KeyVectorMap structures depend on the right order of 
+   // these visitors traverse calls
    _defVisitor->TraverseDecl(ctx.getTranslationUnitDecl());
    _declVisitor->TraverseDecl(ctx.getTranslationUnitDecl());
-
    _mockVisitor->TraverseDecl(ctx.getTranslationUnitDecl());
    
    // fill the function params set

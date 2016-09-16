@@ -4,11 +4,15 @@
 #include <clang/AST/ASTConsumer.h>
 #include <string>
 
+#include  <memory>
+
+
 class FuncUTDefVisitor;
 class FuncUTDeclVisitor;
 class StructVisitor;
 class TypedefVisitor;
 class MockVisitor;
+
 
 class Consumer : public clang::ASTConsumer
 {
@@ -18,16 +22,19 @@ public:
    Consumer(clang::ASTContext*   context,
             std::string          fileName);
 
+   ~Consumer() {}
+   
    virtual void HandleTranslationUnit(clang::ASTContext& ctx) override;
 
    
 private:
   
-   FuncUTDefVisitor*    _defVisitor;
-   FuncUTDeclVisitor*   _declVisitor;
-   StructVisitor*       _structVisitor;
-   MockVisitor*         _mockVisitor;
-   TypedefVisitor*	_typedefVisitor;
+   // could be these visitors just classes and not pinters ?
+   std::shared_ptr<FuncUTDefVisitor>    _defVisitor;
+   std::shared_ptr<FuncUTDeclVisitor>   _declVisitor;
+   std::shared_ptr<StructVisitor>       _structVisitor;
+   std::shared_ptr<MockVisitor>         _mockVisitor;
+   std::shared_ptr<TypedefVisitor>	_typedefVisitor;
    
 };
 

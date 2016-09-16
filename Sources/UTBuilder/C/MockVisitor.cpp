@@ -80,7 +80,9 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr* funcCall)
    else{
       // insert funcDecl with an empty set of callers
       results::get().functionsToMockMap[funcDecl] = FunctionDeclSet();
+      results::get().functionsToMockName[funcDecl->getNameAsString()] = funcDecl;
    }
+  
    
    
    if ( results::get().functionsToUnitTestMap.size() > 0 )

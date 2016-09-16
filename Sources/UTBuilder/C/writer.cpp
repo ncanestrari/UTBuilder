@@ -145,39 +145,9 @@ void Writer::CreateSerializationFile(void){
                   _fileName + "-serialization-struct.h" );
    
    
-    CreateSerializationJsonfile( results::get().functionsToMockMap, "mocks", _fileName + "-mocks");
-    CreateSerializationJsonfile( results::get().functionsToUnitTestMap, "unitTest", _fileName + "-tests", true );
+    CreateSerializationJsonfile( results::get().functionsToMockMap, "mocks", _fileName + "-mocks-template");
+    CreateSerializationJsonfile( results::get().functionsToUnitTestMap, "funcs", _fileName + "-tests-template", true );
    
-}
-
-static const char* getStructureField( const clang::QualType& qualType)
-{
-   
-   const clang::RecordType* structType = qualType->getAsStructureType();
-         
-   if ( structType == nullptr )
-   {
-      return qualType.getUnqualifiedType().getAsString().c_str();
-   }
-   
-   /*
-   if ( qualType->isUnionType() == false.
-      return;
-*/
-   const clang::RecordDecl* structDecl = structType->getDecl();
-   
-   std::cout << "struct " << qualType.getAsString() << " { \n";
-   
-   for ( const auto field : structDecl->fields() ){
-
-      std::cout << getStructureField( field->getType() ) << "\t" << field->getNameAsString() << "\n";
-      //out << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << ";\n";
-   }
-         
-   std::cout << "} "; // << qualType.getAsString() << ";\n\n"; // qualType->getCanonicalTypeInternal().getAsString()
-   
- 
-   return "";
 }
          
          
@@ -192,32 +162,25 @@ void Writer::CreateSerializationJsonfile(const FunctionDeclKeySetMap& funcDeclMa
    
    FuncParamsStruct funcParamsStruct;
    
-   // functions to mock
-   for ( auto funDecl : funcDeclMap) // results::get().functionsToMock )
+   if ( addMocks )
    {
-      const clang::FunctionDecl* decl = funDecl.first;
-      
-      funcParamsStruct.clear();
-      
-      funcParamsStruct.setName( decl->getNameAsString().c_str() );
-      funcParamsStruct.setReturnType( decl->getReturnType() );
-
-      const int numParms = decl->getNumParams();           
-      for ( int i=0; i<numParms; ++i)
+      // functions to mock
+      for ( auto funDecl : funcDeclMap) // results::get().functionsToMock )
       {
-         funcParamsStruct.addParam( decl->getParamDecl(i) );
+         const clang::FunctionDecl* decl = funDecl.first;
+         const std::set<const clang::FunctionDecl*>& mockDeclSet = funDecl.second;
+         funcParamsStruct.init( decl, mockDeclSet );
+         funcParamsStructures.push_back(funcParamsStruct);
       }
+   }
+   else {
       
-      if ( addMocks )
+      for ( auto funDecl : funcDeclMap) // results::get().functionsToMock )
       {
-         const std::set<const clang::FunctionDecl*>& declSet = funDecl.second;
-         
-         for ( auto iter : declSet )
-         {
-            funcParamsStruct.addMockFunction(iter);
-         }
+         const clang::FunctionDecl* decl = funDecl.first;
+         funcParamsStruct.init( decl );
+         funcParamsStructures.push_back(funcParamsStruct);
       }
-      funcParamsStructures.push_back(funcParamsStruct);
    }
    
    
@@ -233,41 +196,6 @@ void Writer::CreateSerializationJsonfile(const FunctionDeclKeySetMap& funcDeclMa
    outputFile.open( outputFileName, std::fstream::out );
    outputFile << jsonRoot;
    outputFile.close();
-   
-   
-   /*
-   // functions to test
-   for ( auto funcDecl : results::get().functionsToUnitTest )
-   {
-      
-      funcParamsStruct.clear();
-      
-      funcParamsStruct.setName( funcDecl->getNameAsString().c_str() );
-      funcParamsStruct.setReturnType( funcDecl->getReturnType() );
-
-      const int numParms = funcDecl->getNumParams();           
-      for ( int i=0; i<numParms; ++i)
-      {
-         funcParamsStruct.addParam( funcDecl->getParamDecl(i) );
-      }
-      
-      funcParamsStructures.push_back(funcParamsStruct);
-   }
-   
-   
-   for (auto iter : funcParamsStructures )
-   {
-      iter.serializeJson(jsonRoot["funcs"]["UnitTests"]);
-//       iter.writeAsStruct();
-   }
-   
-   
-//    std::ofstream outputFile;   
-   outputFileName = outFileName + "-tests.json";   
-   outputFile.open( outputFileName, std::fstream::out );
-   outputFile << jsonRoot;
-   outputFile.close();
-  */
    
    std::cout << "file written: " << outputFileName << std::endl;
 
@@ -544,16 +472,9 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
    {
       const clang::FunctionDecl* funcDecl = iter.first;
       
-      funcParamsStruct.clear();
+      const std::set<const clang::FunctionDecl*>& mockDeclSet = iter.second;
       
-      funcParamsStruct.setName( funcDecl->getNameAsString().c_str() );
-      funcParamsStruct.setReturnType( funcDecl->getReturnType() );
-
-      const int numParms = funcDecl->getNumParams();           
-      for ( int i=0; i<numParms; ++i)
-      {
-         funcParamsStruct.addParam( funcDecl->getParamDecl(i) );
-      }
+      funcParamsStruct.init( funcDecl, mockDeclSet );
       
       funcParamsStructures.push_back(funcParamsStruct);
    }
@@ -562,7 +483,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
    for (auto iter : funcParamsStructures )
    {      
       out.str("");
-      out << iter;
+//       out << iter;
      
       paramsStructsObject["functionName"] = iter.getName();
       paramsStructsObject["paramTypesAndNames"] = out.str();

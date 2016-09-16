@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "Results.h"
 #include "writer.h"
+#include "JsonReader.h"
 
 #include <iostream>
 
@@ -133,9 +134,15 @@ int main(int argc, const char *argv[])
    // Parse the AST and execute all the visitors
    clang::ParseAST(compiler.getPreprocessor(), &astConsumer, compiler.getASTContext());
    
-   // write the files
-   Writer writer(fileNamePath, SourceMgr );
-   writer.createFiles();
+   bool writeJsonExampleFile = true;
+   if ( writeJsonExampleFile )
+   {
+      // write the json example files
+      Writer writer(fileNamePath, SourceMgr );
+      writer.createFiles();
+   }
+   
+   JsonReader reader(fileNamePath);
    
    
    //compiler.getDiagnosticClient().EndSourceFile();

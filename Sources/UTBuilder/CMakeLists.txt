@@ -17,6 +17,7 @@ set ( HEADER_FILES
    Include/TypedefVisitor.h
    Include/utils.h
    Include/writer.h
+   Include/JsonReader.h
    Include/FuncParamsStructure.h
    )
 
@@ -32,6 +33,7 @@ set ( SOURCE_FILES
    C/TypedefVisitor.cpp
    C/utils.cpp 
    C/writer.cpp
+   C/JsonReader.cpp
    C/FuncParamsStructure.cpp
    )
 

@@ -36,6 +36,7 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl* decl)
 //          results::get().functionsToUnitTest.insert(func);
          // add to map with an empty set
          results::get().functionsToUnitTestMap[func] = FunctionDeclSet();
+         results::get().functionsToUnitTestName[func->getNameAsString()] = func;
       }
    } 
 
