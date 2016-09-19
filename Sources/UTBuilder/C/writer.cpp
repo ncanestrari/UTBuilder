@@ -48,7 +48,7 @@ void Writer::CreateMockFile(void)
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for ( auto funcToMock : results::get().functionsToMockMap )
+   for ( auto funcToMock : FunctionsToMock::get().declKeySetMap ) 
    {
       const clang::FunctionDecl* funcDecl = funcToMock.first;
       // get declaration source location
@@ -59,7 +59,7 @@ void Writer::CreateMockFile(void)
 
    //std::shared_ptr<const Plustache::Context> context = CreateMockContext(includePaths, results::get().functionDecls );
 
-   WriteTemplate( CreateMockContext(includePaths, results::get().functionsToMockMap ),
+   WriteTemplate( CreateMockContext(includePaths, FunctionsToMock::get().declKeySetMap ),
 		  std::string(std::getenv("TEMPLATE_DIR"))+std::string("/mock.template"), 
 		  _fileName + "-mocks.h");
    
@@ -74,7 +74,7 @@ void Writer::CreateUnitTestFile(void)
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for ( auto funcToUnitTest : results::get().functionsToUnitTestMap )
+   for ( auto funcToUnitTest : FunctionsToUnitTest::get().declKeySetMap )
    {
       const clang::FunctionDecl* funcDecl = funcToUnitTest.first;
       // get declaration source location
@@ -88,7 +88,7 @@ void Writer::CreateUnitTestFile(void)
    
    //std::shared_ptr<const Plustache::Context> context = CreateUnitTestContext(includePaths, results::get().functionsToUnitTest );
    
-   WriteTemplate( CreateUnitTestContext(includePaths, results::get().functionsToUnitTestMap ), 
+   WriteTemplate( CreateUnitTestContext(includePaths, FunctionsToUnitTest::get().declKeySetMap ), 
 		  std::string(std::getenv("TEMPLATE_DIR"))+std::string("/UT.template"), 
 		  _fileName + "-ugtest.c" );
  
@@ -140,13 +140,13 @@ void Writer::CreateSerializationFile(void){
                   _fileName + "-serialization-struct.h" );
    */
    
-   WriteTemplate( CreateStructuresToSerializeContext(includePaths, results::get().functionsToUnitTestMap ), 
+   WriteTemplate( CreateStructuresToSerializeContext(includePaths, FunctionsToUnitTest::get().declKeySetMap ), 
                   std::string(std::getenv("TEMPLATE_DIR"))+std::string("/serialization-struct.template"), 
                   _fileName + "-serialization-struct.h" );
    
    
-    CreateSerializationJsonfile( results::get().functionsToMockMap, "mocks", _fileName + "-mocks-template");
-    CreateSerializationJsonfile( results::get().functionsToUnitTestMap, "funcs", _fileName + "-tests-template", true );
+    CreateSerializationJsonfile( FunctionsToMock::get().declKeySetMap, "mocks", _fileName + "-mocks-template");
+    CreateSerializationJsonfile( FunctionsToUnitTest::get().declKeySetMap, "funcs", _fileName + "-tests-template", true );
    
 }
          

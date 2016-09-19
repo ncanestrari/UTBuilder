@@ -40,8 +40,8 @@ results& results::get(void) {
    
 void results::clear() 
 {
-   functionsToMockMap.clear();
-   functionsToUnitTestMap.clear();
+//    functionsToMockMap.clear();
+//    functionsToUnitTestMap.clear();
    structDecls.clear();
    typedefNameDecls.clear();
    includesForUnitTest.clear();

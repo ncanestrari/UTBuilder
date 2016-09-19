@@ -36,6 +36,11 @@ void FuncParamsStruct::init( const clang::FunctionDecl* funcDecl, const std::set
          addMockFunction(iter, iter->getNameAsString() + "[0]" );
       }
    }
+   
+   
+   _inputTree = buildInputTree(funcDecl);
+   
+   _outputTree = buildOutputTree(funcDecl);
 }
 
 void FuncParamsStruct::clear() 
@@ -48,6 +53,41 @@ void FuncParamsStruct::clear()
    _mocks.clear();
 }
 
+
+void buildTree(std::shared_ptr<NameValueNode> node, const clang::QualType& qualType, const char* fieldName )
+{
+}
+
+std::shared_ptr<NameValueNode> FuncParamsStruct::buildInputTree( const clang::FunctionDecl* funcDecl)
+{
+      
+   std::shared_ptr<NameValueNode> root = std::make_shared<NameValueNode>("input");
+   
+   if ( funcDecl->getNumParams() > 0 )
+   {
+      for ( auto field : funcDecl->params() )
+      {
+         root->addChild( field->getNameAsString().c_str(), field->getType(), ""  );
+      }
+   }
+   
+   return root;
+}
+   
+std::shared_ptr<NameValueNode> FuncParamsStruct::buildOutputTree( const clang::FunctionDecl* funcDecl)
+{
+   
+   std::shared_ptr<NameValueNode> root = buildInputTree( funcDecl );
+   
+//    only change name
+   root->_name = "output";
+   
+   // add return type
+   root->addChild("return", funcDecl->getReturnType() );
+   
+   return root;
+}
+   
 /*
 void FuncParamsStruct::writeAsStruct(void)
 {

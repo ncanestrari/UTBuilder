@@ -85,8 +85,8 @@ void utils::fillFunctionQualTypes(void){
    results::get().functionDeclTypes.clear();
    
    //canonical Types: http://clang.llvm.org/docs/InternalsManual.html#canonical-types
-   for ( auto funcToMock : results::get().functionsToMockMap ){
-      
+   for ( auto funcToMock : FunctionsToMock::get().declKeySetMap ) 
+   {
       const clang::FunctionDecl* funcDecl = funcToMock.first;
       
       const clang::QualType returnType = funcDecl->getReturnType();
@@ -100,7 +100,7 @@ void utils::fillFunctionQualTypes(void){
       }
    }
    
-   for ( auto functionToTest : results::get().functionsToUnitTestMap ){
+   for ( auto functionToTest : FunctionsToUnitTest::get().declKeySetMap ){
       
       const clang::FunctionDecl* funcDecl = functionToTest.first;
       

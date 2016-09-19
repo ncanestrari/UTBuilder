@@ -71,24 +71,27 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr* funcCall)
    //std::cout << "accepted" << std::endl;
 //    results::get().functionsToMock.insert(funcDecl);
 
-   FunctionDeclKeySetMap::iterator iter = results::get().functionsToMockMap.find(funcDecl); 
-   if ( iter != results::get().functionsToMockMap.end() )
+//    FunctionDeclKeySetMap::iterator iter = results::get().functionsToMockMap.find(funcDecl); 
+   FunctionDeclKeySetMap::iterator iter = FunctionsToMock::get().declKeySetMap.find(funcDecl);
+   if ( iter != FunctionsToMock::get().declKeySetMap.end() )
    {
       // already in the map. add the caller
       iter->second.insert(_lastFuncDecl);
    }
    else{
       // insert funcDecl with an empty set of callers
-      results::get().functionsToMockMap[funcDecl] = FunctionDeclSet();
-      results::get().functionsToMockName[funcDecl->getNameAsString()] = funcDecl;
+//       results::get().functionsToMockMap[funcDecl] = FunctionDeclSet();
+//       results::get().functionsToMockName[funcDecl->getNameAsString()] = funcDecl;
+      FunctionsToMock::get().declKeySetMap[funcDecl] = FunctionDeclSet();
+      FunctionsToMock::get().nameDeclMap[funcDecl->getNameAsString()] = funcDecl;
    }
   
    
    
-   if ( results::get().functionsToUnitTestMap.size() > 0 )
+   if ( FunctionsToUnitTest::get().declKeySetMap.size() > 0 )
    {
-      iter = results::get().functionsToUnitTestMap.find(_lastFuncDecl); 
-      if ( iter != results::get().functionsToUnitTestMap.end() )
+      iter = FunctionsToUnitTest::get().declKeySetMap.find(_lastFuncDecl); 
+      if ( iter != FunctionsToUnitTest::get().declKeySetMap.end() )
       {
          iter->second.insert( funcDecl );
       }

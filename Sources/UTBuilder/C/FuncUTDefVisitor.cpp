@@ -35,8 +35,10 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl* decl)
       {
 //          results::get().functionsToUnitTest.insert(func);
          // add to map with an empty set
-         results::get().functionsToUnitTestMap[func] = FunctionDeclSet();
-         results::get().functionsToUnitTestName[func->getNameAsString()] = func;
+//          results::get().functionsToUnitTestMap[func] = FunctionDeclSet();
+//          results::get().functionsToUnitTestName[func->getNameAsString()] = func;
+         FunctionsToUnitTest::get().declKeySetMap[func] = FunctionDeclSet();
+         FunctionsToUnitTest::get().nameDeclMap[func->getNameAsString()] = func;
       }
    } 
 
@@ -65,7 +67,7 @@ bool FuncUTDeclVisitor::VisitDecl(clang::Decl* decl)
       const std::string declSrcFile = utils::getDeclSourceFile( func, _context->getSourceManager());
       
       // check if the funcDecl is in the input argument file    
-      for ( auto funcToUnitTest : results::get().functionsToUnitTestMap ){
+      for ( auto funcToUnitTest : FunctionsToUnitTest::get().declKeySetMap ){
          
          const clang::FunctionDecl* funcDecl = funcToUnitTest.first;
          
