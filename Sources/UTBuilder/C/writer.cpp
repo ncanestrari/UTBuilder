@@ -188,6 +188,7 @@ void Writer::CreateSerializationJsonfile(const FunctionDeclKeySetMap& funcDeclMa
    {
 //       iter.serializeJson(jsonRoot["mocks"]["mocks_funcs"]);
 //       iter.serializeJson(jsonRoot[objectName]["funcs"]);
+//       iter.serializeJson(jsonRoot[objectName]);
       iter.serializeJson(jsonRoot[objectName]);
    }
    

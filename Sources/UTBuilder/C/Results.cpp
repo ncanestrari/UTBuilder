@@ -2,11 +2,11 @@
 
 
 
-FunctionsToUnitTest& FunctionsToUnitTest::get(void) {
-  
-   static FunctionsToUnitTest instance;
-   return instance;
-};
+// FunctionsToUnitTest& FunctionsToUnitTest::get(void) {
+//   
+//    static FunctionsToUnitTest instance;
+//    return instance;
+// };
    
    
 void FunctionsToUnitTest::clear() 
@@ -17,11 +17,11 @@ void FunctionsToUnitTest::clear()
 
 
 
-FunctionsToMock& FunctionsToMock::get(void) {
-  
-   static FunctionsToMock instance;
-   return instance;
-};
+// FunctionsToMock& FunctionsToMock::get(void) {
+//   
+//    static FunctionsToMock instance;
+//    return instance;
+// };
    
    
 void FunctionsToMock::clear() 

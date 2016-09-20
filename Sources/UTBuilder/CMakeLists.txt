@@ -19,6 +19,7 @@ set ( HEADER_FILES
    Include/writer.h
    Include/JsonReader.h
    Include/FuncParamsStructure.h
+   Include/NameValueTypeNode.h
    )
 
 set ( SOURCE_FILES
@@ -35,6 +36,7 @@ set ( SOURCE_FILES
    C/writer.cpp
    C/JsonReader.cpp
    C/FuncParamsStructure.cpp
+   C/NameValueTypeNode.cpp
    )
 
 set( CMAKE_INCLUDE_CURRENT_DIR TRUE )

@@ -19,15 +19,34 @@ typedef std::map<const clang::FunctionDecl*, FunctionDeclSet > FunctionDeclKeySe
 typedef std::map< std::string, const clang::FunctionDecl* > FunctionNameDeclMap;
    
 
-
-class FunctionsToUnitTest
+template <typename T>
+class Singleton
 {
-   FunctionsToUnitTest(void) {};
-   ~FunctionsToUnitTest(void) {};
+protected:
+   Singleton() {};
+   ~Singleton() {};
    
 public:
    
-   static FunctionsToUnitTest& get(void);
+   static T& get(void) 
+   {
+      static T instance;
+      return instance;
+   }
+   
+   
+   
+};
+
+class FunctionsToUnitTest : public Singleton<FunctionsToUnitTest>
+{
+   
+//    FunctionsToUnitTest(void) {};
+//    ~FunctionsToUnitTest(void) {};
+   
+public:
+   
+//    static FunctionsToUnitTest& get(void);
    
    void clear();
    
@@ -52,14 +71,14 @@ public:
 
 
 
-class FunctionsToMock
+class FunctionsToMock : public Singleton<FunctionsToUnitTest>
 {
-   FunctionsToMock(void) {};
-   ~FunctionsToMock(void) {};
+//    FunctionsToMock(void) {};
+//    ~FunctionsToMock(void) {};
    
 public:
    
-   static FunctionsToMock& get(void);
+//    static FunctionsToMock& get(void);
    
    void clear();
    
@@ -97,6 +116,9 @@ public:
    std::set<std::string>                     includesForUnitTest;
    
    std::set<const clang::Type*>              functionDeclTypes;
+   
+//    std::vector<FuncParamsStruct> funcParamsStructures;
+   
 };
 
 
