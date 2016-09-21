@@ -18,6 +18,7 @@
 #include <llvm/Support/Host.h>
 
 
+#include <fstream>
 
 // additional paths needed for compiling (system or compiler specific)
 static const char* additionalIncludePaths[] =
@@ -142,9 +143,26 @@ int main(int argc, const char *argv[])
       writer.createFiles();
    }
    
+   
+   
    JsonReader reader(fileNamePath);
+   reader.parse();
    
    
+   Json::Value jsonRoot;
+   for (auto iter : FunctionParams::get().structs )
+   {
+      iter.second.serializeJson(jsonRoot["funcs"]);
+   }
+   
+   std::ofstream outputFile;   
+   std::string outputFileName = "fileNamePath-temp.json";   
+   outputFile.open( outputFileName, std::fstream::out );
+   outputFile << jsonRoot;
+   outputFile.close();
+   
+   std::cout << "file written: " << outputFileName << std::endl;
+      
    //compiler.getDiagnosticClient().EndSourceFile();
  
    

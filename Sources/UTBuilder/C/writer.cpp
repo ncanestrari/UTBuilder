@@ -156,7 +156,8 @@ void Writer::CreateSerializationJsonfile(const FunctionDeclKeySetMap& funcDeclMa
                                          const std::string & outFileName,
                                          const bool addMocks )
 {
-   std::vector<FuncParamsStruct> funcParamsStructures;
+//    std::vector<FuncParamsStruct> funcParamsStructures;
+   FunctionParams::get().structs.clear();
    
    Json::Value jsonRoot;
    
@@ -170,7 +171,8 @@ void Writer::CreateSerializationJsonfile(const FunctionDeclKeySetMap& funcDeclMa
          const clang::FunctionDecl* decl = funDecl.first;
          const std::set<const clang::FunctionDecl*>& mockDeclSet = funDecl.second;
          funcParamsStruct.init( decl, mockDeclSet );
-         funcParamsStructures.push_back(funcParamsStruct);
+//          funcParamsStructures.push_back(funcParamsStruct);
+         FunctionParams::get().structs[funcParamsStruct.getName()] = funcParamsStruct;
       }
    }
    else {
@@ -179,17 +181,15 @@ void Writer::CreateSerializationJsonfile(const FunctionDeclKeySetMap& funcDeclMa
       {
          const clang::FunctionDecl* decl = funDecl.first;
          funcParamsStruct.init( decl );
-         funcParamsStructures.push_back(funcParamsStruct);
+//          funcParamsStructures.push_back(funcParamsStruct);
+         FunctionParams::get().structs[funcParamsStruct.getName()] = funcParamsStruct;
       }
    }
    
    
-   for (auto iter : funcParamsStructures )
+   for (auto iter : FunctionParams::get().structs )
    {
-//       iter.serializeJson(jsonRoot["mocks"]["mocks_funcs"]);
-//       iter.serializeJson(jsonRoot[objectName]["funcs"]);
-//       iter.serializeJson(jsonRoot[objectName]);
-      iter.serializeJson(jsonRoot[objectName]);
+      iter.second.serializeJson(jsonRoot[objectName], addMocks );
    }
    
    std::ofstream outputFile;   
@@ -465,7 +465,8 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
    
    
    // fill the FuncParamsStruct vector
-   std::vector<FuncParamsStruct> funcParamsStructures;
+//    std::vector<FuncParamsStruct> funcParamsStructures;
+   FunctionParams::get().structs.clear();
    
    FuncParamsStruct funcParamsStruct;
    
@@ -477,16 +478,17 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
       
       funcParamsStruct.init( funcDecl, mockDeclSet );
       
-      funcParamsStructures.push_back(funcParamsStruct);
+//       funcParamsStructures.push_back(funcParamsStruct);
+      FunctionParams::get().structs[funcParamsStruct.getName()] = funcParamsStruct;
    }
    
    
-   for (auto iter : funcParamsStructures )
+   for (auto iter : FunctionParams::get().structs )
    {      
       out.str("");
 //       out << iter;
      
-      paramsStructsObject["functionName"] = iter.getName();
+      paramsStructsObject["functionName"] = iter.first;//getName();
       paramsStructsObject["paramTypesAndNames"] = out.str();
       context->add("functionParamsStructs", paramsStructsObject);
    }   

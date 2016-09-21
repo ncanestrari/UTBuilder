@@ -1,6 +1,7 @@
 #include "JsonReader.h"
 
 #include "FuncParamsStructure.h"
+#include "Results.h"
 
 #include <iostream>
 #include <fstream>
@@ -46,17 +47,25 @@ bool JsonReader::parse(void)
    jsonFile >> _mocksRoot;
    jsonFile.close();
    
+   
+   
+   const Json::Value funcs = _funcsRoot["funcs"];
+   const unsigned int size = funcs.size();
+   
 
-   
-   std::map< const std::string, const clang::DeclaratorDecl* > funcParamStructMap;
-   std::vector< std::shared_ptr<FuncParamsStruct> > funcParamStructVector( _funcsRoot["funcs"].size() );
-   std::shared_ptr<FuncParamsStruct> funcs = std::make_shared<FuncParamsStruct>(  );
-   
-   for ( auto func : _funcsRoot["funcs"])
+   for ( unsigned int i = 0; i < size; ++i )
    {
-//       funcParamStructVector.push_back();
-//       func.deSerializeTree(_funcsRoot);
+      const Json::Value funcNameValue = funcs[i].get("_name", "");
+      const std::string funcName = funcNameValue.asString();
+      
+      auto iter = FunctionParams::get().structs.find(funcName);
+      
+      if ( iter != FunctionParams::get().structs.end() )
+      {
+         iter->second.deSerializeJson( funcs[i] );
+      }
+      
    }
-   
+
    return true;
 }

@@ -14,7 +14,6 @@ std::shared_ptr<NameValueTypeNode<clang::QualType> > NameValueTypeNode<clang::Qu
       const clang::RecordDecl* structDecl = structType->getDecl();
       
       child->_value = qualType.getAsString();
-//       child->_value.push_back( qualType.getAsString() );
       
       for ( const auto field : structDecl->fields() ){
          

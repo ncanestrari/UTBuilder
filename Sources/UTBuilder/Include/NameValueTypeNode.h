@@ -30,20 +30,19 @@ public:
    , _type(type)
    , _value(value)
    {
-//       _value.push_back(value);
    }
    
    ~NameValueTypeNode() {}
    
    const std::string& getName(void) const {return _name; }
    
+   void setName(const std::string& name ) { _name = name; }
+   
    const std::string& getValue(void) const {return _value; }
    
-//    const std::vector<std::string>& getValue(void) const {return _value; }
-   
-//    const unsigned int getValueSize(void) const {return _value.size(); }
    
    T getType(void) const { return _type; }
+   
    
    unsigned int getNumChildern(void) { return _children.size(); }
    
@@ -60,7 +59,8 @@ public:
    const std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > >&  getChildren(void) { return _children; }
    
    
-private:
+   
+// private:
    
    
    std::shared_ptr<NameValueTypeNode<T> > addChild( const char* name = "\0", T type = T(), const char* value = "\0" )
@@ -79,7 +79,7 @@ private:
    }
    
    
-   friend class FuncParamsStruct;
+//    friend class FuncParamsStruct;
    
 };
 
