@@ -38,8 +38,11 @@ static const char* additionalPredefinedMacros[] =
 };
 
 
+static const char* mocksFileNameSuffix = "-mocks.json";
+static const char* funcsFileNameSuffix = "-unitTest.json";
 
-
+   
+   
 int main(int argc, const char *argv[])
 {
    
@@ -135,25 +138,34 @@ int main(int argc, const char *argv[])
    // Parse the AST and execute all the visitors
    clang::ParseAST(compiler.getPreprocessor(), &astConsumer, compiler.getASTContext());
    
+   
+   
+   UnitTestFunctionsData::get().clear();
+   UnitTestFunctionsData::get().init( FunctionsToUnitTest::get().declKeySetMap );
+   
+   MockFunctionsData::get().clear();
+   MockFunctionsData::get().init( FunctionsToMock::get().declKeySetMap );
+   
+   
+   Writer writer(fileNamePath, SourceMgr );
    bool writeJsonExampleFile = true;
    if ( writeJsonExampleFile )
    {
       // write the json example files
-      Writer writer(fileNamePath, SourceMgr );
       writer.createFiles();
    }
    
    
    
-   JsonReader reader(fileNamePath);
-   reader.parse();
+   JsonReader reader;
+   reader.parse( UnitTestFunctionsData::get(), fileNamePath + funcsFileNameSuffix );
+   reader.parse( MockFunctionsData::get(), fileNamePath + mocksFileNameSuffix );
    
    
    Json::Value jsonRoot;
-   for (auto iter : FunctionParams::get().structs )
-   {
-      iter.second.serializeJson(jsonRoot["funcs"]);
-   }
+   UnitTestFunctionsData::get().serialize( jsonRoot );
+   
+   
    
    std::ofstream outputFile;   
    std::string outputFileName = "fileNamePath-temp.json";   
@@ -163,6 +175,9 @@ int main(int argc, const char *argv[])
    
    std::cout << "file written: " << outputFileName << std::endl;
       
+   
+   writer.createUnitTestFile();
+   
    //compiler.getDiagnosticClient().EndSourceFile();
  
    

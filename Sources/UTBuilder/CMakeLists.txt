@@ -20,6 +20,7 @@ set ( HEADER_FILES
    Include/JsonReader.h
    Include/FuncParamsStructure.h
    Include/NameValueTypeNode.h
+   Include/FunctionsData.h
    )
 
 set ( SOURCE_FILES
@@ -37,6 +38,7 @@ set ( SOURCE_FILES
    C/JsonReader.cpp
    C/FuncParamsStructure.cpp
    C/NameValueTypeNode.cpp
+   C/FunctionsData.cpp
    )
 
 set( CMAKE_INCLUDE_CURRENT_DIR TRUE )

@@ -32,12 +32,17 @@ public:
     
     const char* getName(void) const { return _funcDecl->getNameAsString().c_str(); }    
     
+    std::string getName(const unsigned int index) const;
+    
     size_t getNumParams(void) const { return _funcDecl->getNumParams(); }
     
+    const clang::FunctionDecl* getFunctionDecl() { return _funcDecl; }
     
-    void serializeJson(Json::Value& jsonRoot, const bool withMocks = true);
+    unsigned int getSize(void) const;
     
-    void deSerializeJson(const Json::Value& jsonRoot);
+    void serialize(Json::Value& jsonRoot, const bool withMocks = true);
+    
+    void deSerialize(const Json::Value& jsonRoot);
     
     void writeAsStruct(void);
     

@@ -73,7 +73,7 @@ public:
 
 
 
-class FunctionsToMock : public Singleton<FunctionsToUnitTest>
+class FunctionsToMock : public Singleton<FunctionsToMock>
 {
 //    FunctionsToMock(void) {};
 //    ~FunctionsToMock(void) {};
@@ -96,19 +96,6 @@ public:
    
 };
 
-
-// only used in Writer and Reader classes
-// TO DO: move this class as member var in Writer
-class FunctionParams : public Singleton<FunctionParams>
-{
-public:
-   
-   void clear() { structs.clear(); }
-   
-   
-   std::map< std::string, FuncParamsStruct> structs;
-   
-};
 
 
 class results {

@@ -2,7 +2,7 @@
 
 #include <clang/AST/Decl.h>
 
-
+#include <assert.h> 
 
 
 FuncParamsStruct::FuncParamsStruct() 
@@ -39,6 +39,23 @@ void FuncParamsStruct::clear()
 
 }
 
+std::string FuncParamsStruct::getName(const unsigned int index) const 
+{ 
+   if ( index >= getSize() )
+      return std::string();
+   
+   std::ostringstream sstream;
+   sstream << _funcDecl->getNameAsString() << "_" << index;
+   return sstream.str();
+}
+
+unsigned int FuncParamsStruct::getSize(void) const
+{ 
+   const unsigned int size = _outputTree.size(); 
+   assert( size == _inputTree.size() );
+   assert(size == _mocksTree.size() );
+   return size;   
+}
 
 std::shared_ptr<NameValueTypeNode<clang::QualType> > FuncParamsStruct::buildInputTree( const clang::FunctionDecl* funcDecl)
 {
@@ -125,6 +142,7 @@ void FuncParamsStruct::serializeTree( std::shared_ptr<NameValueTypeNode<clang::Q
    return;
 }
 
+
 void FuncParamsStruct::serializeTree( std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > tree, Json::Value& fieldItem)
 {
    std::string comment; // = "// defined in mocks-json file";
@@ -147,7 +165,7 @@ void FuncParamsStruct::serializeTree( std::shared_ptr<NameValueTypeNode<const cl
 }
 
 
-void FuncParamsStruct::serializeJson(Json::Value& jsonParent,  const bool withMocks )
+void FuncParamsStruct::serialize(Json::Value& jsonParent,  const bool withMocks )
 {
    Json::Value jsonChild;   
    jsonChild["_name"] =  getName();
@@ -155,12 +173,14 @@ void FuncParamsStruct::serializeJson(Json::Value& jsonParent,  const bool withMo
 
    
    for (unsigned int i=0; i<_inputTree.size(); ++i) {
+      
       // force "input" to be an object
       jsonChild["content"][i]["input"] = Json::Value(Json::objectValue);
       serializeTree( _inputTree[i], jsonChild["content"][i]);
    }
    
    for (unsigned int i=0; i<_outputTree.size(); ++i) {
+      
       // force "output" to be an object
       jsonChild["content"][i]["output"] = Json::Value(Json::objectValue);
       serializeTree( _outputTree[i], jsonChild["content"][i]);
@@ -170,6 +190,7 @@ void FuncParamsStruct::serializeJson(Json::Value& jsonParent,  const bool withMo
    if ( withMocks ) {
       
       for (int i=0; i<_mocksTree.size(); ++i) {
+         
             // force "mock-funcs-call" to be an object
             jsonChild["content"][i]["mock-funcs-call"] = Json::Value(Json::objectValue);
             serializeTree( _mocksTree[i], jsonChild["content"][i]);
@@ -190,7 +211,8 @@ void FuncParamsStruct::serializeJson(Json::Value& jsonParent,  const bool withMo
    
 }
 
-void FuncParamsStruct::deSerializeTree( std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, const Json::Value& fieldItem)
+
+void FuncParamsStruct::deSerializeTree( std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, const Json::Value& fieldItem) 
 {
    
    if ( fieldItem.isObject() )
@@ -232,6 +254,7 @@ void FuncParamsStruct::deSerializeTree( std::shared_ptr<NameValueTypeNode<clang:
    return;
 }
 
+
 void FuncParamsStruct::deSerializeTree( std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > tree, const Json::Value& fieldItem)
 {
    
@@ -258,7 +281,7 @@ void FuncParamsStruct::deSerializeTree( std::shared_ptr<NameValueTypeNode<const 
    return;
 }
 
-void FuncParamsStruct::deSerializeJson(const Json::Value& jsonRoot)
+void FuncParamsStruct::deSerialize(const Json::Value& jsonRoot)
 {
 //    std::string encoding = jsonRoot.get("_name", "" ).asString();
 

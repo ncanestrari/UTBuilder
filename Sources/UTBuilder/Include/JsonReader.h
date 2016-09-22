@@ -4,30 +4,29 @@
 
 #include <json/json.h>
 
+#include "FunctionsData.h"
+
 #include <string>
 
 
 class JsonReader 
 {
 public:
-   JsonReader(const std::string&            fileName );
+   JsonReader();
   
    ~JsonReader() {}
    
-   bool parse(void);
+   bool parse(FunctionsData& funcsData, const std::string& fileName);
    
 private:
    
    
 
    
-   const std::string  _fileName;
+   std::string  _fileName;
    
    Json::Value _funcsRoot;
    Json::Value _mocksRoot;
-   
-   static const char* _mocksFileNameSuffix;
-   static const char* _funcsFileNameSuffix;
    
 };
 

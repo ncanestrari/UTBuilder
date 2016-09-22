@@ -8,7 +8,7 @@
 #include <set>
 
 #include "Results.h"
-
+#include "FunctionsData.h"
 
 namespace clang {
    class FunctionDecl;
@@ -32,27 +32,28 @@ public:
    
    void createFiles();
    
+   void createUnitTestFile(void);
+   
    
 private:  
    
    void CreateMockFile(void);
    
-   void CreateUnitTestFile(void);
+   
    
    void CreateSerializationFile(void);
    
    
-   void CreateSerializationJsonfile(const FunctionDeclKeySetMap& funcDeclMap
+   void CreateSerializationJsonfile(const FunctionsData& functionData
                                     , const std::string & objectName
-                                    , const std::string  &outFileName
-                                    , const bool addMocks = false );
+                                    , const std::string  &outFileName  );
    
    
    std::shared_ptr<const Plustache::Context> CreateMockContext(  const std::set<std::string>            &includePaths,
                                                                         const FunctionDeclKeySetMap   &funcDeclsMap );
    
    std::shared_ptr<const Plustache::Context> CreateUnitTestContext( const std::set<std::string>            &includePaths,
-                                                                           const FunctionDeclKeySetMap   &funcDeclsMap );
+                                                                           const UnitTestFunctionsData   &funcData );
    
    
    std::shared_ptr<const Plustache::Context> CreateSerializationContext( const std::set<std::string>            &includePaths,

@@ -34,7 +34,7 @@ protected:
 {{# functionToUnitTest}}
 TEST( {{testFilename}}, Test_{{functionName}})
 {
-   
+  {{CODE}}
 }
 {{newline}}
 {{newline}}
