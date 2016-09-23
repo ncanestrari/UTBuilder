@@ -3,9 +3,6 @@
  * @file  {{filename}} 
  * @brief TODO.
  *
- * @copyright Copyright of this program is the property of AMADEUS, without
- * whose written permission reproduction in whole or in part is prohibited.
- *
  */
 
 extern "C"{
