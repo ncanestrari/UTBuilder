@@ -19,7 +19,7 @@ extern "C"{
  *  file {{functionFileName}}
  */
 typedef struct {   
-   {{paramTypesAndNames}}   
+{{paramTypesAndNames}}   
 } {{functionName}}_params;
 {{newline}}
 {{newline}}

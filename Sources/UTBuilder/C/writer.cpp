@@ -268,19 +268,21 @@ std::shared_ptr<const Plustache::Context> Writer::CreateUnitTestContext(const st
       
       FuncParamsStruct funcParams = iter.second;
       
-      const clang::FunctionDecl* funcDecl = funcParams.getFunctionDecl();
+//       const clang::FunctionDecl* funcDecl = funcParams.getFunctionDecl();
       
       const unsigned int size = funcParams.getSize();
       
       for (int i=0; i<size; ++i )
       {
          FunctionToUnitTest["functionName"] = funcParams.getName(i); // funcDecl->getNameAsString();
-         context->add("functionToUnitTest", FunctionToUnitTest);
          
-//          code.str("");
-//          code << 
-//          FunctionToUnitTest["CODE"] = ;
+         code.str("");
          
+         FuncParamsStruct::writeGoogleTest(code, funcParams, i );
+        
+         FunctionToUnitTest["CODE"] = code.str();
+         
+         context->add("functionToUnitTest", FunctionToUnitTest);         
       }
    }
    
@@ -491,10 +493,11 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
    context->add("newline", "\n");
    
    
-   // fill the FuncParamsStruct vector
-//    std::vector<FuncParamsStruct> funcParamsStructures;
    
-   /*
+   // fill the FuncParamsStruct vector
+   std::vector<FuncParamsStruct> funcParamsStructures;
+   
+   
    FuncParamsStruct funcParamsStruct;
    
    for ( auto iter : funcDeclsMap )
@@ -505,18 +508,18 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
       
       funcParamsStruct.init( funcDecl, mockDeclSet );
       
-//       funcParamsStructures.push_back(funcParamsStruct);
-      UnitTestFunctionsData::get().structs[funcParamsStruct.getName()] = funcParamsStruct;
+      funcParamsStructures.push_back(funcParamsStruct);
+//       UnitTestFunctionsData::get().structs[funcParamsStruct.getName()] = funcParamsStruct;
    }
-   */
    
    
-   for (auto iter : UnitTestFunctionsData::get().data() )
+   
+   for (auto iter : funcParamsStructures )
    {      
       out.str("");
-//       out << iter;
+      FuncParamsStruct::writeAsStructure(out, iter);
      
-      paramsStructsObject["functionName"] = iter.first;//getName();
+      paramsStructsObject["functionName"] = iter.getName();
       paramsStructsObject["paramTypesAndNames"] = out.str();
       context->add("functionParamsStructs", paramsStructsObject);
    }   

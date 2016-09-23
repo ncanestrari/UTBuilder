@@ -82,7 +82,7 @@ std::shared_ptr<NameValueTypeNode<clang::QualType> > FuncParamsStruct::buildOutp
    root->setName("output");
    
    // add return type
-   root->addChild("return", funcDecl->getReturnType(), "" );
+   root->addChild("retval", funcDecl->getReturnType(), "" );
    
    return root;
 }
@@ -301,6 +301,178 @@ void FuncParamsStruct::deSerialize(const Json::Value& jsonRoot)
 }
 
 
+
+
+
+
+static const char* getStructureField( std::ostringstream& os, const clang::QualType& qualType, const std::string& indent)
+{
+   const std::string newIndent = indent + indent;
+   
+   const clang::RecordType* structType = qualType->getAsStructureType();
+         
+   if ( structType == nullptr )
+   {
+      return qualType.getUnqualifiedType().getAsString().c_str();
+   }
+   
+   
+//    if ( qualType->isUnionType() == false.
+//       return;
+
+   const clang::RecordDecl* structDecl = structType->getDecl();
+   
+   os << "\n" << indent << "struct " << qualType.getAsString() << " { \n";
+   
+   for ( const auto field : structDecl->fields() ){
+
+      const clang::QualType canonicalQualType = field->getType()->getCanonicalTypeInternal();
+      
+      os << newIndent << getStructureField( os, field->getType(), newIndent ) << "\t" << field->getNameAsString() << "; // "<< canonicalQualType.getAsString() << "\n";
+      //os << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << ";\n";
+   }
+         
+   os << indent << "} "; // << qualType.getAsString() << ";\n\n"; // qualType->getCanonicalTypeInternal().getAsString()
+   
+ 
+   return "";
+}
+
+void  FuncParamsStruct::writeAsStructure( std::ostringstream& os, const FuncParamsStruct& obj )
+{
+   const std::string indent = "   ";
+ 
+   // write return type
+//    os  << getStructureField( os, obj.getFunctionDecl()->getReturnType(), indent ) << " retval;\n\n"; 
+         
+//    const std::map< const std::string, const clang::DeclaratorDecl*> & args = obj.getFunctionDecl()->Params();
+   
+   os<< "\n";
+   
+   if ( obj.getNumParams() > 0 )
+   {
+      for ( auto field : obj.getFunctionDecl()->params() )
+      {
+         clang::QualType qualType = field->getType();
+         const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
+
+         os << indent << getStructureField( os, qualType, indent ) << "\t" << field->getNameAsString() << "; // "<< canonicalQualType.getAsString() << "\n"; 
+      }
+   }
+   /*
+   for ( auto field : args )
+   {      
+      clang::QualType qualType = field.second->getType();
+      const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
+
+      os << getStructureField( os, qualType ) << " " << qualType.getAsString() << "; // "<< canonicalQualType.getAsString() << "\n"; 
+   }  */
+   
+   //os << "} " << obj.getName() << ";\n\n\n";
+   
+//    return os;
+   return;
+}
+
+
+static const char* writeStructureValue( std::ostringstream& os, 
+                                      const std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, 
+                                      const std::string& name,
+                                      const std::string& indent )
+{
+//    const std::string newIndent = indent + indent;
+   
+   std::string structName = name + tree->getName();
+  
+   
+   if ( tree->getNumChildern() > 0 )
+   {      
+      
+      structName.append(".");
+      
+      for ( auto child : tree->getChildren() )
+      {
+         writeStructureValue(os, child.second, structName, indent);
+      }
+   }
+   else{      
+      os << indent << structName << " = " << tree->getValue() << ";\n";
+   }
+   
+   return "";
+}
+
+void FuncParamsStruct::writeGoogleTest( std::ostringstream& os, const FuncParamsStruct& obj, const unsigned int i )
+{
+   const std::string indent = "   ";
+   
+   std::string structName(obj.getName());
+   structName.append("_params");
+   
+
+//    input declaration
+   os << indent << structName << " input;" << "\n"; 
+   os << indent << "memset( &input, 0, sizeof(" << structName << ") );" << "\n\n";
+   
+
+//    output declaration
+   const clang::QualType returnType = obj.getFunctionDecl()->getReturnType();
+   const std::string& returnTypeString = returnType.getAsString();
+   
+   if ( returnTypeString != "void" )
+   {
+      os << indent << returnTypeString << " retval;" << "\n";
+      os << indent << "memset( &retval, 0, sizeof(" << returnTypeString << ") );" << "\n\n";
+   }
+   
+   os << "// fill the input struct with json file values" << "\n";
+   if ( obj.getNumParams() > 0 )
+   {
+      
+      os << writeStructureValue( os, obj._inputTree[i], "", indent ) << "\n";
+//       for ( auto field : obj.getFunctionDecl()->params() )
+//       {
+//          os  << indent << getStructureValue( os, field->getNameAsString(), structName) << "\n";         
+//       }
+      
+   }
+   
+   
+   os << "\n" <<  indent;
+
+//    write function call
+   if ( returnTypeString != "void" )
+   {
+      os << "retval = ";
+   }
+   
+   
+   os << obj.getName() << "(";
+   
+   if ( obj.getNumParams() > 0 )
+   {
+      const int numParms = obj.getFunctionDecl()->getNumParams();           
+
+      const clang::ParmVarDecl* currentParam = obj.getFunctionDecl()->getParamDecl(0);
+      os  << " input." << currentParam->getNameAsString();
+      
+      for ( int i=1; i<numParms; ++i)
+      {
+         const clang::ParmVarDecl* currentParam = obj.getFunctionDecl()->getParamDecl(i);
+         os  << ", input." << currentParam->getNameAsString();
+         
+      }
+      
+   }
+   os << ");\n\n";
+   
+   writeStructureValue( os, obj._outputTree[i]->getChild("retval"), "", indent );
+   
+   return;
+}
+
+
+
 /*
 void FuncParamsStruct::writeAsStruct(void)
 {
@@ -481,58 +653,4 @@ void FuncParamsStruct::serializeJson(Json::Value& jsonParent)
 //    return "";
 // }
 
-
-// std::ostream& operator << (std::ostream& os, const FuncParamsStruct& obj)
-// {
-//    
-//    //os << "typedef struct { \n\n";   
-//    os << FuncParamsStruct::getStructureField( os, obj.getReturnType() ) << " returnValue;\n\n"; 
-//          
-//    const std::map< const std::string, const clang::DeclaratorDecl*> & args = obj.getParams();
-//    
-//    for ( auto field : args )
-//    {      
-//       clang::QualType qualType = field.second->getType();
-//       const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
-// 
-//       os << FuncParamsStruct::getStructureField( os, qualType ) << " " << qualType.getAsString() << "; // "<< canonicalQualType.getAsString() << "\n"; 
-//    }  
-//    
-//    //os << "} " << obj.getName() << ";\n\n\n";
-//    
-//    return os;
-// }
-
-
-// const char* FuncParamsStruct::getStructureField( std::ostream& os, const clang::QualType& qualType)
-// {
-//    
-//    const clang::RecordType* structType = qualType->getAsStructureType();
-//          
-//    if ( structType == nullptr )
-//    {
-//       return qualType.getUnqualifiedType().getAsString().c_str();
-//    }
-//    
-//    
-// //    if ( qualType->isUnionType() == false.
-// //       return;
-// 
-//    const clang::RecordDecl* structDecl = structType->getDecl();
-//    
-//    os << "struct " << qualType.getAsString() << " { \n";
-//    
-//    for ( const auto field : structDecl->fields() ){
-// 
-//       const clang::QualType canonicalQualType = field->getType()->getCanonicalTypeInternal();
-//       
-//       os << FuncParamsStruct::getStructureField( field->getType() ) << "\t" << field->getNameAsString() << "; // "<< canonicalQualType.getAsString() << "\n";
-//       //os << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << ";\n";
-//    }
-//          
-//    os << "} "; // << qualType.getAsString() << ";\n\n"; // qualType->getCanonicalTypeInternal().getAsString()
-//    
-//  
-//    return "";
-// }
 

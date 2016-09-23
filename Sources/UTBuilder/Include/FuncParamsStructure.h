@@ -30,13 +30,13 @@ public:
                const std::set<const clang::FunctionDecl*>& mockFuncs = std::set<const clang::FunctionDecl*>() );   
     
     
-    const char* getName(void) const { return _funcDecl->getNameAsString().c_str(); }    
+    std::string getName(void) const { return _funcDecl->getNameAsString(); }    
     
     std::string getName(const unsigned int index) const;
     
     size_t getNumParams(void) const { return _funcDecl->getNumParams(); }
     
-    const clang::FunctionDecl* getFunctionDecl() { return _funcDecl; }
+    const clang::FunctionDecl* getFunctionDecl() const { return _funcDecl; }
     
     unsigned int getSize(void) const;
     
@@ -77,8 +77,25 @@ private:
    std::vector< std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > > _mocksTree;
  
    
+   // temp functions to  generate files automatically
+//    friend std::ostream& operator << (std::ostringstream& os, const FuncParamsStruct& obj);
+   
+public:
+   
+// temp functions to  generate files automatically
+   static void  writeAsStructure( std::ostringstream& os, const FuncParamsStruct& obj );
+   
+   static void  writeGoogleTest( std::ostringstream& os, const FuncParamsStruct& obj,  const unsigned int i );
+   
 };
 
+
+
+// std::ostream& operator << (std::ostringstream& os, const FuncParamsStruct& obj) { return os;}
+
+// void writeAsStructure( std::ostringstream& os, const FuncParamsStruct& obj );
+
+// void writeGoogleTest( std::ostringstream& os, const FuncParamsStruct& obj,  const unsigned int i );
 
 
 #endif // _UTBuilder_FuncParamsStructure_h__
