@@ -1,11 +1,4 @@
-/* @owner ... */
-/**
- * @file globber.cpp
- * @brief This module implements 
- *
- * @copyright Copyright of this program is the property of AMADEUS, without
- * whose written permission reproduction in whole or in part is prohibited.
- */
+
 #include "globber.h"
 
 extern "C"{
