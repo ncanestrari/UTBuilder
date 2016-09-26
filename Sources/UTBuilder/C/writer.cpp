@@ -200,7 +200,7 @@ void Writer::CreateSerializationJsonfile(const FunctionsData& functionData,
    }
    */
    
-   functionData.serialize(jsonRoot);
+   functionData.serializeAST(jsonRoot);
    
    std::ofstream outputFile;   
    std::string outputFileName = outFileName + ".json";   
@@ -264,7 +264,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateUnitTestContext(const st
    
    std::ostringstream    code;
    
-   for ( auto iter : UnitTestFunctionsData::get().data() ) {
+   for ( auto iter : UnitTestFunctionsData::get().dataJson() ) {
       
       FuncParamsStruct funcParams = iter.second;
       

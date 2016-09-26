@@ -28,21 +28,28 @@ public:
    virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) {}
    
    
-   void clear() { _data.clear(); }
+   void clear() { _dataAST.clear(); }
    
    FuncParamsStruct* find(const std::string& key);
    
-   void serialize(Json::Value& jsonRoot) const;
+   void serializeAST(Json::Value& jsonRoot) const;
+
+   void serializeJson(Json::Value& jsonRoot) const;
    
    void deSerialize(Json::Value& jsonRoot);
    
-   const std::map< std::string, FuncParamsStruct>& data(void) { return _data;}
+   void deSerializeJson( const Json::Value& jsonRoot);
    
+   const std::map< std::string, FuncParamsStruct>& dataAST(void) { return _dataAST;}
+   
+   const std::map< std::string, FuncParamsStruct>& dataJson(void) { return _dataJson;}
    
    
 protected:
    
-   std::map< std::string, FuncParamsStruct> _data;
+   std::map< std::string, FuncParamsStruct> _dataAST;
+   
+   std::map< std::string, FuncParamsStruct> _dataJson;
    
 };
 

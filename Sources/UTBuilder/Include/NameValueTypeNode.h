@@ -53,15 +53,19 @@ public:
       auto iter = _children.find(name);
       if ( iter == _children.end() )
          return nullptr;
-       return iter->second;
+      return iter->second;
    }
    
-   const std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > >&  getChildren(void) { return _children; }
+   const std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > >&  getChildren(void) const { return _children; }
    
    
    
 // private:
    
+   void addChild( std::shared_ptr<NameValueTypeNode<T> > child )
+   {
+      _children[child->_name] = child;
+   }
    
    std::shared_ptr<NameValueTypeNode<T> > addChild( const char* name = "\0", T type = T(), const char* value = "\0" )
    {

@@ -163,7 +163,7 @@ int main(int argc, const char *argv[])
    
    
    Json::Value jsonRoot;
-   UnitTestFunctionsData::get().serialize( jsonRoot );
+   UnitTestFunctionsData::get().serializeJson( jsonRoot );
    
    
    
@@ -173,7 +173,7 @@ int main(int argc, const char *argv[])
    outputFile << jsonRoot;
    outputFile.close();
    
-   std::cout << "file written: " << outputFileName << std::endl;
+//    std::cout << "file written: " << outputFileName << std::endl;
       
    
    writer.createUnitTestFile();

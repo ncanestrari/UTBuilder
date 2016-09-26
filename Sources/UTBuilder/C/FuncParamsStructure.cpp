@@ -214,41 +214,16 @@ void FuncParamsStruct::serialize(Json::Value& jsonParent,  const bool withMocks 
 
 void FuncParamsStruct::deSerializeTree( std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, const Json::Value& fieldItem) 
 {
-   
-   if ( fieldItem.isObject() )
-   {
-      const std::string& treeKeyName = tree->getName();
-      Json::Value field = fieldItem.get(treeKeyName.c_str(), "");
-      
-      if ( field.isObject() == true )
-      {
-         for( Json::ValueIterator iter = field.begin() ; iter != field.end() ; iter++ ) {
-            const std::string key = iter.key().asString();
-            auto child = tree->getChild( key.c_str() );
-            deSerializeTree( child, *iter ); 
-         }
-      
+   const std::string& treeKeyName = tree->getName();
+   Json::Value field = fieldItem.get(treeKeyName.c_str(), "");
+   if ( field.isObject() == true ) {      
+      for( Json::ValueIterator iter = field.begin() ; iter != field.end() ; iter++ ) {
+         const std::string key = iter.key().asString();
+         auto child = tree->getChild( key.c_str() );
+         deSerializeTree( child, field ); 
       }
-   } /*
-   else if ( fieldItem.isArray() )
-   {
-      const std::string& treeKeyName = tree->getName();
-      
-      Json::Value field = fieldItem.get(treeKeyName.c_str(), "");
-      
-      if ( field.isObject() == true )
-      {
-         for( Json::ValueIterator iter = field.begin() ; iter != field.end() ; iter++ ) {
-            const std::string key = iter.key().asString();
-            auto child = tree->getChild( key.c_str() );
-            deSerializeTree( child, *iter ); 
-         }
-      
-      }
-   }*/
-   else
-   {
-      tree->setValue( fieldItem.asCString() );
+   } else{
+      tree->setValue( field.asCString() );
    }
    
    return;
@@ -300,7 +275,107 @@ void FuncParamsStruct::deSerialize(const Json::Value& jsonRoot)
    }
 }
 
+/*
+void FuncParamsStruct::deSerializeTreeJson( std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, const Json::Value& fieldItem) 
+{
+   const std::string& treeKeyName = tree->getName();
+   Json::Value field = fieldItem.get(treeKeyName.c_str(), "");
+   if ( field.isObject() == true ) {      
+      for( Json::ValueIterator iter = field.begin() ; iter != field.end() ; iter++ ) {
+         const std::string key = iter.key().asString();
+         auto child = tree->getChild( key.c_str() );
+         deSerializeTreeJson( child, field ); 
+      }
+   } else {
+//       tree->setValue( field.asCString() );
+      tree->addChild( treeKeyName.c_str(), tree->getType(), field.asString().c_str() );      
+   }
+}*/
+   
+   
+std::shared_ptr<NameValueTypeNode<clang::QualType> > 
+FuncParamsStruct::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<clang::QualType> > referenceTree,
+                                      const Json::Value& fieldItem )
+{
+      
+   const std::string& treeKeyName = referenceTree->getName();
+  
+   std::shared_ptr<NameValueTypeNode<clang::QualType> > root = std::make_shared<NameValueTypeNode<clang::QualType> >(treeKeyName.c_str());
+  
+   if ( fieldItem.isObject() == true ) { 
+      //Json::Value field = fieldItem.get(treeKeyName.c_str(), "");
+      for( Json::ValueConstIterator iter = fieldItem.begin() ; iter != fieldItem.end() ; iter++ ) {
+      
+         auto childReferenceTree = referenceTree->getChild(iter.key().asString().c_str());
+         std::shared_ptr<NameValueTypeNode<clang::QualType> > child = deSerializeTreeJson(childReferenceTree, *iter );
+         root->addChild( child );
+      }
+   }
+   else {
+      root->setValue( fieldItem.asString().c_str() );
+   }
+  
+   return root;
+}
 
+std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > 
+FuncParamsStruct::deSerializeTreeJson( const std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > referenceTree, const Json::Value& fieldItem)
+{
+  /*
+   const std::string& treeKeyName = tree->getName();
+   Json::Value field = fieldItem.get(treeKeyName.c_str(), "");
+   if ( field.isObject() ){
+      for( Json::ValueIterator iter = field.begin() ; iter != field.end() ; iter++ ) {
+         const std::string key = iter.key().asString();
+	 tree->addChild(  key.c_str(), tree->getType(), field.asString().c_str() );  
+         auto child = tree->getChild( key.c_str() );
+         deSerializeTreeJson( child, field ); 
+      }
+   } else {
+      tree->addChild( treeKeyName.c_str(), tree->getType(), field.asString().c_str() );  
+   }*/
+   
+  const std::string& treeKeyName = referenceTree->getName();
+  
+  std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > root = std::make_shared<NameValueTypeNode<const clang::FunctionDecl*> >(treeKeyName.c_str());
+  
+  Json::Value field = fieldItem.get(treeKeyName.c_str(), "");
+  
+   if ( field.isObject() == true ) { 
+     for( Json::ValueIterator iter = field.begin() ; iter != field.end() ; iter++ ) {
+      
+       auto childReferenceTree = referenceTree->getChild(iter.key().asString().c_str());
+       root->addChild(iter.key().asString().c_str(), childReferenceTree->getType() , ""  );
+     }
+   }
+   else {
+     root->setValue( field.asString().c_str() );
+   }
+  
+   return root;
+   
+}
+
+void FuncParamsStruct::deSerializeJson( const FuncParamsStruct& funcParam, const Json::Value& jsonRoot)
+{
+//    std::string encoding = jsonRoot.get("_name", "" ).asString();
+
+   const Json::Value content = jsonRoot["content"];
+   const unsigned int size = content.size();
+   
+   _inputTree.resize(size);
+   _outputTree.resize(size);
+   _mocksTree.resize(size);
+   
+   for ( int i = 0; i < size; ++i )
+   {
+      _inputTree[i] = deSerializeTreeJson( funcParam._inputTree[i], content[i]["input"] );
+      _outputTree[i]= deSerializeTreeJson( funcParam._outputTree[i], content[i]["output"] );
+      //_mocksTree[i] = deSerializeTreeJson( funcParam._mocksTree[i], content[i]["mock-funcs-call"] );
+   }
+}
+
+    
 
 
 
@@ -388,15 +463,46 @@ static const char* writeStructureValue( std::ostringstream& os,
    if ( tree->getNumChildern() > 0 )
    {      
       
-      structName.append(".");
+      structName += ".";
       
       for ( auto child : tree->getChildren() )
       {
          writeStructureValue(os, child.second, structName, indent);
       }
    }
-   else{      
-      os << indent << structName << " = " << tree->getValue() << ";\n";
+   else{
+      if( tree->getValue() != "" ){
+         os << indent << structName << " = " << tree->getValue() << ";\n";
+      }
+   }
+   
+   return "";
+}
+
+static const char* writeStructureComparison( std::ostringstream& os, 
+                                             const std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, 
+                                             const std::string& name,
+                                             const std::string& indent )
+{
+//    const std::string newIndent = indent + indent;
+   
+   std::string structName = name + tree->getName();
+  
+   
+   if ( tree->getNumChildern() > 0 )
+   {      
+      
+      structName += ".";
+      
+      for ( auto child : tree->getChildren() )
+      {
+         writeStructureComparison(os, child.second, structName, indent);
+      }
+   }
+   else{
+      if( tree->getValue() != "" ){
+         os << indent << "EXPECT_EQ(" << structName << ", " << tree->getValue() << ");\n";
+      }
    }
    
    return "";
@@ -413,7 +519,7 @@ void FuncParamsStruct::writeGoogleTest( std::ostringstream& os, const FuncParams
 //    input declaration
    os << indent << structName << " input;" << "\n"; 
    os << indent << "memset( &input, 0, sizeof(" << structName << ") );" << "\n\n";
-   
+   std::cout << os.str();
 
 //    output declaration
    const clang::QualType returnType = obj.getFunctionDecl()->getReturnType();
@@ -422,7 +528,7 @@ void FuncParamsStruct::writeGoogleTest( std::ostringstream& os, const FuncParams
    if ( returnTypeString != "void" )
    {
       os << indent << returnTypeString << " retval;" << "\n";
-      os << indent << "memset( &retval, 0, sizeof(" << returnTypeString << ") );" << "\n\n";
+      //os << indent << "memset( &retval, 0, sizeof(" << returnTypeString << ") );" << "\n\n";
    }
    
    os << "// fill the input struct with json file values" << "\n";
@@ -436,6 +542,10 @@ void FuncParamsStruct::writeGoogleTest( std::ostringstream& os, const FuncParams
 //       }
       
    }
+   
+   
+//    os << "// fill the return struct with json file values" << "\n";
+//    writeStructureValue( os, obj._outputTree[i]->getChild("retval"), "", indent );
    
    
    os << "\n" <<  indent;
@@ -456,17 +566,20 @@ void FuncParamsStruct::writeGoogleTest( std::ostringstream& os, const FuncParams
       const clang::ParmVarDecl* currentParam = obj.getFunctionDecl()->getParamDecl(0);
       os  << " input." << currentParam->getNameAsString();
       
-      for ( int i=1; i<numParms; ++i)
+      for ( int ii=1; ii<numParms; ++ii)
       {
-         const clang::ParmVarDecl* currentParam = obj.getFunctionDecl()->getParamDecl(i);
+         const clang::ParmVarDecl* currentParam = obj.getFunctionDecl()->getParamDecl(ii);
          os  << ", input." << currentParam->getNameAsString();
          
-      }
-      
+      }      
    }
    os << ");\n\n";
    
-   writeStructureValue( os, obj._outputTree[i]->getChild("retval"), "", indent );
+   
+   os << "// check conditions" << "\n";
+   for( auto child : obj._outputTree[i]->getChildren() ){
+      writeStructureComparison( os, child.second, "", indent );
+   }
    
    return;
 }

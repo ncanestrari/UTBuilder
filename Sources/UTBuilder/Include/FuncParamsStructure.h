@@ -44,6 +44,8 @@ public:
     
     void deSerialize(const Json::Value& jsonRoot);
     
+    void deSerializeJson( const FuncParamsStruct& funcParam, const Json::Value& jsonRoot);
+    
     void writeAsStruct(void);
     
 private:
@@ -68,6 +70,15 @@ private:
    
 
    
+   static std::shared_ptr<NameValueTypeNode<clang::QualType> >
+   deSerializeTreeJson( const std::shared_ptr<NameValueTypeNode<clang::QualType> > referenceTree,
+                       const Json::Value& fieldItem );
+
+   
+   static std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > 
+   deSerializeTreeJson( const std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > tree, const Json::Value& fieldItem);
+   
+   
    const clang::FunctionDecl* _funcDecl;
    
 
@@ -87,6 +98,9 @@ public:
    
    static void  writeGoogleTest( std::ostringstream& os, const FuncParamsStruct& obj,  const unsigned int i );
    
+   const std::vector< std::shared_ptr<NameValueTypeNode<clang::QualType> > > & getInputTree(void) const { return  _inputTree; }
+   const std::vector< std::shared_ptr<NameValueTypeNode<clang::QualType> > > & getOutputTree(void) const { return _outputTree; }
+   const std::vector< std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > > & getMockTree(void) const { return _mocksTree; }
 };
 
 

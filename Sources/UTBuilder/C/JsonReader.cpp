@@ -35,7 +35,7 @@ bool JsonReader::parse(FunctionsData& funcsData, const std::string& fileName)
       
       jsonFile >> _funcsRoot;
       
-      funcsData.deSerialize( _funcsRoot );
+      funcsData.deSerializeJson( _funcsRoot );
    }
 
    jsonFile.close();

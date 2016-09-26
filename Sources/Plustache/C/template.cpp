@@ -42,11 +42,11 @@ template_t::template_t(const std::string& tmpl_path)
 void template_t::compile_data()
 {
     // lookup table for html escape
-    escape_lut["&"] = "&amp;";
-    escape_lut["<"] = "&lt;";
-    escape_lut[">"] = "&gt;";
-    escape_lut["\\"] = "&#92;";
-    escape_lut["\""] = "&quot;";
+    escape_lut["&"] = "&";
+    escape_lut["<"] = "<";
+    escape_lut[">"] = ">";
+    escape_lut["\\"] = "\\";
+    escape_lut["\""] = "\"";
     // regex for what to escape in a html std::string
     escape_chars.assign("(<|>|\"|\\\\|&)");
     otag = "\\{\\{";
