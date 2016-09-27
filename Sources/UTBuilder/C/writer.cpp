@@ -34,10 +34,18 @@ Writer::Writer( const std::string&            fileName,
 {
 }
 
+void Writer::createExampleJsonFiles(void)
+{
+   CreateSerializationJsonfile( MockFunctionsData::get(), "mocks", _fileName + "-mocks-template");
+   CreateSerializationJsonfile( UnitTestFunctionsData::get(), "funcs", _fileName + "-tests-template");
+}
+
+
 void Writer::createFiles(void)
 {
    CreateMockFile();
    CreateSerializationFile();
+   createUnitTestFile();
 }
 
 
@@ -60,7 +68,7 @@ void Writer::CreateMockFile(void)
 
    WriteTemplate( CreateMockContext(includePaths, FunctionsToMock::get().declKeySetMap ),
 		  std::string(std::getenv("TEMPLATE_DIR"))+std::string("/mock.template"), 
-		  _fileName + "-mocks.h");
+		  utils::changeFilePathToInclude(_fileName) + "-mocks.h");
    
 }
 
@@ -89,7 +97,7 @@ void Writer::createUnitTestFile(void)
    
    WriteTemplate( CreateUnitTestContext(includePaths, UnitTestFunctionsData::get() ), 
 		  std::string(std::getenv("TEMPLATE_DIR"))+std::string("/UT.template"), 
-		  _fileName + "-ugtest.c" );
+		  _fileName + "-ugtest.cpp" );
  
 }
 
@@ -141,11 +149,9 @@ void Writer::CreateSerializationFile(void){
    
    WriteTemplate( CreateStructuresToSerializeContext(includePaths, FunctionsToUnitTest::get().declKeySetMap ), 
                   std::string(std::getenv("TEMPLATE_DIR"))+std::string("/serialization-struct.template"), 
-                  _fileName + "-serialization-struct.h" );
+                  utils::changeFilePathToInclude(_fileName) + "-serialization-struct.h" );
    
    
-    CreateSerializationJsonfile( MockFunctionsData::get(), "mocks", _fileName + "-mocks-template");
-    CreateSerializationJsonfile( UnitTestFunctionsData::get(), "funcs", _fileName + "-tests-template");
    
 }
          
@@ -214,13 +220,14 @@ void Writer::CreateSerializationJsonfile(const FunctionsData& functionData,
 }
 
 
-std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::set<std::string>                  &includePaths,
+std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::set<std::string>   &includePaths,
                                                                     const FunctionDeclKeySetMap   &funcDeclsMap ){
    
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
    
    ObjectType            Include;
    ObjectType            Mock;
+   ObjectType            FakeFunc;
    std::ostringstream    out;
    
    for(auto iter : includePaths){
@@ -234,6 +241,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
       const clang::FunctionDecl* funcDecl = iter.first;
       MockFunctionFFF( funcDecl, out );
       Mock["definition"] = out.str();
+      Mock["mockname"] = funcDecl->getNameInfo().getName().getAsString();
       context->add("mocks", Mock);
       out.str("");
    }
@@ -241,25 +249,50 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
    context->add("filename", _fileName);
    context->add("newline", "\n");
    
+   
+   out.str("");
+   const std::map< std::string, FuncParamsStruct>&  dataJson = MockFunctionsData::get().dataJson();
+   
+   for ( auto func : dataJson ) {
+    
+      const std::string& name = func.first;
+      const FuncParamsStruct& funcParams = func.second;
+      const clang::FunctionDecl* funcDecl = funcParams.getFunctionDecl();
+      int counter = 0;
+      for ( auto iter : funcParams.getOutputTree()  ) {
+	 const std::string namewithcounter = name + "_" + std::to_string(counter);
+	 FakeFunctionDefinition(namewithcounter, funcDecl, iter, out);
+	 FakeFunc["definition"] = out.str();
+	 context->add("fakefuncs",FakeFunc);
+	 counter++;
+	 out.str("");
+      }
+      
+   }
+   
+   
    return context;
 }
 
 
-std::shared_ptr<const Plustache::Context> Writer::CreateUnitTestContext(const std::set<std::string>                  &includePaths,
-									const UnitTestFunctionsData   &funcData ){
+std::shared_ptr<const Plustache::Context>
+Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
+			      const UnitTestFunctionsData   &funcData ){
    
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
    
-   ObjectType            Include;
-   ObjectType            FunctionToUnitTest;
+   ObjectType   Include;
+   ObjectType   FunctionToUnitTest;
    
    for(auto iter : includePaths){
       Include["include"] = iter;
-      context->add("includes", Include);      
+      context->add("includes", Include);
    }
    // add mock file in includes list
    Include["include"] = boost::filesystem::path(_fileName).filename().string() + "-mocks.h";
-   context->add("includes", Include); 
+   context->add("includes", Include);
+   Include["include"] = boost::filesystem::path(_fileName).filename().string() + "-serialization-struct.h";
+   context->add("includes", Include);
 
    
    std::ostringstream    code;
@@ -299,9 +332,9 @@ std::shared_ptr<const Plustache::Context> Writer::CreateUnitTestContext(const st
 }
 
 
-std::shared_ptr<const Plustache::Context> Writer::CreateSerializationContext(
-   const std::set<std::string>                  &includePaths, 
-   const std::set<const clang::TypedefNameDecl*>&   typedefNameDecls ) {
+std::shared_ptr<const Plustache::Context>
+Writer::CreateSerializationContext(const std::set<std::string>                   &includePaths,
+                                   const std::set<const clang::TypedefNameDecl*> &typedefNameDecls ) {
 
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
                 
@@ -418,11 +451,11 @@ std::shared_ptr<const Plustache::Context> Writer::CreateSerializationContext(
 
 
 
-std::shared_ptr<const Plustache::Context> Writer::CreateSerializationStructuresContext(const std::set<std::string>& includePaths,
-                                                                        const FunctionDeclKeySetMap   &funcDeclsMap ){
+std::shared_ptr<const Plustache::Context>
+Writer::CreateSerializationStructuresContext(const std::set<std::string> &includePaths,
+                                             const FunctionDeclKeySetMap &funcDeclsMap ){
    
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
-   
    ObjectType            Include;
    ObjectType            paramsStructsObject;
    std::ostringstream    out;
@@ -430,9 +463,11 @@ std::shared_ptr<const Plustache::Context> Writer::CreateSerializationStructuresC
    
    for(auto iter : includePaths){
       Include["include"] = iter;
-      context->add("includes", Include);      
+      context->add("includes", Include);
    }
-
+   //include 
+   Include["include"] = utils::changeFileExtension(boost::filesystem::path(_fileName).filename().string(), "h");
+   context->add("includes", Include);
    
 //    context->add("testFilename", TestFilename);   
    context->add("filename", _fileName);
@@ -472,8 +507,9 @@ std::shared_ptr<const Plustache::Context> Writer::CreateSerializationStructuresC
    return context;
 }
 
-std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeContext(const std::set<std::string>& includePaths,
-                                                                        const FunctionDeclKeySetMap   &funcDeclsMap ){
+std::shared_ptr<const Plustache::Context>
+Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includePaths,
+                                           const FunctionDeclKeySetMap   &funcDeclsMap ){
    
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
    
@@ -484,9 +520,10 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
    
    for(auto iter : includePaths){
       Include["include"] = iter;
-      context->add("includes", Include);      
+      context->add("includes", Include);
    }
-
+   Include["include"] = Include["include"] = utils::changeFileExtension(boost::filesystem::path(_fileName).filename().string(), "h");
+   context->add("includes", Include);
    
 //    context->add("testFilename", TestFilename);   
    context->add("filename", _fileName);
@@ -528,9 +565,10 @@ std::shared_ptr<const Plustache::Context> Writer::CreateStructuresToSerializeCon
    return context;
 }
 
-void Writer::WriteTemplate(std::shared_ptr<const Plustache::Context>      context,
-                                 const std::string& templateFileName,
-                                 const std::string                      &outFileName){
+void
+Writer::WriteTemplate(std::shared_ptr<const Plustache::Context>  context,
+                      const std::string                         &templateFileName,
+                      const std::string                         &outFileName){
    template_t     t;
    stringstream   buffer;
    string         result;
@@ -560,6 +598,103 @@ void Writer::WriteTemplate(std::shared_ptr<const Plustache::Context>      contex
   
    std::cout << "file written: " << outputFileName << std::endl;
 }
+
+
+static void writeMockValue(std::ostringstream& os, 
+                           const std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, 
+                           const std::string& name)
+{
+   
+   std::string structName = name + tree->getName();
+
+   
+   if ( tree->getNumChildern() > 0 )
+   {      
+      
+      structName += ".";
+      
+      for ( auto child : tree->getChildren() )
+      {
+         writeMockValue(os, child.second, structName);
+      }
+   }
+   else{//TODO manage pointer to structure if needed
+
+      
+      if( tree->getValue() != "" ){
+	 if( tree->getName() == "retval" ){
+	    os << "   retval = " << tree->getValue() << ";\n";
+	 } else if( tree->getType()->isAnyPointerType() ){
+	    os << "   *" << structName << " = " << tree->getValue() << ";\n";
+	 } else {
+	    os << "   " << structName << " = " << tree->getValue() << ";\n";
+	 }
+      }
+   }
+   
+
+}
+
+
+void Writer::FakeFunctionDefinition(const std::string                                          &name,
+				    const clang::FunctionDecl                                  *funcDecl,
+				    const std::shared_ptr<NameValueTypeNode<clang::QualType> >  outTree,
+				    std::ostringstream                                         &out)
+{
+
+   std::string returnType = funcDecl->getReturnType().getAsString();
+
+   std::string isVariadic;
+
+   out << returnType << " ";
+   out << name << "(";
+       
+   const int numParms = funcDecl->getNumParams();           
+   if (numParms == 0){
+      out << "void";
+   } else {
+      const clang::ParmVarDecl* _currentParam = funcDecl->getParamDecl(0);
+      out << _currentParam->getType().getAsString() << " " << _currentParam->getNameAsString();
+      for ( int i=1; i<numParms; ++i)
+      {
+	 const clang::ParmVarDecl* _currentParam = funcDecl->getParamDecl(i);
+	 out << ", " << _currentParam->getType().getAsString() << " " << _currentParam->getNameAsString();
+      }
+
+      if ( funcDecl->isVariadic() )
+	 out << ", ...";
+   }
+   
+   out <<" ){";
+   
+   out << "// fill the input struct with json file values" << "\n";
+   
+   
+   for ( auto child : outTree->getChildren() )
+   {
+      if( child.first == "retval" ){
+	 out << "   " << child.second->getType().getAsString() << " retval;\n";
+	 out << "   memset(&retval,0,sizeof(" << child.second->getType().getAsString() << "));\n";
+      }
+      writeMockValue(out, child.second, "");
+   }
+   
+//    for( auto child : obj._outputTree[i]->getChildren() ){
+//       if(child.first=="retval"){
+//          writeMockValue( os, child.second, "" );
+//       } else {
+//          writeMockValue( os, child.second, "input." );
+//       }
+//    }
+//    
+   
+   if(returnType != "void"){
+      out << "   return retval;\n";
+   }
+   
+   out << "}";
+}
+
 
 
 

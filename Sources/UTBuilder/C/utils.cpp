@@ -59,6 +59,14 @@ string utils::changeFileExtension(const string& fileName, const string& newExt){
    return boost::filesystem::change_extension(fileName, newExt).string();
 }
 
+string utils::changeFilePathToInclude(const string& fileName){
+   string filenameInclude = fileName;
+   size_t pos = 0;
+   pos = filenameInclude.find("/C/", pos);
+   filenameInclude.replace(pos, 3, "/Include/");
+   return filenameInclude;
+}
+
 
 string utils::removeDashes( const string& fileNamePath){
    string fileName = boost::filesystem::path(fileNamePath).filename().string();
@@ -119,31 +127,31 @@ void utils::fillFunctionQualTypes(void){
 }
 
 
-const char* utils::getDeclSourceFile( const clang::Decl* decl, const clang::SourceManager& srcMgr )
+std::string utils::getDeclSourceFile( const clang::Decl* decl, const clang::SourceManager& srcMgr )
 {
   // source location
    const clang::SourceLocation srcLoc = decl->getSourceRange().getBegin();
-   return srcMgr.getFilename(srcLoc).str().c_str();
+   return srcMgr.getFilename(srcLoc).str();
 }
 
-const char* utils::getDeclSourceFileLine( const clang::Decl* decl, const clang::SourceManager& srcMgr )
+std::string utils::getDeclSourceFileLine( const clang::Decl* decl, const clang::SourceManager& srcMgr )
 {
    // source location
    const clang::SourceLocation srcLoc = decl->getSourceRange().getBegin();
-   return srcLoc.printToString(srcMgr).c_str();
+   return srcLoc.printToString(srcMgr);
 }
 
 
-const char* utils::getStmtSourceFile( const clang::Stmt* stmt, const clang::SourceManager& srcMgr )
+std::string utils::getStmtSourceFile( const clang::Stmt* stmt, const clang::SourceManager& srcMgr )
 {
   // source location
    const clang::SourceLocation srcLoc = stmt->getSourceRange().getBegin();
-   return srcMgr.getFilename(srcLoc).str().c_str();
+   return srcMgr.getFilename(srcLoc).str();
 }
 
-const char* utils::getStmtSourceFileLine( const clang::Stmt* stmt, const clang::SourceManager& srcMgr )
+std::string utils::getStmtSourceFileLine( const clang::Stmt* stmt, const clang::SourceManager& srcMgr )
 {
    // source location
    const clang::SourceLocation srcLoc = stmt->getSourceRange().getBegin();
-   return srcLoc.printToString(srcMgr).c_str();
+   return srcLoc.printToString(srcMgr);
 }

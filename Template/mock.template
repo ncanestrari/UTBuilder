@@ -23,6 +23,19 @@ DEFINE_FFF_GLOBALS;
 {{newline}}
 {{/ mocks}}
 
+{{# fakefuncs}}
+{{definition}}
+{{newline}}
+{{/ fakefuncs}}
+
+
+void reset_all_mocks(){
+{{# mocks}}
+   RESET_FAKE({{mockname}});{{newline}}
+{{/ mocks}}
+   FFF_RESET_HISTORY();
+}
+
 /**
  * MOCKED FUNCTIONS END
  */

@@ -19,7 +19,7 @@ class Test_{{testFilename}} : public ::testing::Test
 protected:
    
    void SetUp(){
-      
+      reset_all_mocks();
    }
    
    void TearDown(){
@@ -29,7 +29,7 @@ protected:
 
 
 {{# functionToUnitTest}}
-TEST( {{testFilename}}, Test_{{functionName}})
+TEST_F( Test_{{testFilename}}, Test_{{functionName}})
 {
 {{CODE}}
 }

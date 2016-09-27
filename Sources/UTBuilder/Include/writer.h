@@ -29,6 +29,7 @@ public:
   
    ~Writer() {}
    
+   void createExampleJsonFiles(void);
    
    void createFiles();
    
@@ -67,15 +68,18 @@ private:
                                                                           const FunctionDeclKeySetMap   &funcDeclsMap );
    
    
-   void WriteTemplate(   std::shared_ptr<const Plustache::Context>      context,
-                                const std::string& templateFileName,
-                                const std::string  &outFileName);
+   void WriteTemplate(std::shared_ptr<const Plustache::Context>  context,
+                      const std::string                         &templateFileName,
+                      const std::string                         &outFileName);
    
    
    void MockFunctionFFF(const clang::FunctionDecl* const    funcDecl,
                                std::ostringstream&           out );
    
-   
+   void FakeFunctionDefinition(const std::string                                          &name,
+                               const clang::FunctionDecl                                  *funcDecl,
+                               const std::shared_ptr<NameValueTypeNode<clang::QualType>>   outTree,
+                               std::ostringstream                                         &out);
    
    const std::string  _fileName;
    const clang::SourceManager&   _sourceMgr;

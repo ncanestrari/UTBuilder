@@ -152,7 +152,7 @@ int main(int argc, const char *argv[])
    if ( writeJsonExampleFile )
    {
       // write the json example files
-      writer.createFiles();
+      writer.createExampleJsonFiles();
    }
    
    
@@ -163,7 +163,7 @@ int main(int argc, const char *argv[])
    
    
    Json::Value jsonRoot;
-   UnitTestFunctionsData::get().serializeJson( jsonRoot );
+   MockFunctionsData::get().serializeJson( jsonRoot );
    
    
    
@@ -176,7 +176,7 @@ int main(int argc, const char *argv[])
 //    std::cout << "file written: " << outputFileName << std::endl;
       
    
-   writer.createUnitTestFile();
+   writer.createFiles();
    
    //compiler.getDiagnosticClient().EndSourceFile();
  

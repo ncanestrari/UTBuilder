@@ -82,6 +82,10 @@ public:
       _value = value;
    }
    
+   void setType(const T type)
+   {
+      _type = type;
+   }
    
 //    friend class FuncParamsStruct;
    

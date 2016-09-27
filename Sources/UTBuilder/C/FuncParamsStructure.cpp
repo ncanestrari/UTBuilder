@@ -302,6 +302,8 @@ FuncParamsStruct::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<cl
   
    std::shared_ptr<NameValueTypeNode<clang::QualType> > root = std::make_shared<NameValueTypeNode<clang::QualType> >(treeKeyName.c_str());
   
+   root->setType( referenceTree->getType() );
+   
    if ( fieldItem.isObject() == true ) { 
       //Json::Value field = fieldItem.get(treeKeyName.c_str(), "");
       for( Json::ValueConstIterator iter = fieldItem.begin() ; iter != fieldItem.end() ; iter++ ) {
@@ -314,46 +316,33 @@ FuncParamsStruct::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<cl
    else {
       root->setValue( fieldItem.asString().c_str() );
    }
-  
+   
    return root;
 }
 
 std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > 
 FuncParamsStruct::deSerializeTreeJson( const std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > referenceTree, const Json::Value& fieldItem)
 {
-  /*
-   const std::string& treeKeyName = tree->getName();
-   Json::Value field = fieldItem.get(treeKeyName.c_str(), "");
-   if ( field.isObject() ){
-      for( Json::ValueIterator iter = field.begin() ; iter != field.end() ; iter++ ) {
-         const std::string key = iter.key().asString();
-	 tree->addChild(  key.c_str(), tree->getType(), field.asString().c_str() );  
-         auto child = tree->getChild( key.c_str() );
-         deSerializeTreeJson( child, field ); 
-      }
-   } else {
-      tree->addChild( treeKeyName.c_str(), tree->getType(), field.asString().c_str() );  
-   }*/
    
-  const std::string& treeKeyName = referenceTree->getName();
+   const std::string& treeKeyName = referenceTree->getName();
   
-  std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > root = std::make_shared<NameValueTypeNode<const clang::FunctionDecl*> >(treeKeyName.c_str());
+   std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > root = std::make_shared<NameValueTypeNode<const clang::FunctionDecl*> >(treeKeyName.c_str());
   
-  Json::Value field = fieldItem.get(treeKeyName.c_str(), "");
-  
-   if ( field.isObject() == true ) { 
-     for( Json::ValueIterator iter = field.begin() ; iter != field.end() ; iter++ ) {
+   if ( fieldItem.isObject() == true ) { 
+      //Json::Value field = fieldItem.get(treeKeyName.c_str(), "");
+      for( Json::ValueConstIterator iter = fieldItem.begin() ; iter != fieldItem.end() ; iter++ ) {
       
-       auto childReferenceTree = referenceTree->getChild(iter.key().asString().c_str());
-       root->addChild(iter.key().asString().c_str(), childReferenceTree->getType() , ""  );
-     }
+         auto childReferenceTree = referenceTree->getChild(iter.key().asString().c_str());
+         std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl*> > child = deSerializeTreeJson(childReferenceTree, *iter );
+         root->addChild( child );
+      }
    }
    else {
-     root->setValue( field.asString().c_str() );
+      root->setValue( fieldItem.asString().c_str() );
+      root->setType( referenceTree->getType() );
    }
   
    return root;
-   
 }
 
 void FuncParamsStruct::deSerializeJson( const FuncParamsStruct& funcParam, const Json::Value& jsonRoot)
@@ -371,7 +360,7 @@ void FuncParamsStruct::deSerializeJson( const FuncParamsStruct& funcParam, const
    {
       _inputTree[i] = deSerializeTreeJson( funcParam._inputTree[i], content[i]["input"] );
       _outputTree[i]= deSerializeTreeJson( funcParam._outputTree[i], content[i]["output"] );
-      //_mocksTree[i] = deSerializeTreeJson( funcParam._mocksTree[i], content[i]["mock-funcs-call"] );
+      _mocksTree[i] = deSerializeTreeJson( funcParam._mocksTree[i], content[i]["mock-funcs-call"] );
    }
 }
 
@@ -386,15 +375,23 @@ static const char* getStructureField( std::ostringstream& os, const clang::QualT
    
    const clang::RecordType* structType = qualType->getAsStructureType();
          
-   if ( structType == nullptr )
-   {
-      return qualType.getUnqualifiedType().getAsString().c_str();
+//    if ( structType == nullptr )
+//    {
+   size_t pos = 0;
+
+   std::string typestr = qualType.getUnqualifiedType().getAsString();
+   pos = typestr.find("*", pos);
+   while ( pos != std::string::npos ){
+      typestr = typestr.erase(pos, 1);
+      pos = typestr.find("*", pos);
    }
-   
+   return typestr.c_str();
+//    }
+      
    
 //    if ( qualType->isUnionType() == false.
 //       return;
-
+/*
    const clang::RecordDecl* structDecl = structType->getDecl();
    
    os << "\n" << indent << "struct " << qualType.getAsString() << " { \n";
@@ -402,15 +399,12 @@ static const char* getStructureField( std::ostringstream& os, const clang::QualT
    for ( const auto field : structDecl->fields() ){
 
       const clang::QualType canonicalQualType = field->getType()->getCanonicalTypeInternal();
-      
-      os << newIndent << getStructureField( os, field->getType(), newIndent ) << "\t" << field->getNameAsString() << "; // "<< canonicalQualType.getAsString() << "\n";
+
+      os << newIndent << getStructureField( os, field->getType(), newIndent, false ) << "\t" << field->getNameAsString() << "; \n";// "<< canonicalQualType.getAsString() << "\n";
       //os << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << ";\n";
    }
          
-   os << indent << "} "; // << qualType.getAsString() << ";\n\n"; // qualType->getCanonicalTypeInternal().getAsString()
-   
- 
-   return "";
+   os << indent << "} "; // << qualType.getAsString() << ";\n\n"; // qualType->getCanonicalTypeInternal().getAsString()*/
 }
 
 void  FuncParamsStruct::writeAsStructure( std::ostringstream& os, const FuncParamsStruct& obj )
@@ -431,7 +425,7 @@ void  FuncParamsStruct::writeAsStructure( std::ostringstream& os, const FuncPara
          clang::QualType qualType = field->getType();
          const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
 
-         os << indent << getStructureField( os, qualType, indent ) << "\t" << field->getNameAsString() << "; // "<< canonicalQualType.getAsString() << "\n"; 
+         os << indent << getStructureField( os, qualType, indent) << "\t" << field->getNameAsString() << "; \n";// "<< canonicalQualType.getAsString() << "\n"; 
       }
    }
    /*
@@ -519,8 +513,20 @@ void FuncParamsStruct::writeGoogleTest( std::ostringstream& os, const FuncParams
 //    input declaration
    os << indent << structName << " input;" << "\n"; 
    os << indent << "memset( &input, 0, sizeof(" << structName << ") );" << "\n\n";
-   std::cout << os.str();
-
+   
+//    mocks No recursion in mock tree 
+   auto children = obj._mocksTree[i]->getChildren();
+   for ( auto iter : children )
+   {
+      const std::string& value = iter.second->getValue();
+      if (value != "")
+      {
+         os << indent << iter.first << "_fake.custom_fake = " << value << ";\n";
+         //TODO fill the context with necessary manually written mocks fill the custom_fake with the content
+      }
+   }
+   
+   
 //    output declaration
    const clang::QualType returnType = obj.getFunctionDecl()->getReturnType();
    const std::string& returnTypeString = returnType.getAsString();
@@ -569,7 +575,11 @@ void FuncParamsStruct::writeGoogleTest( std::ostringstream& os, const FuncParams
       for ( int ii=1; ii<numParms; ++ii)
       {
          const clang::ParmVarDecl* currentParam = obj.getFunctionDecl()->getParamDecl(ii);
-         os  << ", input." << currentParam->getNameAsString();
+         if(currentParam->getOriginalType()->isAnyPointerType()){//need to be inproved
+            os  << ", &input." << currentParam->getNameAsString();
+         } else {
+            os  << ", input." << currentParam->getNameAsString();
+         }
          
       }      
    }
@@ -578,7 +588,11 @@ void FuncParamsStruct::writeGoogleTest( std::ostringstream& os, const FuncParams
    
    os << "// check conditions" << "\n";
    for( auto child : obj._outputTree[i]->getChildren() ){
-      writeStructureComparison( os, child.second, "", indent );
+      if(child.first=="retval"){
+         writeStructureComparison( os, child.second, "", indent );
+      } else {
+         writeStructureComparison( os, child.second, "input.", indent );
+      }
    }
    
    return;
