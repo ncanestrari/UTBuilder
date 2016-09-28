@@ -9,19 +9,18 @@
 #include <clang/Frontend/CompilerInstance.h>
 
 
-clang::ASTConsumer* Action::CreateASTConsumer(clang::CompilerInstance& compiler,
+clang::ASTConsumer *Action::CreateASTConsumer(clang::CompilerInstance &compiler,
                                               llvm::StringRef inFile)
 {
    results::get().clear();
-  
-   _writer = std::unique_ptr<Writer>( new Writer(inFile.str(), getCompilerInstance().getSourceManager()) );
-  
-   return new Consumer(  &compiler.getASTContext(), inFile.str() );
+   _writer = std::unique_ptr<Writer>(new Writer(inFile.str(), getCompilerInstance().getSourceManager()));
+
+   return new Consumer(&compiler.getASTContext(), inFile.str());
 }
 
 
-void Action::EndSourceFileAction(){
-  
+void Action::EndSourceFileAction()
+{
    _writer->createFiles();
 }
 

@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-std::vector<std::string> glob(const std::string& pat);
+std::vector<std::string> glob(const std::string &pat);
 
 #endif /* !__GLOBBER_H__ */
 

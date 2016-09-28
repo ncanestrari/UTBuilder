@@ -9,76 +9,64 @@
 #include "utils.h"
 
 
-FuncUTDefVisitor::FuncUTDefVisitor(clang::ASTContext* context, std::string fileName)
-: Visitor(context, fileName)
+FuncUTDefVisitor::FuncUTDefVisitor(clang::ASTContext *context, std::string fileName)
+   : Visitor(context, fileName)
+{}
+
+
+
+bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
 {
-  
-}
+   const clang::FunctionDecl *func = llvm::dyn_cast<clang::FunctionDecl>(decl);
 
-
-
-bool FuncUTDefVisitor::VisitDecl(clang::Decl* decl)
-{
-
-  const clang::FunctionDecl* func = llvm::dyn_cast<clang::FunctionDecl>(decl);
-
-   if (func == nullptr)
+   if (func == nullptr) {
       return true;
+   }
 
-   if ( func->hasBody() ){
-     
-      // get declaration source location      
-      const std::string declSrcFile = utils::getDeclSourceFile( func, _context->getSourceManager());
-      
+   if (func->hasBody()) {
+      // get declaration source location
+      const std::string declSrcFile = utils::getDeclSourceFile(func, _context->getSourceManager());
+
       // check if the funcDecl is in the input argument file
-      if ( declSrcFile.find( _fileName) != std::string::npos )
-      {
-//          results::get().functionsToUnitTest.insert(func);
+      if (declSrcFile.find(_fileName) != std::string::npos) {
          // add to map with an empty set
-//          results::get().functionsToUnitTestMap[func] = FunctionDeclSet();
-//          results::get().functionsToUnitTestName[func->getNameAsString()] = func;
          FunctionsToUnitTest::get().declKeySetMap[func] = FunctionDeclSet();
          FunctionsToUnitTest::get().nameDeclMap[func->getNameAsString()] = func;
       }
-   } 
+   }
 
    return true;
 }
 
 
-FuncUTDeclVisitor::FuncUTDeclVisitor(clang::ASTContext* context, std::string fileName)
-: Visitor(context, fileName)
+FuncUTDeclVisitor::FuncUTDeclVisitor(clang::ASTContext *context, std::string fileName)
+   : Visitor(context, fileName)
+{}
+
+
+bool FuncUTDeclVisitor::VisitDecl(clang::Decl *decl)
 {
-  
-}
+   const clang::FunctionDecl *func = llvm::dyn_cast<clang::FunctionDecl>(decl);
 
-
-bool FuncUTDeclVisitor::VisitDecl(clang::Decl* decl)
-{
-
-  const clang::FunctionDecl* func = llvm::dyn_cast<clang::FunctionDecl>(decl);
-
-   if (func == nullptr)
+   if (func == nullptr) {
       return true;
+   }
 
-   if ( !func->hasBody() ){
-     
+   if (!func->hasBody()) {
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile( func, _context->getSourceManager());
-      
-      // check if the funcDecl is in the input argument file    
-      for ( auto funcToUnitTest : FunctionsToUnitTest::get().declKeySetMap ){
-         
-         const clang::FunctionDecl* funcDecl = funcToUnitTest.first;
-         
-         if( funcDecl->getNameInfo().getName().getAsString() == func->getNameInfo().getName().getAsString() ){
+      const std::string declSrcFile = utils::getDeclSourceFile(func, _context->getSourceManager());
+
+      // check if the funcDecl is in the input argument file
+      for (auto funcToUnitTest : FunctionsToUnitTest::get().declKeySetMap) {
+         const clang::FunctionDecl *funcDecl = funcToUnitTest.first;
+
+         if (funcDecl->getNameInfo().getName().getAsString() == func->getNameInfo().getName().getAsString()) {
             boost::filesystem::path p(declSrcFile);
             results::get().includesForUnitTest.insert(p.filename().string());
             break;
          }
       }
-   
-   } 
+   }
 
    return true;
 }

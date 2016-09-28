@@ -1,4 +1,5 @@
-#ifndef _UTBuilder_JsonReader_h__ 
+
+#ifndef _UTBuilder_JsonReader_h__
 #define _UTBuilder_JsonReader_h__
 
 
@@ -9,25 +10,22 @@
 #include <string>
 
 
-class JsonReader 
-{
+class JsonReader {
+
 public:
    JsonReader();
-  
    ~JsonReader() {}
-   
-   bool parse(FunctionsData& funcsData, const std::string& fileName);
-   
-private:
-   
-   
 
-   
+   bool parse(FunctionsData &funcsData, const std::string &fileName);
+
+private:
+
    std::string  _fileName;
-   
+
    Json::Value _funcsRoot;
    Json::Value _mocksRoot;
-   
+
 };
 
 #endif // _UTBuilder_JsonReader_h__
+
