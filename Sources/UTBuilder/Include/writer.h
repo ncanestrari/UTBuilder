@@ -28,26 +28,26 @@ public:
    ~Writer() {}
 
    void createExampleJsonFiles(void);
-   void createFiles();
+   void createFiles(void);
    void createUnitTestFile(void);
 
 private:
 
    void CreateMockFile(void);
    void CreateSerializationFile(void);
-   void CreateSerializationJsonfile(const FunctionsData &functionData
-                                    , const std::string &objectName
-                                    , const std::string  &outFileName);
+   void CreateSerializationJsonfile(const FunctionsData &functionData,
+                                    const std::string   &objectName,
+                                    const std::string   &outFileName);
 
-   std::shared_ptr<const Plustache::Context> CreateMockContext(const std::set<std::string>            &includePaths,
+   std::shared_ptr<const Plustache::Context> CreateMockContext(const std::set<std::string>   &includePaths,
                                                                const FunctionDeclKeySetMap   &funcDeclsMap);
-   std::shared_ptr<const Plustache::Context> CreateUnitTestContext(const std::set<std::string>            &includePaths,
+   std::shared_ptr<const Plustache::Context> CreateUnitTestContext(const std::set<std::string>   &includePaths,
                                                                    const UnitTestFunctionsData   &funcData);
-   std::shared_ptr<const Plustache::Context> CreateSerializationContext(const std::set<std::string>            &includePaths,
+   std::shared_ptr<const Plustache::Context> CreateSerializationContext(const std::set<std::string>                      &includePaths,
                                                                         const std::set<const clang::TypedefNameDecl *>   &typedefNameDecls);
-   std::shared_ptr<const Plustache::Context> CreateSerializationStructuresContext(const std::set<std::string>            &includePaths,
+   std::shared_ptr<const Plustache::Context> CreateSerializationStructuresContext(const std::set<std::string>   &includePaths,
                                                                                   const FunctionDeclKeySetMap   &funcDeclsMap);
-   std::shared_ptr<const Plustache::Context> CreateStructuresToSerializeContext(const std::set<std::string>            &includePaths,
+   std::shared_ptr<const Plustache::Context> CreateStructuresToSerializeContext(const std::set<std::string>   &includePaths,
                                                                                 const FunctionDeclKeySetMap   &funcDeclsMap);
 
    void WriteTemplate(std::shared_ptr<const Plustache::Context>  context,
@@ -55,14 +55,14 @@ private:
                       const std::string                         &outFileName);
 
    void MockFunctionFFF(const clang::FunctionDecl *const    funcDecl,
-                        std::ostringstream           &out);
+                        std::ostringstream                 &out);
 
    void FakeFunctionDefinition(const std::string                                          &name,
                                const clang::FunctionDecl                                  *funcDecl,
                                const std::shared_ptr<NameValueTypeNode<clang::QualType>>   outTree,
                                std::ostringstream                                         &out);
 
-   const std::string  _fileName;
+   const std::string             _fileName;
    const clang::SourceManager   &_sourceMgr;
 };
 
