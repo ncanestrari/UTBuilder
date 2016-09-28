@@ -19,7 +19,7 @@ void FunctionsData::serializeAST(Json::Value &jsonRoot) const
 {
    for (auto iter : _dataAST) {
       FuncParamsStruct &funcParams = iter.second;
-      funcParams.serialize(jsonRoot["funcs"]);
+      funcParams.serializeJson(jsonRoot["funcs"]);
    }
 }
 
@@ -28,11 +28,11 @@ void FunctionsData::serializeJson(Json::Value &jsonRoot) const
 {
    for (auto iter : _dataJson) {
       FuncParamsStruct &funcParams = iter.second;
-      funcParams.serialize(jsonRoot["funcs"]);
+      funcParams.serializeJson(jsonRoot["funcs"]);
    }
 }
 
-
+/*
 void FunctionsData::deSerialize(Json::Value &jsonRoot)
 {
    const Json::Value funcs = jsonRoot["funcs"];
@@ -47,7 +47,7 @@ void FunctionsData::deSerialize(Json::Value &jsonRoot)
          funcParams->deSerialize(funcs[i]);
       }
    }
-}
+}*/
 
 
 void FunctionsData::deSerializeJson(const Json::Value &jsonRoot)

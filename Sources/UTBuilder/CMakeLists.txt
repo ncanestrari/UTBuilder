@@ -21,6 +21,7 @@ set ( HEADER_FILES
    Include/FuncParamsStructure.h
    Include/NameValueTypeNode.h
    Include/FunctionsData.h
+   Include/FunctionTestData.h
    )
 
 set ( SOURCE_FILES
@@ -39,6 +40,7 @@ set ( SOURCE_FILES
    C/FuncParamsStructure.cpp
    C/NameValueTypeNode.cpp
    C/FunctionsData.cpp
+   C/FunctionTestData.cpp
    )
 
 set( CMAKE_INCLUDE_CURRENT_DIR TRUE )

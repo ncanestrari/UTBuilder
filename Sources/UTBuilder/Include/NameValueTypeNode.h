@@ -30,10 +30,10 @@ public:
       return _name;
    }
 
-   void setName(const std::string &name)
-   {
-      _name = name;
-   }
+//    void setName(const std::string &name)
+//    {
+//       _name = name;
+//    }
 
    const std::string &getValue(void) const
    {
@@ -82,10 +82,10 @@ public:
       _value = value;
    }
 
-   void setType(const T type)
-   {
-      _type = type;
-   }
+//    void setType(const T type)
+//    {
+//       _type = type;
+//    }
 
 };
 

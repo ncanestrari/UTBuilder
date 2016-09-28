@@ -9,7 +9,9 @@
 #include <set>
 #include <string>
 
-#include "NameValueTypeNode.h"
+// #include "NameValueTypeNode.h"
+
+#include "FunctionTestData.h"
 
 
 class FuncParamsStruct {
@@ -41,34 +43,31 @@ public:
 
    unsigned int getSize(void) const;
 
-   void serialize(Json::Value &jsonRoot, const bool withMocks = true);
-
-   void deSerialize(const Json::Value &jsonRoot);
+   
+   void serializeJson(Json::Value &jsonRoot );
 
    void deSerializeJson(const FuncParamsStruct &funcParam, const Json::Value &jsonRoot);
 
+   
    void writeAsStruct(void);
 
+
+      
+   // temp functions to  generate files automatically
+   static void  writeAsStructure(std::ostringstream &os, const FuncParamsStruct &obj);
+
+   static void  writeGoogleTest(std::ostringstream &os, const FuncParamsStruct &obj,  const unsigned int i);
+   
+   
+   
 private:
 
    void clear(void);
 
-   std::shared_ptr<NameValueTypeNode<clang::QualType> > buildInputTree(const clang::FunctionDecl *funcDecl);
 
-   std::shared_ptr<NameValueTypeNode<clang::QualType> > buildOutputTree(const clang::FunctionDecl *funcDecl);
+   static void serializeJsonTree(std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, Json::Value &jsonRoot);
 
-   std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > buildMockFuncsTree(const std::set<const clang::FunctionDecl *> &mockFuncs);
-
-
-   static void serializeTree(std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, Json::Value &jsonRoot);
-
-   static void serializeTree(std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > tree, Json::Value &jsonRoot);
-
-
-   static void deSerializeTree(std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, const Json::Value &jsonRoot);
-
-   static void deSerializeTree(std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > tree, const Json::Value &jsonRoot);
-
+   static void serializeJsonTree(std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > tree, Json::Value &jsonRoot);
 
 
    static std::shared_ptr<NameValueTypeNode<clang::QualType> >
@@ -83,30 +82,8 @@ private:
    const clang::FunctionDecl *_funcDecl;
 
 
-   // vectors of trees
-   std::vector< std::shared_ptr<NameValueTypeNode<clang::QualType> > > _inputTree;
-   std::vector< std::shared_ptr<NameValueTypeNode<clang::QualType> > > _outputTree;
-   std::vector< std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > > _mocksTree;
+   std::vector< std::shared_ptr<FunctionTestData> > _tests;
 
-public:
-
-   // temp functions to  generate files automatically
-   static void  writeAsStructure(std::ostringstream &os, const FuncParamsStruct &obj);
-
-   static void  writeGoogleTest(std::ostringstream &os, const FuncParamsStruct &obj,  const unsigned int i);
-
-   const std::vector< std::shared_ptr<NameValueTypeNode<clang::QualType> > > &getInputTree(void) const
-   {
-      return  _inputTree;
-   }
-   const std::vector< std::shared_ptr<NameValueTypeNode<clang::QualType> > > &getOutputTree(void) const
-   {
-      return _outputTree;
-   }
-   const std::vector< std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > > &getMockTree(void) const
-   {
-      return _mocksTree;
-   }
 };
 
 

@@ -29,7 +29,7 @@ public:
 
    void serializeAST(Json::Value &jsonRoot) const;
    void serializeJson(Json::Value &jsonRoot) const;
-   void deSerialize(Json::Value &jsonRoot);
+//    void deSerialize(Json::Value &jsonRoot);
    void deSerializeJson(const Json::Value &jsonRoot);
 
    const std::map< std::string, FuncParamsStruct> &dataAST(void)

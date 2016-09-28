@@ -1,58 +1,76 @@
 
-#include "FuncParamsStructure.h"
+#include "FunctionTestData.h"
 
 #include <clang/AST/Decl.h>
 
 #include <assert.h>
 
 
-FuncParamsStruct::FuncParamsStruct()
-{}
-
-
-FuncParamsStruct::~FuncParamsStruct()
-{}
-
-
-void FuncParamsStruct::init(const clang::FunctionDecl *funcDecl, const std::set<const clang::FunctionDecl *> &mockFuncs)
+FunctionTestData::FunctionTestData(const clang::FunctionDecl *funcDecl, const std::set<const clang::FunctionDecl *> &mockFuncs)
 {
-   clear();
-
-   _funcDecl = funcDecl;
-   
-   _tests.push_back( std::make_shared<FunctionTestData>(funcDecl, mockFuncs) );
-   _tests.push_back( std::make_shared<FunctionTestData>(funcDecl, mockFuncs) );
+   _inputTree = buildInputTree(funcDecl);
+   _outputTree = buildOutputTree(funcDecl);
+   _mocksTree = buildMockFuncsTree(mockFuncs);
 }
 
 
-void FuncParamsStruct::clear()
-{
-   _funcDecl = nullptr;
+FunctionTestData::~FunctionTestData()
+{}
 
-   _tests.clear();
+
+void FunctionTestData::clear()
+{
 }
 
 
-std::string FuncParamsStruct::getName(const unsigned int index) const
+std::shared_ptr<NameValueTypeNode<clang::QualType> > FunctionTestData::buildInputTree(const clang::FunctionDecl *funcDecl)
 {
-   if (index >= getSize()) {
-      return std::string();
+
+   std::shared_ptr<NameValueTypeNode<clang::QualType> > root = std::make_shared<NameValueTypeNode<clang::QualType> >("input");
+
+   if (funcDecl->getNumParams() > 0) {
+      for (auto field : funcDecl->params()) {
+         root->addChild(field->getNameAsString().c_str(), field->getType(), "");
+      }
    }
 
-   std::ostringstream sstream;
-   sstream << _funcDecl->getNameAsString() << "_" << index;
-   return sstream.str();
+   return root;
 }
 
 
-unsigned int FuncParamsStruct::getSize(void) const
+std::shared_ptr<NameValueTypeNode<clang::QualType> > FunctionTestData::buildOutputTree(const clang::FunctionDecl *funcDecl)
 {
-   return _tests.size();
+
+   std::shared_ptr<NameValueTypeNode<clang::QualType> > root = std::make_shared<NameValueTypeNode<clang::QualType> >("o");
+
+   if (funcDecl->getNumParams() > 0) {
+      for (auto field : funcDecl->params()) {
+         root->addChild(field->getNameAsString().c_str(), field->getType(), "");
+      }
+   }
+
+   // add return type
+   root->addChild("retval", funcDecl->getReturnType(), "");
+
+   return root;
 }
 
 
+std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > FunctionTestData::buildMockFuncsTree(const std::set<const clang::FunctionDecl *> &mockFuncs)
+{
+   std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > root = std::make_shared<NameValueTypeNode<const clang::FunctionDecl *> >("mock-funcs-call");
 
-void FuncParamsStruct::serializeJsonTree(std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, Json::Value &fieldItem)
+   std::string value;
+   for (auto iter : mockFuncs) {
+      value = iter->getNameAsString() + "[0]";
+      root->addChild(iter->getNameAsString().c_str(), iter, value.c_str());
+   }
+
+   return root;
+}
+
+
+void FunctionTestData::serializeJsonTree(std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, Json::Value &fieldItem)
 {
    std::string comment;
 
@@ -84,7 +102,7 @@ void FuncParamsStruct::serializeJsonTree(std::shared_ptr<NameValueTypeNode<clang
 }
 
 
-void FuncParamsStruct::serializeJsonTree(std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > tree, Json::Value &fieldItem)
+void FunctionTestData::serializeJsonTree(std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > tree, Json::Value &fieldItem)
 {
    std::string comment; // = "// defined in mocks-json file";
    const std::string &keyName = tree->getName();
@@ -98,34 +116,21 @@ void FuncParamsStruct::serializeJsonTree(std::shared_ptr<NameValueTypeNode<const
 }
 
 
-void FuncParamsStruct::serializeJson(Json::Value &jsonParent)
-{
-   Json::Value jsonChild;
-   jsonChild["_name"] =  getName();
-   jsonChild["content"] = Json::Value(Json::arrayValue);
-
-   for (unsigned int i = 0; i < _tests.size(); ++i) {
-      // force "input" to be an object
-      jsonChild["content"][i] = Json::Value(Json::objectValue);
-      serializeJsonTree(_tests[i], jsonChild["content"][i]);
-   }
+void FunctionTestData::serializeJson(Json::Value &jsonParent)
+{   
    
+   Json::Value jsonChild;
 
-   //       add comment int the created file
-   std::ostringstream comment;
-   for (unsigned int i = 0; i < _tests.size(); ++i) {
-      comment.str(std::string());
-      comment <<  "// " << getName() << "_test_" << i;
-      jsonChild["content"][i].setComment(comment.str().c_str(), comment.str().length(), Json::commentBefore);
-   }
+   serializeJsonTree(_inputTree, jsonChild["input"]);
+   serializeJsonTree(_outputTree, jsonChild["output"]);
+   serializeJsonTree(_mocksTree, jsonChild["mock-funcs-call"]);
 
    jsonParent.append(jsonChild);
 }
 
 
-
 std::shared_ptr<NameValueTypeNode<clang::QualType> >
-FuncParamsStruct::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<clang::QualType> > referenceTree,
+FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<clang::QualType> > referenceTree,
                                       const Json::Value &fieldItem)
 {
    const std::string &treeKeyName = referenceTree->getName();
@@ -153,7 +158,7 @@ FuncParamsStruct::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<cl
 }
 
 std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> >
-FuncParamsStruct::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > referenceTree, const Json::Value &fieldItem)
+FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > referenceTree, const Json::Value &fieldItem)
 {
 
    const std::string &treeKeyName = referenceTree->getName();
@@ -181,16 +186,13 @@ FuncParamsStruct::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<co
 }
 
 
-void FuncParamsStruct::deSerializeJson(const FuncParamsStruct &funcParam, const Json::Value &jsonRoot)
+void FunctionTestData::deSerializeJson(const FunctionTestData &other, const Json::Value &jsonParent)
 {
-   const Json::Value content = jsonRoot["content"];
-   const unsigned int size = content.size();
 
-   _tests.resize(size);
-
-   for (int i = 0; i < size; ++i) {
-      _tests[i] = deSerializeTreeJson(funcParam._tests[i], content[i]);
-   }
+      _inputTree = FunctionTestData::deSerializeTreeJson(other.getInputTree(), jsonParent["input"]);
+      _outputTree = FunctionTestData::deSerializeTreeJson(other.getOutputTree(), jsonParent["output"]);
+      _mocksTree = FunctionTestData::deSerializeTreeJson(other.getMockTree(), jsonParent["mock-funcs-call"]);
+   
 }
 
 
@@ -210,14 +212,14 @@ static const char *getStructureField(std::ostringstream &os, const clang::QualTy
    return typestr.c_str();
 }
 
-void  FuncParamsStruct::writeAsStructure(std::ostringstream &os, const FuncParamsStruct &obj)
+void  FunctionTestData::writeAsStructure(std::ostringstream &os, const clang::FunctionDecl *funcDecl)
 {
    const std::string indent = "   ";
 
    os << "\n";
 
-   if (obj.getNumParams() > 0) {
-      for (auto field : obj.getFunctionDecl()->params()) {
+   if (funcDecl->getNumParams() > 0) {
+      for (auto field : funcDecl->params()) {
          clang::QualType qualType = field->getType();
          const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
 
@@ -270,11 +272,12 @@ static const char *writeStructureComparison(std::ostringstream &os,
    return "";
 }
 
-void FuncParamsStruct::writeGoogleTest(std::ostringstream &os, const FuncParamsStruct &obj, const unsigned int i)
+void FunctionTestData::writeGoogleTest(std::ostringstream &os, const clang::FunctionDecl *funcDecl )
 {
    const std::string indent = "   ";
 
-   std::string structName(obj.getName());
+   std::string name = funcDecl->getNameAsString();
+   std::string structName( name );
    structName.append("_params");
 
 
@@ -283,7 +286,7 @@ void FuncParamsStruct::writeGoogleTest(std::ostringstream &os, const FuncParamsS
    os << indent << "memset( &input, 0, sizeof(" << structName << ") );" << "\n\n";
 
    //    mocks No recursion in mock tree
-   auto children = obj._mocksTree[i]->getChildren();
+   auto children = _mocksTree->getChildren();
    for (auto iter : children) {
       const std::string &value = iter.second->getValue();
       if (value != "") {
@@ -293,7 +296,7 @@ void FuncParamsStruct::writeGoogleTest(std::ostringstream &os, const FuncParamsS
    }
 
    //    output declaration
-   const clang::QualType returnType = obj.getFunctionDecl()->getReturnType();
+   const clang::QualType returnType = funcDecl->getReturnType();
    const std::string &returnTypeString = returnType.getAsString();
 
    if (returnTypeString != "void") {
@@ -301,8 +304,8 @@ void FuncParamsStruct::writeGoogleTest(std::ostringstream &os, const FuncParamsS
    }
 
    os << "// fill the input struct with json file values" << "\n";
-   if (obj.getNumParams() > 0) {
-      os << writeStructureValue(os, obj._tests[i].getInputTree(), "", indent) << "\n";
+   if (funcDecl->getNumParams() > 0) {
+      os << writeStructureValue(os, _inputTree, "", indent) << "\n";
    }
 
    os << "\n" <<  indent;
@@ -311,15 +314,15 @@ void FuncParamsStruct::writeGoogleTest(std::ostringstream &os, const FuncParamsS
       os << "retval = ";
    }
 
-   os << obj.getName() << "(";
+   os << name << "(";
 
-   if (obj.getNumParams() > 0) {
-      const int numParms = obj.getFunctionDecl()->getNumParams();
-      const clang::ParmVarDecl *currentParam = obj.getFunctionDecl()->getParamDecl(0);
+   if (funcDecl->getNumParams() > 0) {
+      const int numParms = funcDecl->getNumParams();
+      const clang::ParmVarDecl *currentParam = funcDecl->getParamDecl(0);
 
       os  << " input." << currentParam->getNameAsString();
-      for (int ii = 1; ii < numParms; ++ii) {
-         const clang::ParmVarDecl *currentParam = obj.getFunctionDecl()->getParamDecl(ii);
+      for (int i = 1; i < numParms; ++i) {
+         const clang::ParmVarDecl *currentParam = funcDecl->getParamDecl(i);
          if (currentParam->getOriginalType()->isAnyPointerType()) { //need to be inproved
             os  << ", &input." << currentParam->getNameAsString();
          } else {
@@ -330,7 +333,7 @@ void FuncParamsStruct::writeGoogleTest(std::ostringstream &os, const FuncParamsS
    os << ");\n\n";
 
    os << "// check conditions" << "\n";
-   for (auto child : obj._tests[i].getOutputTree()->getChildren()) {
+   for (auto child : _outputTree->getChildren()) {
       if (child.first == "retval") {
          writeStructureComparison(os, child.second, "", indent);
       } else {
