@@ -1,11 +1,11 @@
 
-#include "FunctionsData.h"
+#include "FunctionTestCollection.h"
 
 
-FuncParamsStruct *FunctionsData::find(const std::string &key)
+FunctionTestContent *FunctionTestCollection::find(const std::string &key)
 {
-   FuncParamsStruct *funParamPtr = nullptr;
-   std::map< std::string, FuncParamsStruct>::iterator iter = _dataAST.find(key);
+   FunctionTestContent *funParamPtr = nullptr;
+   std::map< std::string, FunctionTestContent>::iterator iter = _dataAST.find(key);
 
    if (iter != _dataAST.end()) {
       funParamPtr = &(iter->second);
@@ -15,20 +15,20 @@ FuncParamsStruct *FunctionsData::find(const std::string &key)
 }
 
 
-void FunctionsData::serializeAST(Json::Value &jsonRoot) const
+void FunctionTestCollection::serializeAST(Json::Value &jsonRoot) const
 {
    for (auto iter : _dataAST) {
-      FuncParamsStruct &funcParams = iter.second;
-      funcParams.serializeJson(jsonRoot["funcs"]);
+      FunctionTestContent &funcParams = iter.second;
+      funcParams.serializeJson(jsonRoot);
    }
 }
 
 
-void FunctionsData::serializeJson(Json::Value &jsonRoot) const
+void FunctionTestCollection::serializeJson(Json::Value &jsonRoot) const
 {
    for (auto iter : _dataJson) {
-      FuncParamsStruct &funcParams = iter.second;
-      funcParams.serializeJson(jsonRoot["funcs"]);
+      FunctionTestContent &funcParams = iter.second;
+      funcParams.serializeJson(jsonRoot);
    }
 }
 
@@ -50,18 +50,18 @@ void FunctionsData::deSerialize(Json::Value &jsonRoot)
 }*/
 
 
-void FunctionsData::deSerializeJson(const Json::Value &jsonRoot)
+void FunctionTestCollection::deSerializeJson(const Json::Value &jsonRoot)
 {
-   const Json::Value funcs = jsonRoot["funcs"];
-   const unsigned int size = funcs.size();
+//    const Json::Value funcs = jsonRoot["funcs"];
+   const unsigned int size = jsonRoot.size();
 
    for (unsigned int i = 0; i < size; ++i) {
-      const Json::Value funcNameValue = funcs[i].get("_name", "");
+      const Json::Value funcNameValue = jsonRoot[i].get("_name", "");
       const std::string funcName = funcNameValue.asString();
 
-      FuncParamsStruct *funcParams = find(funcName);
+      FunctionTestContent *funcParams = find(funcName);
       if (funcParams) {
-         funcParams->deSerializeJson(_dataAST[funcName], funcs[i]);
+         funcParams->deSerializeJson(_dataAST[funcName], jsonRoot[i]);
       }
 
       _dataJson[funcParams->getName()] = *funcParams;
@@ -69,9 +69,9 @@ void FunctionsData::deSerializeJson(const Json::Value &jsonRoot)
 }
 
 
-void UnitTestFunctionsData::init(const FunctionDeclKeySetMap   &funcDeclsMap)
+void UnitFunctionTestCollection::init(const FunctionDeclKeySetMap   &funcDeclsMap)
 {
-   FuncParamsStruct funcParamsStruct;
+   FunctionTestContent funcParamsStruct;
 
    for (auto iter : funcDeclsMap) {
       const clang::FunctionDecl *funcDecl = iter.first;
@@ -83,9 +83,9 @@ void UnitTestFunctionsData::init(const FunctionDeclKeySetMap   &funcDeclsMap)
 }
 
 
-void MockFunctionsData::init(const FunctionDeclKeySetMap   &funcDeclsMap)
+void MockFunctionTestCollection::init(const FunctionDeclKeySetMap   &funcDeclsMap)
 {
-   FuncParamsStruct funcParamsStruct;
+   FunctionTestContent funcParamsStruct;
 
    for (auto iter : funcDeclsMap) {
       const clang::FunctionDecl *funcDecl = iter.first;

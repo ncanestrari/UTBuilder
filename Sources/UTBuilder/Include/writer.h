@@ -9,7 +9,8 @@
 #include <set>
 
 #include "Results.h"
-#include "FunctionsData.h"
+// #include "FunctionTestCollection.h"
+#include "DataFile.h"
 
 namespace clang {
 class FunctionDecl;
@@ -27,7 +28,7 @@ public:
           const clang::SourceManager   &sourceMgr);
    ~Writer() {}
 
-   void createExampleJsonFiles(void);
+//    void createExampleJsonFiles(void);
    void createFiles(void);
    void createUnitTestFile(void);
 
@@ -35,14 +36,13 @@ private:
 
    void CreateMockFile(void);
    void CreateSerializationFile(void);
-   void CreateSerializationJsonfile(const FunctionsData &functionData,
-                                    const std::string   &objectName,
-                                    const std::string   &outFileName);
+//    void CreateSerializationJsonfile(const DataFile &data,
+//                                     const std::string   &outFileName);
 
    std::shared_ptr<const Plustache::Context> CreateMockContext(const std::set<std::string>   &includePaths,
                                                                const FunctionDeclKeySetMap   &funcDeclsMap);
    std::shared_ptr<const Plustache::Context> CreateUnitTestContext(const std::set<std::string>   &includePaths,
-                                                                   const UnitTestFunctionsData   &funcData);
+                                                                   const UnitFunctionTestCollection   &funcData);
    std::shared_ptr<const Plustache::Context> CreateSerializationContext(const std::set<std::string>                      &includePaths,
                                                                         const std::set<const clang::TypedefNameDecl *>   &typedefNameDecls);
    std::shared_ptr<const Plustache::Context> CreateSerializationStructuresContext(const std::set<std::string>   &includePaths,

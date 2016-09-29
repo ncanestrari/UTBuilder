@@ -19,7 +19,10 @@ namespace clang{
 class FunctionTestData {
 
 public:
-   FunctionTestData(const clang::FunctionDecl *funcDecl,
+//    FunctionTestData( const std::String& name, const clang::FunctionDecl *funcDecl,
+//              const std::set<const clang::FunctionDecl *> &mockFuncs = std::set<const clang::FunctionDecl *>());
+   
+   FunctionTestData( const clang::FunctionDecl *funcDecl,
              const std::set<const clang::FunctionDecl *> &mockFuncs = std::set<const clang::FunctionDecl *>());
    
    ~FunctionTestData();
@@ -33,6 +36,10 @@ public:
 
    void writeAsStruct(void);
 
+//    const std::string& getName(void) const
+//    {
+//       return _name;
+//    }
    
    const std::shared_ptr<NameValueTypeNode<clang::QualType> > &getInputTree(void) const
    {
@@ -84,6 +91,8 @@ private:
 
 
 
+//    std::string _functionName;
+   
    // vectors of trees
    std::shared_ptr<NameValueTypeNode<clang::QualType> > _inputTree;
    std::shared_ptr<NameValueTypeNode<clang::QualType> >  _outputTree;

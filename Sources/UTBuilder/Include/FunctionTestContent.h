@@ -1,6 +1,6 @@
 
-#ifndef _UTBuilder_FuncParamsStructure_h__
-#define _UTBuilder_FuncParamsStructure_h__
+#ifndef _UTBuilder_FunctionTestContent_h__
+#define _UTBuilder_FunctionTestContent_h__
 
 #include <clang/AST/Decl.h>
 #include <iostream>
@@ -14,11 +14,11 @@
 #include "FunctionTestData.h"
 
 
-class FuncParamsStruct {
+class FunctionTestContent {
 
 public:
-   FuncParamsStruct();
-   ~FuncParamsStruct();
+   FunctionTestContent();
+   ~FunctionTestContent();
 
    void init(const clang::FunctionDecl *funcDecl,
              const std::set<const clang::FunctionDecl *> &mockFuncs = std::set<const clang::FunctionDecl *>());
@@ -41,12 +41,14 @@ public:
       return _funcDecl;
    }
 
-   unsigned int getSize(void) const;
+   unsigned int getNumTests(void) const;
 
+   const std::vector< std::shared_ptr<FunctionTestData> >& getTests(void) const;
+   
    
    void serializeJson(Json::Value &jsonRoot );
 
-   void deSerializeJson(const FuncParamsStruct &funcParam, const Json::Value &jsonRoot);
+   void deSerializeJson(const FunctionTestContent &funcParam, const Json::Value &jsonRoot);
 
    
    void writeAsStruct(void);
@@ -54,9 +56,9 @@ public:
 
       
    // temp functions to  generate files automatically
-   static void  writeAsStructure(std::ostringstream &os, const FuncParamsStruct &obj);
+   static void  writeAsStructure(std::ostringstream &os, const FunctionTestContent &obj);
 
-   static void  writeGoogleTest(std::ostringstream &os, const FuncParamsStruct &obj,  const unsigned int i);
+   static void  writeGoogleTest(std::ostringstream &os, const FunctionTestContent &obj,  const unsigned int i);
    
    
    
@@ -65,9 +67,9 @@ private:
    void clear(void);
 
 
-   static void serializeJsonTree(std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, Json::Value &jsonRoot);
+//    static void serializeJsonTree(std::shared_ptr<FunctionTestData> tree, Json::Value &jsonRoot);
 
-   static void serializeJsonTree(std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > tree, Json::Value &jsonRoot);
+//    static void serializeJsonTree(std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > tree, Json::Value &jsonRoot);
 
 
    static std::shared_ptr<NameValueTypeNode<clang::QualType> >
@@ -87,5 +89,5 @@ private:
 };
 
 
-#endif // _UTBuilder_FuncParamsStructure_h__
+#endif // _UTBuilder_FunctionTestContent_h__
 

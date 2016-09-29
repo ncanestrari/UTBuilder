@@ -9,15 +9,17 @@
 
 template <typename T>
 class NameValueTypeNode {
-   std::string _name;
-   T           _type;
-   std::string _value;
+   
+   const std::string _name;
+   const T           _type;
+   const std::string _value;
 
    std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > > _children;
 
 public:
 
-   NameValueTypeNode(const char *name = "\0", T type = T(), const char *value = "\0")
+   
+   explicit NameValueTypeNode(const char *name, T type = T(), const char *value = "\0")
       : _name(name)
       , _type(type)
       , _value(value)

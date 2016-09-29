@@ -6,11 +6,18 @@
 #include <assert.h>
 
 
-FunctionTestData::FunctionTestData(const clang::FunctionDecl *funcDecl, const std::set<const clang::FunctionDecl *> &mockFuncs)
+FunctionTestData::FunctionTestData( const clang::FunctionDecl *funcDecl, const std::set<const clang::FunctionDecl *> &mockFuncs)
 {
-   _inputTree = buildInputTree(funcDecl);
-   _outputTree = buildOutputTree(funcDecl);
-   _mocksTree = buildMockFuncsTree(mockFuncs);
+   if ( funcDecl != nullptr )
+   {
+      _inputTree = buildInputTree(funcDecl);
+      _outputTree = buildOutputTree(funcDecl);
+      _mocksTree = buildMockFuncsTree(mockFuncs);
+   }
+   else {
+      // warning! 
+   }
+   
 }
 
 
@@ -41,7 +48,7 @@ std::shared_ptr<NameValueTypeNode<clang::QualType> > FunctionTestData::buildInpu
 std::shared_ptr<NameValueTypeNode<clang::QualType> > FunctionTestData::buildOutputTree(const clang::FunctionDecl *funcDecl)
 {
 
-   std::shared_ptr<NameValueTypeNode<clang::QualType> > root = std::make_shared<NameValueTypeNode<clang::QualType> >("o");
+   std::shared_ptr<NameValueTypeNode<clang::QualType> > root = std::make_shared<NameValueTypeNode<clang::QualType> >("output");
 
    if (funcDecl->getNumParams() > 0) {
       for (auto field : funcDecl->params()) {
@@ -119,13 +126,13 @@ void FunctionTestData::serializeJsonTree(std::shared_ptr<NameValueTypeNode<const
 void FunctionTestData::serializeJson(Json::Value &jsonParent)
 {   
    
-   Json::Value jsonChild;
+//    Json::Value jsonChild;
 
-   serializeJsonTree(_inputTree, jsonChild["input"]);
-   serializeJsonTree(_outputTree, jsonChild["output"]);
-   serializeJsonTree(_mocksTree, jsonChild["mock-funcs-call"]);
+   serializeJsonTree(_inputTree, jsonParent);
+   serializeJsonTree(_outputTree, jsonParent);
+   serializeJsonTree(_mocksTree, jsonParent);
 
-   jsonParent.append(jsonChild);
+//    jsonParent.append(jsonChild);
 }
 
 

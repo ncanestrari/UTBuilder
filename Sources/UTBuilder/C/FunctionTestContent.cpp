@@ -1,20 +1,20 @@
 
-#include "FuncParamsStructure.h"
+#include "FunctionTestContent.h"
 
 #include <clang/AST/Decl.h>
 
 #include <assert.h>
 
 
-FuncParamsStruct::FuncParamsStruct()
+FunctionTestContent::FunctionTestContent()
 {}
 
 
-FuncParamsStruct::~FuncParamsStruct()
+FunctionTestContent::~FunctionTestContent()
 {}
 
 
-void FuncParamsStruct::init(const clang::FunctionDecl *funcDecl, const std::set<const clang::FunctionDecl *> &mockFuncs)
+void FunctionTestContent::init(const clang::FunctionDecl *funcDecl, const std::set<const clang::FunctionDecl *> &mockFuncs)
 {
    clear();
 
@@ -25,7 +25,7 @@ void FuncParamsStruct::init(const clang::FunctionDecl *funcDecl, const std::set<
 }
 
 
-void FuncParamsStruct::clear()
+void FunctionTestContent::clear()
 {
    _funcDecl = nullptr;
 
@@ -33,9 +33,9 @@ void FuncParamsStruct::clear()
 }
 
 
-std::string FuncParamsStruct::getName(const unsigned int index) const
+std::string FunctionTestContent::getName(const unsigned int index) const
 {
-   if (index >= getSize()) {
+   if (index >= getNumTests()) {
       return std::string();
    }
 
@@ -45,14 +45,19 @@ std::string FuncParamsStruct::getName(const unsigned int index) const
 }
 
 
-unsigned int FuncParamsStruct::getSize(void) const
+unsigned int FunctionTestContent::getNumTests(void) const
 {
    return _tests.size();
 }
 
 
+const std::vector< std::shared_ptr<FunctionTestData> >& FunctionTestContent::getTests(void) const
+{ 
+   return _tests;
+}
 
-void FuncParamsStruct::serializeJsonTree(std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, Json::Value &fieldItem)
+/*
+void FuncParamsStruct::serializeJsonTree(std::shared_ptr<FunctionTestData> tree, Json::Value &fieldItem)
 {
    std::string comment;
 
@@ -96,9 +101,9 @@ void FuncParamsStruct::serializeJsonTree(std::shared_ptr<NameValueTypeNode<const
       fieldItem[keyName] = tree->getValue();
    }
 }
+*/
 
-
-void FuncParamsStruct::serializeJson(Json::Value &jsonParent)
+void FunctionTestContent::serializeJson(Json::Value &jsonParent)
 {
    Json::Value jsonChild;
    jsonChild["_name"] =  getName();
@@ -107,7 +112,8 @@ void FuncParamsStruct::serializeJson(Json::Value &jsonParent)
    for (unsigned int i = 0; i < _tests.size(); ++i) {
       // force "input" to be an object
       jsonChild["content"][i] = Json::Value(Json::objectValue);
-      serializeJsonTree(_tests[i], jsonChild["content"][i]);
+//       serializeJsonTree(_tests[i], jsonChild["content"][i]);
+      _tests[i]->serializeJson(jsonChild["content"][i]);
    }
    
 
@@ -125,7 +131,7 @@ void FuncParamsStruct::serializeJson(Json::Value &jsonParent)
 
 
 std::shared_ptr<NameValueTypeNode<clang::QualType> >
-FuncParamsStruct::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<clang::QualType> > referenceTree,
+FunctionTestContent::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<clang::QualType> > referenceTree,
                                       const Json::Value &fieldItem)
 {
    const std::string &treeKeyName = referenceTree->getName();
@@ -153,7 +159,7 @@ FuncParamsStruct::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<cl
 }
 
 std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> >
-FuncParamsStruct::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > referenceTree, const Json::Value &fieldItem)
+FunctionTestContent::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > referenceTree, const Json::Value &fieldItem)
 {
 
    const std::string &treeKeyName = referenceTree->getName();
@@ -181,7 +187,7 @@ FuncParamsStruct::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<co
 }
 
 
-void FuncParamsStruct::deSerializeJson(const FuncParamsStruct &funcParam, const Json::Value &jsonRoot)
+void FunctionTestContent::deSerializeJson(const FunctionTestContent &funcParam, const Json::Value &jsonRoot)
 {
    const Json::Value content = jsonRoot["content"];
    const unsigned int size = content.size();
@@ -189,7 +195,7 @@ void FuncParamsStruct::deSerializeJson(const FuncParamsStruct &funcParam, const 
    _tests.resize(size);
 
    for (int i = 0; i < size; ++i) {
-      _tests[i] = deSerializeTreeJson(funcParam._tests[i], content[i]);
+      _tests[i]->deSerializeJson(*_tests[i].get(), content[i]);
    }
 }
 
@@ -210,7 +216,7 @@ static const char *getStructureField(std::ostringstream &os, const clang::QualTy
    return typestr.c_str();
 }
 
-void  FuncParamsStruct::writeAsStructure(std::ostringstream &os, const FuncParamsStruct &obj)
+void  FunctionTestContent::writeAsStructure(std::ostringstream &os, const FunctionTestContent &obj)
 {
    const std::string indent = "   ";
 
@@ -270,7 +276,7 @@ static const char *writeStructureComparison(std::ostringstream &os,
    return "";
 }
 
-void FuncParamsStruct::writeGoogleTest(std::ostringstream &os, const FuncParamsStruct &obj, const unsigned int i)
+void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const FunctionTestContent &obj, const unsigned int i)
 {
    const std::string indent = "   ";
 
@@ -283,7 +289,7 @@ void FuncParamsStruct::writeGoogleTest(std::ostringstream &os, const FuncParamsS
    os << indent << "memset( &input, 0, sizeof(" << structName << ") );" << "\n\n";
 
    //    mocks No recursion in mock tree
-   auto children = obj._mocksTree[i]->getChildren();
+   auto children = obj.getTests()[i]->getMockTree()->getChildren();
    for (auto iter : children) {
       const std::string &value = iter.second->getValue();
       if (value != "") {
@@ -302,7 +308,7 @@ void FuncParamsStruct::writeGoogleTest(std::ostringstream &os, const FuncParamsS
 
    os << "// fill the input struct with json file values" << "\n";
    if (obj.getNumParams() > 0) {
-      os << writeStructureValue(os, obj._tests[i].getInputTree(), "", indent) << "\n";
+      os << writeStructureValue(os, obj.getTests()[i]->getInputTree(), "", indent) << "\n";
    }
 
    os << "\n" <<  indent;
@@ -330,7 +336,7 @@ void FuncParamsStruct::writeGoogleTest(std::ostringstream &os, const FuncParamsS
    os << ");\n\n";
 
    os << "// check conditions" << "\n";
-   for (auto child : obj._tests[i].getOutputTree()->getChildren()) {
+   for (auto child : obj.getTests()[i]->getOutputTree()->getChildren()) {
       if (child.first == "retval") {
          writeStructureComparison(os, child.second, "", indent);
       } else {

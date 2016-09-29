@@ -1,8 +1,10 @@
 
 #include "JsonReader.h"
 
-#include "FuncParamsStructure.h"
-#include "FunctionsData.h"
+// #include "FunctionTestContent.h"
+#include "FunctionTestCollection.h"
+
+#include <json/json.h>
 
 #include <iostream>
 #include <fstream>
@@ -29,7 +31,7 @@ JsonReader::JsonReader()
  * 
  * @return        true if process works, false otherwise 
  */
-bool JsonReader::parse(FunctionsData &funcsData,
+bool JsonReader::parse(DataFile &data,
                        const string  &fileName)
 {
    ifstream jsonFile;
@@ -41,9 +43,13 @@ bool JsonReader::parse(FunctionsData &funcsData,
       return false;
    } else {
       cout << "reading json file: " << _fileName << endl;
-      jsonFile >> _funcsRoot;
-      funcsData.deSerializeJson(_funcsRoot);
+      
+      Json::Value jsonRoot;
+      jsonFile >> jsonRoot;
+      
+      data.deSerializeJson(jsonRoot);      
    }
+   
    jsonFile.close();
 
    return true;
