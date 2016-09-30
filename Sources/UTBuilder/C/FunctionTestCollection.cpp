@@ -2,7 +2,7 @@
 #include "FunctionTestCollection.h"
 
 
-FunctionTestContent *FunctionTestCollection::find(const std::string &key)
+FunctionTestContent *FunctionTestCollection::ASTfind(const std::string &key)
 {
    FunctionTestContent *funParamPtr = nullptr;
    std::map< std::string, FunctionTestContent>::iterator iter = _dataAST.find(key);
@@ -17,8 +17,9 @@ FunctionTestContent *FunctionTestCollection::find(const std::string &key)
 
 void FunctionTestCollection::serializeAST(Json::Value &jsonRoot) const
 {
-   for (auto iter : _dataAST) {
-      FunctionTestContent &funcParams = iter.second;
+   for (std::map< std::string, FunctionTestContent>::const_iterator iter = _dataAST.begin(); iter!=_dataAST.end(); ++iter ) {
+//    for (auto *iter : _dataAST) {
+      const FunctionTestContent &funcParams = iter->second;
       funcParams.serializeJson(jsonRoot);
    }
 }
@@ -26,8 +27,9 @@ void FunctionTestCollection::serializeAST(Json::Value &jsonRoot) const
 
 void FunctionTestCollection::serializeJson(Json::Value &jsonRoot) const
 {
-   for (auto iter : _dataJson) {
-      FunctionTestContent &funcParams = iter.second;
+   for (std::map< std::string, FunctionTestContent>::const_iterator iter = _dataJson.begin(); iter!=_dataJson.end(); ++iter ) {
+//    for (auto *iter : _dataJson) {
+      const FunctionTestContent &funcParams = iter->second;
       funcParams.serializeJson(jsonRoot);
    }
 }
@@ -55,16 +57,22 @@ void FunctionTestCollection::deSerializeJson(const Json::Value &jsonRoot)
 //    const Json::Value funcs = jsonRoot["funcs"];
    const unsigned int size = jsonRoot.size();
 
+   FunctionTestContent funcTestContentJson;
+   
    for (unsigned int i = 0; i < size; ++i) {
-      const Json::Value funcNameValue = jsonRoot[i].get("_name", "");
+      const Json::Value& value = jsonRoot[i];
+      const Json::Value funcNameValue = value.get("_name", "");
       const std::string funcName = funcNameValue.asString();
 
-      FunctionTestContent *funcParams = find(funcName);
-      if (funcParams) {
-         funcParams->deSerializeJson(_dataAST[funcName], jsonRoot[i]);
-      }
+      const FunctionTestContent *funcTestContentAST = ASTfind(funcName);
 
-      _dataJson[funcParams->getName()] = *funcParams;
+      if (funcTestContentAST) {
+         funcTestContentJson.deSerializeJson( funcTestContentAST, value);
+         _dataJson[funcTestContentJson.getName()] = funcTestContentJson;
+      }
+      else {
+//        TO DO error message  
+      }
    }
 }
 

@@ -193,12 +193,16 @@ FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<co
 }
 
 
-void FunctionTestData::deSerializeJson(const FunctionTestData &other, const Json::Value &jsonParent)
+void FunctionTestData::deSerializeJson(const FunctionTestData *other, const Json::Value &jsonParent)
 {
 
-      _inputTree = FunctionTestData::deSerializeTreeJson(other.getInputTree(), jsonParent["input"]);
-      _outputTree = FunctionTestData::deSerializeTreeJson(other.getOutputTree(), jsonParent["output"]);
-      _mocksTree = FunctionTestData::deSerializeTreeJson(other.getMockTree(), jsonParent["mock-funcs-call"]);
+   const Json::Value & inputValue = jsonParent["input"];
+   const Json::Value & outputValue = jsonParent["output"];
+   const Json::Value & mocksValue = jsonParent["mock-funcs-call"];
+   
+   _inputTree = deSerializeTreeJson(other->_inputTree, inputValue);
+   _outputTree = deSerializeTreeJson(other->_outputTree, outputValue);
+   _mocksTree = deSerializeTreeJson(other->_mocksTree, mocksValue);
    
 }
 

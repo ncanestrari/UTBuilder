@@ -7,12 +7,18 @@
 
 
 FunctionTestContent::FunctionTestContent()
+: _funcDecl(nullptr)
 {}
 
 
 FunctionTestContent::~FunctionTestContent()
 {}
 
+FunctionTestContent::FunctionTestContent(const FunctionTestContent& other)
+{
+   _funcDecl = other.getFunctionDecl();
+//    _tests = std::vector< std::shared_ptr<FunctionTestData> >( other.getTests() );
+}
 
 void FunctionTestContent::init(const clang::FunctionDecl *funcDecl, const std::set<const clang::FunctionDecl *> &mockFuncs)
 {
@@ -54,6 +60,16 @@ unsigned int FunctionTestContent::getNumTests(void) const
 const std::vector< std::shared_ptr<FunctionTestData> >& FunctionTestContent::getTests(void) const
 { 
    return _tests;
+}
+
+std::shared_ptr<FunctionTestData> FunctionTestContent::getTest(const unsigned int idx) const
+{
+   if (idx >= getNumTests()) 
+   {
+      return std::shared_ptr<FunctionTestData>(nullptr);
+   }
+   
+   return _tests[idx];
 }
 
 /*
@@ -103,7 +119,7 @@ void FuncParamsStruct::serializeJsonTree(std::shared_ptr<NameValueTypeNode<const
 }
 */
 
-void FunctionTestContent::serializeJson(Json::Value &jsonParent)
+void FunctionTestContent::serializeJson(Json::Value &jsonParent) const
 {
    Json::Value jsonChild;
    jsonChild["_name"] =  getName();
@@ -187,15 +203,22 @@ FunctionTestContent::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode
 }
 
 
-void FunctionTestContent::deSerializeJson(const FunctionTestContent &funcParam, const Json::Value &jsonRoot)
+void FunctionTestContent::deSerializeJson(const FunctionTestContent *funcTestContentAST, const Json::Value &jsonRoot)
 {
-   const Json::Value content = jsonRoot["content"];
+   const Json::Value& content = jsonRoot["content"];
    const unsigned int size = content.size();
 
+   _funcDecl = funcTestContentAST->getFunctionDecl();
+   
    _tests.resize(size);
 
+   std::shared_ptr<const FunctionTestData> funcTestReference = funcTestContentAST->getTest(0);
+   
    for (int i = 0; i < size; ++i) {
-      _tests[i]->deSerializeJson(*_tests[i].get(), content[i]);
+       const Json::Value& jsonTest = content[i];
+       std::shared_ptr<FunctionTestData> test = std::make_shared<FunctionTestData>(nullptr);
+       test->deSerializeJson( funcTestReference.get(), jsonTest);
+       _tests[i] = test;
    }
 }
 
@@ -289,7 +312,7 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
    os << indent << "memset( &input, 0, sizeof(" << structName << ") );" << "\n\n";
 
    //    mocks No recursion in mock tree
-   auto children = obj.getTests()[i]->getMockTree()->getChildren();
+   auto children = obj.getTest(i)->getMockTree()->getChildren();
    for (auto iter : children) {
       const std::string &value = iter.second->getValue();
       if (value != "") {

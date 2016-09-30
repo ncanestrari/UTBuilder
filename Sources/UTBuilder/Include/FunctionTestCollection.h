@@ -20,13 +20,14 @@ class FunctionTestCollection {
 public:
    // override and fill the _data map
    virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) {}
+   
    void clear()
    {
       _dataAST.clear();
       _dataJson.clear();
    }
 
-   FunctionTestContent *find(const std::string &key);
+   FunctionTestContent *ASTfind(const std::string &key);
 
    void serializeAST(Json::Value &jsonRoot) const;
    void serializeJson(Json::Value &jsonRoot) const;

@@ -25,6 +25,9 @@ public:
    FunctionTestData( const clang::FunctionDecl *funcDecl,
              const std::set<const clang::FunctionDecl *> &mockFuncs = std::set<const clang::FunctionDecl *>());
    
+   FunctionTestData() = delete;
+   FunctionTestData(const FunctionTestData&) = delete;
+   
    ~FunctionTestData();
 
 
@@ -32,7 +35,7 @@ public:
    void serializeJson(Json::Value &jsonRoot );
 
 
-   void deSerializeJson(const FunctionTestData &funcParam, const Json::Value &jsonRoot);
+   void deSerializeJson(const FunctionTestData *funcTestData, const Json::Value &jsonRoot);
 
    void writeAsStruct(void);
 
