@@ -5,6 +5,15 @@
  *
  */
 
+#include <malloc.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+#include "emmalloc.h"
+#include "memorymanagement.h"
+#include "printline.h"
+#include "fqtype.h"
+
 #include "fff.h"
 
 {{# includes}}
@@ -16,6 +25,89 @@ DEFINE_FFF_GLOBALS;
 
 /**
  * MOCKED FUNCTIONS BEGIN
+ */
+
+/**
+ * Fix custom mocks for everyday use
+ */
+
+void *Em_IRealloc_custom( void *oldptr, size_t newsize )
+{
+   void   *newptr;
+   size_t  oldsize;
+
+   oldsize = malloc_usable_size( oldptr );
+   newptr = realloc( oldptr, newsize );
+   if( newptr != NULL && malloc_usable_size( newptr ) > oldsize )
+       memset( (char*)newptr + oldsize, 0, malloc_usable_size( newptr ) - oldsize );
+   return newptr;
+}
+
+void PrintLine_custom(const char *s, ...)
+{
+   va_list arg;
+   va_start (arg, s);
+   vfprintf (stdout, s, arg);
+   va_end (arg);
+}
+
+void AllocateInitPrObject_custom(void     **pObject,
+                                 FbBool_t  *pIsAllocated,
+                                 size_t     Size)
+{
+   void *ptr = Em_IMalloc(Size);
+   *pIsAllocated = ptr ? TRUE : FALSE;
+   *pObject = ptr;
+}
+
+void AllocatePrObject_custom(void         **pObject,
+                             FbBool_t      *IsAllocated,
+                             size_t         Size )
+{
+   void *ptr = Em_Malloc(Size);
+   *IsAllocated = ptr ? TRUE : FALSE;
+   *pObject = ptr;
+}
+
+void AllocatePrObjectHdr_custom(void         **pHdr,
+                                FbBool_t      *IsAllocated,
+                                size_t         Size,
+                                FbUint_t       Dummy)
+{
+    void *ptr = Em_IMalloc(Size);
+    *IsAllocated = ptr ? TRUE : FALSE;
+    *pHdr = ptr;
+}
+
+void IncreasePrObject_custom(void     **pObject,
+                             FbBool_t  *pIsAllocated,
+                             size_t     Size)
+{
+   *pObject = Em_Realloc(*pObject, Size);
+   *pIsAllocated = *pObject ? TRUE : FALSE;
+}
+
+/**
+ * Fix mocks for everyday use
+ */
+
+FAKE_VALUE_FUNC(void *, Em_Malloc, size_t );
+FAKE_VALUE_FUNC(void *, Em_IMalloc, size_t );
+FAKE_VALUE_FUNC(void *, Em_Realloc, void *, size_t);
+FAKE_VOID_FUNC(Em_Free, void *);
+FAKE_VALUE_FUNC(void *, void *, size_t);
+FAKE_VALUE_FUNC(FbBool_t, IsMemoryStatusOK);
+FAKE_VOID_FUNC_VARARG(PrintLine, const char, ...);
+FAKE_VOID_FUNC(AllocateInitPrObject, void**, FbBool_t*, size_t);
+FAKE_VOID_FUNC(AllocatePrObject, void**, FbBool_t*, size_t);
+FAKE_VOID_FUNC(AllocatePrObjectHdr, void**, FbBool_t*, size_t, FbUint_t);
+FAKE_VOID_FUNC(IncreasePrObject, void**, FbBool_t*, size_t);
+FAKE_VALUE_FUNC(FbBool_t, TrapKeyIsOn, FbChar_t *);
+
+
+
+/**
+ * Mock functions needed by the source(s).
  */
 
 {{# mocks}}
@@ -34,6 +126,18 @@ void reset_all_mocks(){
    RESET_FAKE({{mockname}});{{newline}}
 {{/ mocks}}
    FFF_RESET_HISTORY();
+   Em_Malloc_fake.custom_fake = malloc;
+   Em_IMalloc_fake.custom_fake = calloc;
+   Em_Realloc_fake.custom_fake = realloc;
+   Em_Free_fake.custom_fake = free;
+   Em_IRealloc_fake.custom_fake = Em_IRealloc_custom;
+   IsMemoryStatusOK_fake.return_val = TRUE;
+   PrintLine_fake.custom_fake = PrintLine_custom;
+   AllocateInitPrObject_fake.custom_fake = AllocateInitPrObject_custom;
+   AllocatePrObject_fake.custom_fake = AllocatePrObject_custom;
+   AllocatePrObjectHdr_fake.custom_fake = AllocatePrObjectHdr_custom;
+   IncreasePrObject_fake.custom_fake = IncreasePrObject_custom;
+   TrapKeyIsOn_fake.return_val = TrapKeyIsOn;
 }
 
 /**

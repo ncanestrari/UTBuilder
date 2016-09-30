@@ -7,7 +7,9 @@
 #include "JsonReader.h"
 
 #include <iostream>
-
+#include <fstream>
+#include <string>
+#include <vector>
 
 #include <clang/Parse/ParseAST.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -18,7 +20,13 @@
 #include <llvm/Support/Host.h>
 
 
-#include <fstream>
+static const char *MiddlewareMocks[] = {
+   "Em_Malloc", "Em_IMalloc", "Em_Realloc", "Em_Free", "Em_IRealloc", 
+   "IsMemoryStatusOK", 
+   "PrintLine", 
+   "AllocateInitPrObject", "AllocatePrObject", "AllocatePrObjectHdr", "IncreasePrObject"
+   "TrapKeyIsOn",   
+};
 
 // additional paths needed for compiling (system or compiler specific)
 static const char *additionalIncludePaths[] = {
@@ -28,6 +36,7 @@ static const char *additionalIncludePaths[] = {
 
 // additional predefined macros needed for preprocessing
 static const char *additionalPredefinedMacros[] = {
+   "UNIT_TEST",
    "__UNIX64__",
    "__64BIT__",
    "__LINUX64__",
@@ -35,8 +44,8 @@ static const char *additionalPredefinedMacros[] = {
    "NDEBUG"
 };
 
-
 static const char *mocksFileNameSuffix = "-mocks.json";
+
 static const char *funcsFileNameSuffix = "-unitTest.json";
 
 

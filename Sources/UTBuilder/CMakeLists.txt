@@ -12,6 +12,7 @@ set ( HEADER_FILES
    Include/FuncUTDefVisitor.h
    Include/globber.h
    Include/MockVisitor.h
+   Include/optionparser.h
    Include/Results.h
    Include/StructVisitor.h
    Include/TypedefVisitor.h
@@ -30,6 +31,7 @@ set ( SOURCE_FILES
    C/FuncUTDefVisitor.cpp
    C/globber.cpp
    C/MockVisitor.cpp
+   C/optionparser.cpp
    C/Results.cpp
    C/StructVisitor.cpp
    C/TypedefVisitor.cpp
