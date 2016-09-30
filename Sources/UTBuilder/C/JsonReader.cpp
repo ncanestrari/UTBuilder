@@ -1,37 +1,57 @@
+
 #include "JsonReader.h"
 
-#include "FuncParamsStructure.h"
-#include "FunctionsData.h"
+// #include "FunctionTestContent.h"
+#include "FunctionTestCollection.h"
+
+#include <json/json.h>
 
 #include <iostream>
 #include <fstream>
 #include <memory>
 
+using std::cout;
+using std::endl;
+using std::ifstream;
+using std::string;
 
-JsonReader::JsonReader(){}
 
-bool JsonReader::parse(FunctionsData &funcsData, const std::string &fileName)
+/** 
+ * Constructor of JsonReader is empty
+ */
+JsonReader::JsonReader()
+{}
+
+
+/** 
+ * Parse the Json file named fileName, into the a FunctionsData file
+ * 
+ * @param[out]    FunctionsData funcsData 
+ * @param[in]     string        fileName
+ * 
+ * @return        true if process works, false otherwise 
+ */
+bool JsonReader::parse(DataFile &data,
+                       const string  &fileName)
 {
-
+   ifstream jsonFile;
    _fileName = fileName;
 
-   std::ifstream jsonFile;
-
    jsonFile.open(_fileName);
-
    if (jsonFile.is_open() == false) {
-      std::cout << "json file not found: " << _fileName << std::endl;
+      cout << "json file not found: " << _fileName << endl;
       return false;
    } else {
-
-      std::cout << "reading json file: " << _fileName << std::endl;
-
-      jsonFile >> _funcsRoot;
-
-      funcsData.deSerializeJson(_funcsRoot);
+      cout << "reading json file: " << _fileName << endl;
+      
+      Json::Value jsonRoot;
+      jsonFile >> jsonRoot;
+      
+      data.deSerializeJson(jsonRoot);      
    }
-
+   
    jsonFile.close();
 
    return true;
 }
+

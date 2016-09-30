@@ -19,9 +19,12 @@ set ( HEADER_FILES
    Include/utils.h
    Include/writer.h
    Include/JsonReader.h
-   Include/FuncParamsStructure.h
+   Include/JsonWriter.h
+   Include/DataFile.h
+   Include/FunctionTestContent.h
+   Include/FunctionTestCollection.h
+   Include/FunctionTestData.h
    Include/NameValueTypeNode.h
-   Include/FunctionsData.h
    )
 
 set ( SOURCE_FILES
@@ -38,9 +41,12 @@ set ( SOURCE_FILES
    C/utils.cpp 
    C/writer.cpp
    C/JsonReader.cpp
-   C/FuncParamsStructure.cpp
+   C/JsonWriter.cpp
+   C/DataFile.cpp
+   C/FunctionTestContent.cpp
+   C/FunctionTestCollection.cpp
+   C/FunctionTestData.cpp
    C/NameValueTypeNode.cpp
-   C/FunctionsData.cpp
    )
 
 set( CMAKE_INCLUDE_CURRENT_DIR TRUE )

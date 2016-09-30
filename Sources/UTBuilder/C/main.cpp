@@ -5,6 +5,9 @@
 #include "Results.h"
 #include "writer.h"
 #include "JsonReader.h"
+#include "JsonWriter.h"
+#include "DataFile.h"
+
 
 #include <iostream>
 #include <fstream>
@@ -130,23 +133,22 @@ int main(int argc, const char *argv[])
    // Parse the AST and execute all the visitors
    clang::ParseAST(compiler.getPreprocessor(), &astConsumer, compiler.getASTContext());
 
-   UnitTestFunctionsData::get().clear();
-   UnitTestFunctionsData::get().init(FunctionsToUnitTest::get().declKeySetMap);
 
-   MockFunctionsData::get().clear();
-   MockFunctionsData::get().init(FunctionsToMock::get().declKeySetMap);
+   
+   DataFile::get().initCollections(FunctionsToUnitTest::get().declKeySetMap);
 
-   Writer writer(fileNamePath, SourceMgr);
+   
    bool writeJsonExampleFile = true;
    if (writeJsonExampleFile) {
-      // write the json example files
-      writer.createExampleJsonFiles();
+      JsonWriter jsonWriter( DataFile::get() );
+      jsonWriter.templateFile(fileNamePath + "-template");
    }
 
    JsonReader reader;
-   reader.parse(UnitTestFunctionsData::get(), fileNamePath + funcsFileNameSuffix);
-   reader.parse(MockFunctionsData::get(), fileNamePath + mocksFileNameSuffix);
+   reader.parse( DataFile::get(), fileNamePath + funcsFileNameSuffix );
 
+
+   Writer writer(fileNamePath, SourceMgr);
    writer.createFiles();
 
    return 0;

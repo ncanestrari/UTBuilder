@@ -6,7 +6,7 @@
 #include <set>
 #include <map>
 
-#include "FuncParamsStructure.h"
+#include "FunctionTestContent.h"
 
 namespace clang {
 class FunctionDecl;

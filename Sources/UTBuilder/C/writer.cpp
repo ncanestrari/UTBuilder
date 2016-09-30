@@ -12,8 +12,8 @@
 #include <string>
 #include <template.hpp>
 
-#include "FuncParamsStructure.h"
-#include "Results.h"
+// #include "FunctionTestContent.h"
+#include "DataFile.h"
 #include "utils.h"
 
 
@@ -34,11 +34,12 @@ Writer::Writer(const std::string            &fileName,
 {}
 
 
-void Writer::createExampleJsonFiles(void)
-{
-   CreateSerializationJsonfile(MockFunctionsData::get(), "mocks", _fileName + "-mocks-template");
-   CreateSerializationJsonfile(UnitTestFunctionsData::get(), "funcs", _fileName + "-tests-template");
-}
+// void Writer::createExampleJsonFiles(void)
+// {
+//    CreateSerializationJsonfile(DataFile::get(), _fileName + "-template");
+//    CreateSerializationJsonfile(DataFile::get().mockFunctionTestCollection, "mocks", _fileName + "-mocks-template");
+//    CreateSerializationJsonfile(DataFile::get().unitFunctionTestCollection, "funcs", _fileName + "-tests-template");
+// }
 
 
 void Writer::createFiles(void)
@@ -87,7 +88,7 @@ void Writer::createUnitTestFile(void)
    }
 
 
-   WriteTemplate(CreateUnitTestContext(includePaths, UnitTestFunctionsData::get()),
+   WriteTemplate(CreateUnitTestContext(includePaths, DataFile::get().unitFunctionTestCollection),
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/UT.template"),
                  _fileName + "-ugtest.cpp");
 
@@ -138,13 +139,15 @@ void Writer::CreateSerializationFile(void)
 
 }
 
-
-void Writer::CreateSerializationJsonfile(const FunctionsData &functionData,
-                                         const std::string &objectName,
+/*
+void Writer::CreateSerializationJsonfile(const DataFile &data,
                                          const std::string &outFileName)
 {
-   Json::Value jsonRoot;
-   functionData.serializeAST(jsonRoot);
+   Json::Value jsonRoot;// = Json::Value(Json::arrayValue);
+   
+   data.serializeAST(jsonRoot);
+//    data.unitFunctionTestCollection.serializeAST(jsonRoot["funcs"]);
+//    data.mockFunctionTestCollection.serializeAST(jsonRoot["mocks"]);
 
    std::ofstream outputFile;
    std::string outputFileName = outFileName + ".json";
@@ -153,7 +156,7 @@ void Writer::CreateSerializationJsonfile(const FunctionsData &functionData,
    outputFile.close();
 
    std::cout << "file written: " << outputFileName << std::endl;
-}
+}*/
 
 
 std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::set<std::string>   &includePaths,
@@ -185,17 +188,17 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
    context->add("newline", "\n");
 
    out.str("");
-   const std::map< std::string, FuncParamsStruct>  &dataJson = MockFunctionsData::get().dataJson();
+   const std::map< std::string, FunctionTestContent>  &dataJson = DataFile::get().mockFunctionTestCollection.dataJson();
 
    for (auto func : dataJson) {
 
       const std::string &name = func.first;
-      const FuncParamsStruct &funcParams = func.second;
+      const FunctionTestContent &funcParams = func.second;
       const clang::FunctionDecl *funcDecl = funcParams.getFunctionDecl();
       int counter = 0;
-      for (auto iter : funcParams.getOutputTree()) {
+      for (auto iter : funcParams.getTests()) {
          const std::string namewithcounter = name + "_" + std::to_string(counter);
-         FakeFunctionDefinition(namewithcounter, funcDecl, iter, out);
+         FakeFunctionDefinition(namewithcounter, funcDecl, iter->getOutputTree(), out);
          FakeFunc["definition"] = out.str();
          context->add("fakefuncs", FakeFunc);
          counter++;
@@ -209,7 +212,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
 
 std::shared_ptr<const Plustache::Context>
 Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
-                              const UnitTestFunctionsData   &funcData)
+                              const UnitFunctionTestCollection   &funcData)
 {
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
 
@@ -228,20 +231,20 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
 
    std::ostringstream    code;
 
-   for (auto iter : UnitTestFunctionsData::get().dataJson()) {
+   for (auto iter : DataFile::get().unitFunctionTestCollection.dataJson()) {
 
-      FuncParamsStruct funcParams = iter.second;
+      FunctionTestContent funcParams = iter.second;
 
       //       const clang::FunctionDecl* funcDecl = funcParams.getFunctionDecl();
 
-      const unsigned int size = funcParams.getSize();
+      const unsigned int size = funcParams.getNumTests();
 
       for (int i = 0; i < size; ++i) {
          FunctionToUnitTest["functionName"] = funcParams.getName(i); // funcDecl->getNameAsString();
 
          code.str("");
 
-         FuncParamsStruct::writeGoogleTest(code, funcParams, i);
+         FunctionTestContent::writeGoogleTest(code, funcParams, i);
 
          FunctionToUnitTest["CODE"] = code.str();
 
@@ -426,8 +429,8 @@ Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includ
    context->add("filename", _fileName);
    context->add("newline", "\n");
 
-   std::vector<FuncParamsStruct> funcParamsStructures;
-   FuncParamsStruct funcParamsStruct;
+   std::vector<FunctionTestContent> funcParamsStructures;
+   FunctionTestContent funcParamsStruct;
 
    for (auto iter : funcDeclsMap) {
       const clang::FunctionDecl *funcDecl = iter.first;
@@ -438,7 +441,7 @@ Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includ
 
    for (auto iter : funcParamsStructures) {
       out.str("");
-      FuncParamsStruct::writeAsStructure(out, iter);
+      FunctionTestContent::writeAsStructure(out, iter);
 
       paramsStructsObject["functionName"] = iter.getName();
       paramsStructsObject["paramTypesAndNames"] = out.str();
