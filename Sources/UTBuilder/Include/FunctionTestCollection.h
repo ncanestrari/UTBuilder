@@ -18,8 +18,15 @@
 
 class FunctionTestCollection {
 public:
+   
+   FunctionTestCollection() {}
+   
+   FunctionTestCollection(const FunctionTestCollection&) = delete;
+   
+   ~FunctionTestCollection() {}
+   
    // override and fill the _data map
-   virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) {}
+//    virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) {}
    
    void clear()
    {
@@ -39,7 +46,7 @@ public:
       return _dataAST;
    }
    
-   const std::map< std::string, FunctionTestContent> &dataJson(void)
+   const std::map< std::string, FunctionTestContent> &dataJson(void) const
    {
       return _dataJson;
    }
@@ -57,7 +64,10 @@ class UnitFunctionTestCollection : public FunctionTestCollection //, public Sing
 {
 public:
 
-   virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) override;
+   UnitFunctionTestCollection() {}
+   ~UnitFunctionTestCollection() {}
+   
+   void init(const FunctionDeclKeySetMap   &funcDeclsMap);
 
 };
 
@@ -66,8 +76,11 @@ public:
 class MockFunctionTestCollection : public FunctionTestCollection //, public Singleton<MockFunctionTestCollection> {
 {
 public:
+   
+   MockFunctionTestCollection() {}
+   ~MockFunctionTestCollection() {}
 
-   virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) override;
+   void init(const FunctionDeclKeySetMap   &funcDeclsMap);
 
 };
 

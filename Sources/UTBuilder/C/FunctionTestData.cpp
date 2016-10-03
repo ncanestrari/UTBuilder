@@ -36,7 +36,7 @@ std::shared_ptr<NameValueTypeNode<clang::QualType> > FunctionTestData::buildInpu
    std::shared_ptr<NameValueTypeNode<clang::QualType> > root = std::make_shared<NameValueTypeNode<clang::QualType> >("input");
 
    if (funcDecl->getNumParams() > 0) {
-      for (auto field : funcDecl->params()) {
+      for (const auto& field : funcDecl->params()) {
          root->addChild(field->getNameAsString().c_str(), field->getType(), "");
       }
    }
@@ -51,7 +51,7 @@ std::shared_ptr<NameValueTypeNode<clang::QualType> > FunctionTestData::buildOutp
    std::shared_ptr<NameValueTypeNode<clang::QualType> > root = std::make_shared<NameValueTypeNode<clang::QualType> >("output");
 
    if (funcDecl->getNumParams() > 0) {
-      for (auto field : funcDecl->params()) {
+      for (const auto& field : funcDecl->params()) {
          root->addChild(field->getNameAsString().c_str(), field->getType(), "");
       }
    }
@@ -68,7 +68,7 @@ std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > FunctionTestDat
    std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > root = std::make_shared<NameValueTypeNode<const clang::FunctionDecl *> >("mock-funcs-call");
 
    std::string value;
-   for (auto iter : mockFuncs) {
+   for (const auto& iter : mockFuncs) {
       value = iter->getNameAsString() + "[0]";
       root->addChild(iter->getNameAsString().c_str(), iter, value.c_str());
    }
@@ -84,7 +84,7 @@ void FunctionTestData::serializeJsonTree(std::shared_ptr<NameValueTypeNode<clang
    const std::string &keyName = tree->getName();
 
    if (tree->getNumChildern() > 0) {
-      for (auto child : tree->getChildren()) {
+      for (const auto& child : tree->getChildren()) {
          serializeJsonTree(child.second, fieldItem[keyName]);
       }
 
@@ -114,7 +114,7 @@ void FunctionTestData::serializeJsonTree(std::shared_ptr<NameValueTypeNode<const
    std::string comment; // = "// defined in mocks-json file";
    const std::string &keyName = tree->getName();
    if (tree->getNumChildern() > 0) {
-      for (auto child : tree->getChildren()) {
+      for (const auto& child : tree->getChildren()) {
          serializeJsonTree(child.second, fieldItem[keyName]);
       }
    } else {
@@ -230,7 +230,7 @@ void  FunctionTestData::writeAsStructure(std::ostringstream &os, const clang::Fu
    os << "\n";
 
    if (funcDecl->getNumParams() > 0) {
-      for (auto field : funcDecl->params()) {
+      for (const auto& field : funcDecl->params()) {
          clang::QualType qualType = field->getType();
          const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
 
@@ -248,7 +248,7 @@ static const char *writeStructureValue(std::ostringstream &os,
    std::string structName = name + tree->getName();
    if (tree->getNumChildern() > 0) {
       structName += ".";
-      for (auto child : tree->getChildren()) {
+      for (const auto& child : tree->getChildren()) {
          writeStructureValue(os, child.second, structName, indent);
       }
    } else {
@@ -271,7 +271,7 @@ static const char *writeStructureComparison(std::ostringstream &os,
 
       structName += ".";
 
-      for (auto child : tree->getChildren()) {
+      for (const auto& child : tree->getChildren()) {
          writeStructureComparison(os, child.second, structName, indent);
       }
    } else {
@@ -298,7 +298,7 @@ void FunctionTestData::writeGoogleTest(std::ostringstream &os, const clang::Func
 
    //    mocks No recursion in mock tree
    auto children = _mocksTree->getChildren();
-   for (auto iter : children) {
+   for (const auto& iter : children) {
       const std::string &value = iter.second->getValue();
       if (value != "") {
          os << indent << iter.first << "_fake.custom_fake = " << value << ";\n";
@@ -344,7 +344,7 @@ void FunctionTestData::writeGoogleTest(std::ostringstream &os, const clang::Func
    os << ");\n\n";
 
    os << "// check conditions" << "\n";
-   for (auto child : _outputTree->getChildren()) {
+   for (const auto& child : _outputTree->getChildren()) {
       if (child.first == "retval") {
          writeStructureComparison(os, child.second, "", indent);
       } else {

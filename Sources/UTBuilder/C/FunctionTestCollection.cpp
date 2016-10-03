@@ -17,9 +17,9 @@ FunctionTestContent *FunctionTestCollection::ASTfind(const std::string &key)
 
 void FunctionTestCollection::serializeAST(Json::Value &jsonRoot) const
 {
-   for (std::map< std::string, FunctionTestContent>::const_iterator iter = _dataAST.begin(); iter!=_dataAST.end(); ++iter ) {
-//    for (auto *iter : _dataAST) {
-      const FunctionTestContent &funcParams = iter->second;
+//    for (std::map< std::string, FunctionTestContent>::const_iterator iter = _dataAST.begin(); iter!=_dataAST.end(); ++iter ) {
+   for (const std::pair<std::string, FunctionTestContent>& iter : _dataAST) {
+      const FunctionTestContent &funcParams = iter.second;
       funcParams.serializeJson(jsonRoot);
    }
 }
@@ -27,9 +27,9 @@ void FunctionTestCollection::serializeAST(Json::Value &jsonRoot) const
 
 void FunctionTestCollection::serializeJson(Json::Value &jsonRoot) const
 {
-   for (std::map< std::string, FunctionTestContent>::const_iterator iter = _dataJson.begin(); iter!=_dataJson.end(); ++iter ) {
-//    for (auto *iter : _dataJson) {
-      const FunctionTestContent &funcParams = iter->second;
+//    for (std::map< std::string, FunctionTestContent>::const_iterator iter = _dataJson.begin(); iter!=_dataJson.end(); ++iter ) {
+   for (const std::pair<std::string, FunctionTestContent>& iter : _dataJson) {
+      const FunctionTestContent &funcParams = iter.second;
       funcParams.serializeJson(jsonRoot);
    }
 }
@@ -79,26 +79,26 @@ void FunctionTestCollection::deSerializeJson(const Json::Value &jsonRoot)
 
 void UnitFunctionTestCollection::init(const FunctionDeclKeySetMap   &funcDeclsMap)
 {
-   FunctionTestContent funcParamsStruct;
+//    FunctionTestContent funcParamsStruct;
 
-   for (auto iter : funcDeclsMap) {
+   for (const auto& iter : funcDeclsMap) {
       const clang::FunctionDecl *funcDecl = iter.first;
+      const std::string name = funcDecl->getNameAsString();
       const std::set<const clang::FunctionDecl *> &mockDeclSet = iter.second;
 
-      funcParamsStruct.init(funcDecl, mockDeclSet);
-      _dataAST[funcParamsStruct.getName()] = funcParamsStruct;
+      _dataAST[name] = FunctionTestContent(funcDecl, mockDeclSet);
    }
 }
 
 
 void MockFunctionTestCollection::init(const FunctionDeclKeySetMap   &funcDeclsMap)
 {
-   FunctionTestContent funcParamsStruct;
 
-   for (auto iter : funcDeclsMap) {
+   for (const auto& iter : funcDeclsMap) {
       const clang::FunctionDecl *funcDecl = iter.first;
-      funcParamsStruct.init(funcDecl);
-      _dataAST[funcParamsStruct.getName()] = funcParamsStruct;
+      const std::string name = funcDecl->getNameAsString();
+
+      _dataAST[name] = FunctionTestContent(funcDecl);
    }
 
 }

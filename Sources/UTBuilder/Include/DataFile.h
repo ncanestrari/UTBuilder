@@ -13,6 +13,10 @@
 
 class DataFile :  public Singleton<DataFile> {
    
+protected:
+   
+//    DataFile() {}
+   
 public:
    
    void clearCollections();

@@ -11,14 +11,35 @@ FunctionTestContent::FunctionTestContent()
 {}
 
 
+FunctionTestContent::FunctionTestContent(const FunctionTestContent& other)
+: _funcDecl(other._funcDecl)
+, _tests(std::vector< std::shared_ptr<FunctionTestData> >( other._tests ))
+{
+}
+
+// FunctionTestContent::FunctionTestContent(FunctionTestContent&& other)
+// : _funcDecl(other._funcDecl)
+// , _tests(std::move( other._tests ))
+// {
+// }
+
+FunctionTestContent::FunctionTestContent(const clang::FunctionDecl *funcDecl,
+             const std::set<const clang::FunctionDecl *> &mockFuncs )
+{
+   init(funcDecl, mockFuncs);
+}
+
 FunctionTestContent::~FunctionTestContent()
 {}
 
-FunctionTestContent::FunctionTestContent(const FunctionTestContent& other)
+
+FunctionTestContent& FunctionTestContent::operator = (const FunctionTestContent& other)
 {
    _funcDecl = other.getFunctionDecl();
-//    _tests = std::vector< std::shared_ptr<FunctionTestData> >( other.getTests() );
+   _tests = std::vector< std::shared_ptr<FunctionTestData> >( other.getTests() );
+   return *this;
 }
+
 
 void FunctionTestContent::init(const clang::FunctionDecl *funcDecl, const std::set<const clang::FunctionDecl *> &mockFuncs)
 {

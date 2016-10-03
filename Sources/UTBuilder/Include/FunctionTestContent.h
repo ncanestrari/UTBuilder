@@ -17,14 +17,19 @@
 class FunctionTestContent {
 
 public:
+   
    FunctionTestContent();
    
+   FunctionTestContent(const clang::FunctionDecl *funcDecl,
+             const std::set<const clang::FunctionDecl *> &mockFuncs = std::set<const clang::FunctionDecl *>());
+   
+   // called in for range loops of std::map
    FunctionTestContent(const FunctionTestContent& other);
+//    FunctionTestContent(FunctionTestContent&& other);
+   
+   FunctionTestContent& operator = (const FunctionTestContent& other);
    
    ~FunctionTestContent();
-
-   void init(const clang::FunctionDecl *funcDecl,
-             const std::set<const clang::FunctionDecl *> &mockFuncs = std::set<const clang::FunctionDecl *>());
 
 
    std::string getName(void) const
@@ -71,7 +76,9 @@ private:
 
    void clear(void);
 
-
+   void init(const clang::FunctionDecl *funcDecl,
+             const std::set<const clang::FunctionDecl *> &mockFuncs = std::set<const clang::FunctionDecl *>());
+   
 //    static void serializeJsonTree(std::shared_ptr<FunctionTestData> tree, Json::Value &jsonRoot);
 
 //    static void serializeJsonTree(std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > tree, Json::Value &jsonRoot);

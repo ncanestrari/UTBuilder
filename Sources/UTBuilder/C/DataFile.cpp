@@ -12,6 +12,7 @@ void DataFile::clearCollections()
 void DataFile::initCollections(const FunctionDeclKeySetMap   &funcDeclsMap)
 {
    clearCollections();
+
    unitFunctionTestCollection.init(funcDeclsMap);
    mockFunctionTestCollection.init(funcDeclsMap);
 }
