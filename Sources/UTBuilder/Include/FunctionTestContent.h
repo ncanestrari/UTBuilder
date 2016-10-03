@@ -18,6 +18,9 @@ class FunctionTestContent {
 
 public:
    FunctionTestContent();
+   
+   FunctionTestContent(const FunctionTestContent& other);
+   
    ~FunctionTestContent();
 
    void init(const clang::FunctionDecl *funcDecl,
@@ -45,10 +48,12 @@ public:
 
    const std::vector< std::shared_ptr<FunctionTestData> >& getTests(void) const;
    
+   std::shared_ptr<FunctionTestData> getTest(const unsigned int idx) const;
    
-   void serializeJson(Json::Value &jsonRoot );
+   
+   void serializeJson(Json::Value &jsonRoot ) const;
 
-   void deSerializeJson(const FunctionTestContent &funcParam, const Json::Value &jsonRoot);
+   void deSerializeJson(const FunctionTestContent * funcTestContentAST, const Json::Value &jsonRoot);
 
    
    void writeAsStruct(void);

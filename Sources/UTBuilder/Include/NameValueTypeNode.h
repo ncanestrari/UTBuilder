@@ -52,7 +52,7 @@ public:
       return _children.size();
    }
 
-   std::shared_ptr<NameValueTypeNode<T> > getChild(const char *name)
+   std::shared_ptr<NameValueTypeNode<T> > getChild(const char *name) const
    {
       auto iter = _children.find(name);
       if (iter == _children.end()) {
