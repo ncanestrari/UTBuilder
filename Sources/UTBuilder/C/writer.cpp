@@ -12,8 +12,7 @@
 #include <string>
 #include <template.hpp>
 
-// #include "FunctionTestContent.h"
-#include "DataFile.h"
+#include "FunctionTestDataFile.h"
 #include "utils.h"
 
 
@@ -34,14 +33,6 @@ Writer::Writer(const std::string            &fileName,
 {}
 
 
-// void Writer::createExampleJsonFiles(void)
-// {
-//    CreateSerializationJsonfile(DataFile::get(), _fileName + "-template");
-//    CreateSerializationJsonfile(DataFile::get().mockFunctionTestCollection, "mocks", _fileName + "-mocks-template");
-//    CreateSerializationJsonfile(DataFile::get().unitFunctionTestCollection, "funcs", _fileName + "-tests-template");
-// }
-
-
 void Writer::createFiles(void)
 {
    CreateMockFile();
@@ -56,7 +47,7 @@ void Writer::CreateMockFile(void)
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for (auto funcToMock : FunctionsToMock::get().declKeySetMap) {
+   for (const auto& funcToMock : FunctionsToMock::get().declKeySetMap) {
       const clang::FunctionDecl *funcDecl = funcToMock.first;
       // get declaration source location
       const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
@@ -79,7 +70,7 @@ void Writer::createUnitTestFile(void)
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for (auto funcToUnitTest : FunctionsToUnitTest::get().declKeySetMap) {
+   for (const auto& funcToUnitTest : FunctionsToUnitTest::get().declKeySetMap) {
       const clang::FunctionDecl *funcDecl = funcToUnitTest.first;
       // get declaration source location
       const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
@@ -88,7 +79,7 @@ void Writer::createUnitTestFile(void)
    }
 
 
-   WriteTemplate(CreateUnitTestContext(includePaths, DataFile::get().unitFunctionTestCollection),
+   WriteTemplate(CreateUnitTestContext(includePaths, FunctionTestDataFile::get().unitFunctionTestCollection),
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/UT.template"),
                  _fileName + "-ugtest.cpp");
 
@@ -104,7 +95,7 @@ void Writer::CreateSerializationFile(void)
 
    std::set<std::string> includePaths;
 
-   for (auto typedefDecl : results::get().typedefNameDecls) {
+   for (const auto& typedefDecl : results::get().typedefNameDecls) {
       // get declaration source location
       const std::string declSrcFile = utils::getDeclSourceFile(typedefDecl, _sourceMgr);
 
@@ -115,7 +106,7 @@ void Writer::CreateSerializationFile(void)
       }
    }
 
-   for (auto structDecl : results::get().structDecls) {
+   for (const auto& structDecl : results::get().structDecls) {
       // get declaration source location
       const std::string declSrcFile = utils::getDeclSourceFile(structDecl, _sourceMgr);
 
@@ -139,25 +130,6 @@ void Writer::CreateSerializationFile(void)
 
 }
 
-/*
-void Writer::CreateSerializationJsonfile(const DataFile &data,
-                                         const std::string &outFileName)
-{
-   Json::Value jsonRoot;// = Json::Value(Json::arrayValue);
-   
-   data.serializeAST(jsonRoot);
-//    data.unitFunctionTestCollection.serializeAST(jsonRoot["funcs"]);
-//    data.mockFunctionTestCollection.serializeAST(jsonRoot["mocks"]);
-
-   std::ofstream outputFile;
-   std::string outputFileName = outFileName + ".json";
-   outputFile.open(outputFileName, std::fstream::out);
-   outputFile << jsonRoot;
-   outputFile.close();
-
-   std::cout << "file written: " << outputFileName << std::endl;
-}*/
-
 
 std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::set<std::string>   &includePaths,
                                                                     const FunctionDeclKeySetMap   &funcDeclsMap)
@@ -169,12 +141,12 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
    ObjectType            FakeFunc;
    std::ostringstream    out;
 
-   for (auto iter : includePaths) {
+   for (const std::string& iter : includePaths) {
       Include["include"] = iter;
       context->add("includes", Include);
    }
 
-   for (auto iter : funcDeclsMap) {
+   for (const auto& iter : funcDeclsMap) {
 
       const clang::FunctionDecl *funcDecl = iter.first;
       MockFunctionFFF(funcDecl, out);
@@ -188,17 +160,21 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
    context->add("newline", "\n");
 
    out.str("");
-   const std::map< std::string, FunctionTestContent>  &dataJson = DataFile::get().mockFunctionTestCollection.dataJson();
 
-   for (auto func : dataJson) {
+   const MockFunctionTestCollection& mockFuncTestCollection = FunctionTestDataFile::get().mockFunctionTestCollection;
+
+   for ( const std::pair< std::string, FunctionTestContent>& func : mockFuncTestCollection.dataJson() ) {
 
       const std::string &name = func.first;
       const FunctionTestContent &funcParams = func.second;
       const clang::FunctionDecl *funcDecl = funcParams.getFunctionDecl();
       int counter = 0;
-      for (auto iter : funcParams.getTests()) {
+      const std::vector< std::shared_ptr<FunctionTestData> >& tests = funcParams.getTests();
+      const unsigned int size = funcParams.getNumTests();
+      
+      for (int i=0; i< size; ++i ) {
          const std::string namewithcounter = name + "_" + std::to_string(counter);
-         FakeFunctionDefinition(namewithcounter, funcDecl, iter->getOutputTree(), out);
+         FakeFunctionDefinition(namewithcounter, funcDecl, tests[i]->getOutputTree(), out);
          FakeFunc["definition"] = out.str();
          context->add("fakefuncs", FakeFunc);
          counter++;
@@ -219,7 +195,7 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
    ObjectType   Include;
    ObjectType   FunctionToUnitTest;
 
-   for (auto iter : includePaths) {
+   for (const std::string& iter : includePaths) {
       Include["include"] = iter;
       context->add("includes", Include);
    }
@@ -231,9 +207,10 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
 
    std::ostringstream    code;
 
-   for (auto iter : DataFile::get().unitFunctionTestCollection.dataJson()) {
+  
+   for (const std::pair< std::string, FunctionTestContent>& iter : funcData.dataJson() ) {
 
-      FunctionTestContent funcParams = iter.second;
+      const FunctionTestContent& funcParams = iter.second;
 
       //       const clang::FunctionDecl* funcDecl = funcParams.getFunctionDecl();
 
@@ -282,13 +259,13 @@ Writer::CreateSerializationContext(const std::set<std::string>                  
    context->add("newline", "\n");
    context->add("indent", "   ");
 
-   for (auto iter : includePaths) {
+   for (const std::string& iter : includePaths) {
       Include["include"] = iter;
       context->add("includes", Include);
    }
 
 
-   for (auto typedefDecl : typedefNameDecls) {
+   for (const auto& typedefDecl : typedefNameDecls) {
 
       objectToSerialize.clear();
 
@@ -310,7 +287,7 @@ Writer::CreateSerializationContext(const std::set<std::string>                  
 
          out.str("");
 
-         for (const auto field : structDecl->fields()) {
+         for (const auto& field : structDecl->fields()) {
 
             out << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << ";\n";
          }
@@ -325,7 +302,7 @@ Writer::CreateSerializationContext(const std::set<std::string>                  
          objectToSerialize["typedefEnumName"] = enumDecl->getNameAsString();
          out.str("");
 
-         for (auto iter : enumDecl->enumerators()) {
+         for (const auto& iter : enumDecl->enumerators()) {
             out << "   " << iter->getNameAsString() << "\t = " << iter->getInitVal().toString(10) << ",\n";
          }
 
@@ -371,7 +348,7 @@ Writer::CreateSerializationStructuresContext(const std::set<std::string> &includ
    std::ostringstream    out;
 
 
-   for (auto iter : includePaths) {
+   for (const std::string& iter : includePaths) {
       Include["include"] = iter;
       context->add("includes", Include);
    }
@@ -384,7 +361,7 @@ Writer::CreateSerializationStructuresContext(const std::set<std::string> &includ
    context->add("newline", "\n");
 
    // write function support structures
-   for (auto iter : funcDeclsMap) {
+   for (const auto& iter : funcDeclsMap) {
       const clang::FunctionDecl *funcDecl = iter.first;
       // get declaration source location
       paramsStructsObject["functionName"] = funcDecl->getNameInfo().getName().getAsString();
@@ -419,7 +396,7 @@ Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includ
    std::ostringstream    out;
 
 
-   for (auto iter : includePaths) {
+   for (const std::string& iter : includePaths) {
       Include["include"] = iter;
       context->add("includes", Include);
    }
@@ -430,16 +407,16 @@ Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includ
    context->add("newline", "\n");
 
    std::vector<FunctionTestContent> funcParamsStructures;
-   FunctionTestContent funcParamsStruct;
+//    FunctionTestContent funcParamsStruct;
 
-   for (auto iter : funcDeclsMap) {
+   for (const std::pair<const clang::FunctionDecl *, FunctionDeclSet >& iter : funcDeclsMap) {
       const clang::FunctionDecl *funcDecl = iter.first;
       const std::set<const clang::FunctionDecl *> &mockDeclSet = iter.second;
-      funcParamsStruct.init(funcDecl, mockDeclSet);
-      funcParamsStructures.push_back(funcParamsStruct);
+//       funcParamsStruct.init(funcDecl, mockDeclSet);
+      funcParamsStructures.push_back( FunctionTestContent(funcDecl, mockDeclSet) );
    }
 
-   for (auto iter : funcParamsStructures) {
+   for (const FunctionTestContent& iter : funcParamsStructures) {
       out.str("");
       FunctionTestContent::writeAsStructure(out, iter);
 
@@ -493,7 +470,7 @@ static void writeMockValue(std::ostringstream &os,
 
    if (tree->getNumChildern() > 0) {
       structName += ".";
-      for (auto child : tree->getChildren()) {
+      for (const auto& child : tree->getChildren()) {
          writeMockValue(os, child.second, structName);
       }
    } else { //TODO manage pointer to structure if needed
@@ -542,7 +519,7 @@ void Writer::FakeFunctionDefinition(const std::string                           
    out << "// fill the input struct with json file values" << "\n";
 
 
-   for (auto child : outTree->getChildren()) {
+   for (const auto& child : outTree->getChildren()) {
       if (child.first == "retval") {
          out << "   " << child.second->getType().getAsString() << " retval;\n";
          out << "   memset(&retval,0,sizeof(" << child.second->getType().getAsString() << "));\n";

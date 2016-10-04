@@ -1,5 +1,5 @@
 
-#include "DataFile.h"
+#include "FunctionTestDataFile.h"
 #include <json/json.h>
 
 using std::cout;
@@ -7,21 +7,22 @@ using std::endl;
 using Json::Value;
 using Json::arrayValue;
 
-void DataFile::clearCollections() 
+void FunctionTestDataFile::clearCollections() 
 {
    unitFunctionTestCollection.clear();
    mockFunctionTestCollection.clear();
    projectDescription.clear();
 }
 
-void DataFile::initCollections(const FunctionDeclKeySetMap   &funcDeclsMap)
+void FunctionTestDataFile::initCollections(const FunctionDeclKeySetMap   &funcDeclsMap,
+                               const FunctionDeclKeySetMap   &mockDeclsMap)
 {
    clearCollections();
    unitFunctionTestCollection.init(funcDeclsMap);
-   mockFunctionTestCollection.init(funcDeclsMap);
+   mockFunctionTestCollection.init(mockDeclsMap);
 }
 
-void DataFile::deSerializeJson(const Value &jsonRoot)
+void FunctionTestDataFile::deSerializeJson(const Value &jsonRoot)
 {
    const Value& descRoot = jsonRoot["desc"];
    if( descRoot.empty() ){
@@ -42,9 +43,10 @@ void DataFile::deSerializeJson(const Value &jsonRoot)
    
    unitFunctionTestCollection.deSerializeJson(funcsRoot);
    mockFunctionTestCollection.deSerializeJson(mocksRoot);
+   
 }
 
-void DataFile::serializeAST(Value &jsonRoot) const
+void FunctionTestDataFile::serializeAST(Value &jsonRoot) const
 {
    jsonRoot["funcs"] = Value(arrayValue);
    unitFunctionTestCollection.serializeAST(jsonRoot["funcs"]);

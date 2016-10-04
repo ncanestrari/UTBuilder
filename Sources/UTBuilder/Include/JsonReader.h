@@ -3,7 +3,7 @@
 #define _UTBuilder_JsonReader_h__
 
 
-#include "DataFile.h"
+#include "FunctionTestDataFile.h"
 
 #include <string>
 
@@ -14,7 +14,7 @@ public:
    JsonReader();
    ~JsonReader() {}
 
-   bool parse(DataFile &data, const std::string &fileName);
+   bool parse(FunctionTestDataFile &data, const std::string &fileName);
 //    bool parse(FunctionTestCollection &funcsData, const std::string &fileName);
 
 private:

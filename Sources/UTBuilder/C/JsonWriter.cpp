@@ -8,7 +8,7 @@
 
 
 
-JsonWriter::JsonWriter(const DataFile& dataFile)
+JsonWriter::JsonWriter(const FunctionTestDataFile& dataFile)
 : _dataFile(dataFile)
 {
 }
@@ -19,7 +19,7 @@ void JsonWriter::templateFile(const std::string  &fileName)
 {
    Json::Value jsonRoot;
    
-   _dataFile.serializeAST(jsonRoot);
+   _dataFile.serializeJson(jsonRoot);
 
 
    std::ofstream outputFile;

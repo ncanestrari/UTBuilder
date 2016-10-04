@@ -1,12 +1,13 @@
 
 #include "Action.h"
 #include "Consumer.h"
-#include "DataFile.h"
+#include "FunctionTestDataFile.h"
 #include "JsonReader.h"
 #include "JsonWriter.h"
 #include "optionparser.h"
 #include "Results.h"
 #include "utils.h"
+#include "Results.h"
 #include "writer.h"
 
 #include <iostream>
@@ -130,7 +131,7 @@ int main(int argc, const char *argv[])
    if( !needToContinue ){
       return EXIT_SUCCESS;
    }
-   
+
    
    std::string fileNamePath;
    // get include search paths from CommercialCode and Packages needed to compile file argv[1]
@@ -144,7 +145,7 @@ int main(int argc, const char *argv[])
    std::string comcode = utils::extractCommercialCodePath(fileNamePath);
    std::string package = utils::extractPackagePath(fileNamePath);
    std::vector<std::string> includePaths;
-   
+
    utils::getIncludePaths(comcode + package, includePaths);
 
    // CompilerInstance
@@ -214,17 +215,18 @@ int main(int argc, const char *argv[])
 
 
    
-   DataFile::get().initCollections(FunctionsToUnitTest::get().declKeySetMap);//TODO what about FunctionsToMock ???
+   FunctionTestDataFile::get().initCollections(FunctionsToUnitTest::get().declKeySetMap,
+                                   FunctionsToMock::get().declKeySetMap);
 
    
    bool writeJsonExampleFile = true;
    if (writeJsonExampleFile) {
-      JsonWriter jsonWriter( DataFile::get() );
+      JsonWriter jsonWriter( FunctionTestDataFile::get() );
       jsonWriter.templateFile(fileNamePath + "-template");
    }
 
    JsonReader reader;
-   reader.parse( DataFile::get(), fileNamePath + funcsFileNameSuffix );
+   reader.parse( FunctionTestDataFile::get(), fileNamePath + funcsFileNameSuffix );
 
 
    Writer writer(fileNamePath, SourceMgr);

@@ -7,7 +7,6 @@ set(CMAKE_CXX_FLAGS "-fmax-errors=10")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set ( HEADER_FILES
-   Include/Action.h
    Include/Consumer.h
    Include/FuncUTDefVisitor.h
    Include/globber.h
@@ -25,11 +24,11 @@ set ( HEADER_FILES
    Include/FunctionTestCollection.h
    Include/FunctionTestData.h
    Include/NameValueTypeNode.h
+   Include/Serializable.h
    )
 
 set ( SOURCE_FILES
    C/main.cpp
-   C/Action.cpp
    C/Consumer.cpp
    C/FuncUTDefVisitor.cpp
    C/globber.cpp
@@ -42,7 +41,7 @@ set ( SOURCE_FILES
    C/writer.cpp
    C/JsonReader.cpp
    C/JsonWriter.cpp
-   C/DataFile.cpp
+   C/FunctionTestDataFile.cpp
    C/FunctionTestContent.cpp
    C/FunctionTestCollection.cpp
    C/FunctionTestData.cpp
