@@ -12,8 +12,7 @@
 #include <string>
 #include <template.hpp>
 
-// #include "FunctionTestContent.h"
-#include "DataFile.h"
+#include "FunctionTestDataFile.h"
 #include "utils.h"
 
 
@@ -32,14 +31,6 @@ Writer::Writer(const std::string            &fileName,
    : _fileName(fileName)
    , _sourceMgr(sourceMgr)
 {}
-
-
-// void Writer::createExampleJsonFiles(void)
-// {
-//    CreateSerializationJsonfile(DataFile::get(), _fileName + "-template");
-//    CreateSerializationJsonfile(DataFile::get().mockFunctionTestCollection, "mocks", _fileName + "-mocks-template");
-//    CreateSerializationJsonfile(DataFile::get().unitFunctionTestCollection, "funcs", _fileName + "-tests-template");
-// }
 
 
 void Writer::createFiles(void)
@@ -88,7 +79,7 @@ void Writer::createUnitTestFile(void)
    }
 
 
-   WriteTemplate(CreateUnitTestContext(includePaths, DataFile::get().unitFunctionTestCollection),
+   WriteTemplate(CreateUnitTestContext(includePaths, FunctionTestDataFile::get().unitFunctionTestCollection),
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/UT.template"),
                  _fileName + "-ugtest.cpp");
 
@@ -139,25 +130,6 @@ void Writer::CreateSerializationFile(void)
 
 }
 
-/*
-void Writer::CreateSerializationJsonfile(const DataFile &data,
-                                         const std::string &outFileName)
-{
-   Json::Value jsonRoot;// = Json::Value(Json::arrayValue);
-   
-   data.serializeAST(jsonRoot);
-//    data.unitFunctionTestCollection.serializeAST(jsonRoot["funcs"]);
-//    data.mockFunctionTestCollection.serializeAST(jsonRoot["mocks"]);
-
-   std::ofstream outputFile;
-   std::string outputFileName = outFileName + ".json";
-   outputFile.open(outputFileName, std::fstream::out);
-   outputFile << jsonRoot;
-   outputFile.close();
-
-   std::cout << "file written: " << outputFileName << std::endl;
-}*/
-
 
 std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::set<std::string>   &includePaths,
                                                                     const FunctionDeclKeySetMap   &funcDeclsMap)
@@ -189,7 +161,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
 
    out.str("");
 
-   const MockFunctionTestCollection& mockFuncTestCollection = DataFile::get().mockFunctionTestCollection;
+   const MockFunctionTestCollection& mockFuncTestCollection = FunctionTestDataFile::get().mockFunctionTestCollection;
 
    for ( const std::pair< std::string, FunctionTestContent>& func : mockFuncTestCollection.dataJson() ) {
 

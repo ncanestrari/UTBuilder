@@ -1,8 +1,7 @@
 
 #include "JsonReader.h"
 
-// #include "FunctionTestContent.h"
-#include "FunctionTestCollection.h"
+#include "FunctionTestDataFile.h"
 
 #include <json/json.h>
 
@@ -31,7 +30,7 @@ JsonReader::JsonReader()
  * 
  * @return        true if process works, false otherwise 
  */
-bool JsonReader::parse(DataFile &data,
+bool JsonReader::parse(FunctionTestDataFile &data,
                        const string  &fileName)
 {
    ifstream jsonFile;

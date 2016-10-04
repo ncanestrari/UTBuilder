@@ -34,9 +34,9 @@ public:
       _dataJson.clear();
    }
 
-   FunctionTestContent *ASTfind(const std::string &key);
+   FunctionTestContent *findContentFromAST(const std::string &key);
 
-   void serializeAST(Json::Value &jsonRoot) const;
+//    void serializeAST(Json::Value &jsonRoot) const;
    void serializeJson(Json::Value &jsonRoot) const;
 //    void deSerialize(Json::Value &jsonRoot);
    void deSerializeJson(const Json::Value &jsonRoot);

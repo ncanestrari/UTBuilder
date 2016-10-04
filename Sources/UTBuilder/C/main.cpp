@@ -1,12 +1,11 @@
 
-#include "Action.h"
 #include "Consumer.h"
 #include "utils.h"
 #include "Results.h"
 #include "writer.h"
 #include "JsonReader.h"
 #include "JsonWriter.h"
-#include "DataFile.h"
+#include "FunctionTestDataFile.h"
 
 
 #include <iostream>
@@ -126,17 +125,18 @@ int main(int argc, const char *argv[])
 
 
    
-   DataFile::get().initCollections(FunctionsToUnitTest::get().declKeySetMap);
+   FunctionTestDataFile::get().initCollections(FunctionsToUnitTest::get().declKeySetMap,
+                                   FunctionsToMock::get().declKeySetMap);
 
    
    bool writeJsonExampleFile = true;
    if (writeJsonExampleFile) {
-      JsonWriter jsonWriter( DataFile::get() );
+      JsonWriter jsonWriter( FunctionTestDataFile::get() );
       jsonWriter.templateFile(fileNamePath + "-template");
    }
 
    JsonReader reader;
-   reader.parse( DataFile::get(), fileNamePath + funcsFileNameSuffix );
+   reader.parse( FunctionTestDataFile::get(), fileNamePath + funcsFileNameSuffix );
 
 
    Writer writer(fileNamePath, SourceMgr);

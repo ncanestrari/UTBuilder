@@ -5,6 +5,7 @@
 #include <clang/AST/Decl.h>
 #include <map>
 #include <string>
+#include <iostream>
 
 
 template <typename T>
@@ -32,10 +33,6 @@ public:
       return _name;
    }
 
-//    void setName(const std::string &name)
-//    {
-//       _name = name;
-//    }
 
    const std::string &getValue(void) const
    {
@@ -56,6 +53,7 @@ public:
    {
       auto iter = _children.find(name);
       if (iter == _children.end()) {
+         std::cout << "ERROR: node " << _name << " has no child named '" << name << "'" << std::endl; 
          return nullptr;
       }
       return iter->second;
@@ -71,7 +69,7 @@ public:
       _children[child->_name] = child;
    }
 
-   std::shared_ptr<NameValueTypeNode<T> > addChild(const char *name = "\0", T type = T(), const char *value = "\0")
+   std::shared_ptr<NameValueTypeNode<T> > addChild(const char *name, T type, const char *value )
    {
       auto child = std::make_shared<NameValueTypeNode<T> >(name, type, value);
       _children[name] = child;
@@ -79,15 +77,10 @@ public:
       return child;
    }
 
-   void setValue(const char *value = "\0")
+   void setValue(const char *value )
    {
       _value = value;
    }
-
-//    void setType(const T type)
-//    {
-//       _type = type;
-//    }
 
 };
 

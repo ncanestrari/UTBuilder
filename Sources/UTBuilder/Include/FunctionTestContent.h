@@ -79,10 +79,6 @@ private:
    void init(const clang::FunctionDecl *funcDecl,
              const std::set<const clang::FunctionDecl *> &mockFuncs = std::set<const clang::FunctionDecl *>());
    
-//    static void serializeJsonTree(std::shared_ptr<FunctionTestData> tree, Json::Value &jsonRoot);
-
-//    static void serializeJsonTree(std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > tree, Json::Value &jsonRoot);
-
 
    static std::shared_ptr<NameValueTypeNode<clang::QualType> >
    deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<clang::QualType> > referenceTree,
