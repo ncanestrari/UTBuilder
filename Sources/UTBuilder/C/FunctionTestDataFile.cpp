@@ -2,11 +2,23 @@
 #include "FunctionTestDataFile.h"
 
 
-
+FunctionTestDataFile::FunctionTestDataFile()
+{
+   
+}
+   
+FunctionTestDataFile::~FunctionTestDataFile()
+{
+}
+   
+   
 void FunctionTestDataFile::clearCollections() 
 {
-   unitFunctionTestCollection.clear();
-   mockFunctionTestCollection.clear();
+   if ( _unitFunctionTestCollection.get() != nullptr)
+      _unitFunctionTestCollection->clear();
+   
+   if ( _mockFunctionTestCollection.get() != nullptr)
+      _mockFunctionTestCollection->clear();
 }
 
 void FunctionTestDataFile::initCollections(const FunctionDeclKeySetMap   &funcDeclsMap,
@@ -14,11 +26,14 @@ void FunctionTestDataFile::initCollections(const FunctionDeclKeySetMap   &funcDe
 {
    clearCollections();
 
-   unitFunctionTestCollection.init(funcDeclsMap);
-   mockFunctionTestCollection.init(mockDeclsMap);
+   _unitFunctionTestCollection = std::make_shared<UnitFunctionTestCollection>();
+   _unitFunctionTestCollection->init(funcDeclsMap);
+   
+   _mockFunctionTestCollection = std::make_shared<MockFunctionTestCollection>();
+   _mockFunctionTestCollection->init(mockDeclsMap);
 }
 
-void FunctionTestDataFile::deSerializeJson(const Json::Value &jsonRoot)
+void FunctionTestDataFile::deSerializeJson(const Json::Value &jsonRoot, const void* )
 {
    
    const Json::Value& mocksRoot = jsonRoot["mocks"];
@@ -30,16 +45,16 @@ void FunctionTestDataFile::deSerializeJson(const Json::Value &jsonRoot)
    if (funcsRoot.empty() )
       std::cout << "functions to test not found in input json file: " << std::endl;
    
-   unitFunctionTestCollection.deSerializeJson(funcsRoot);
-   mockFunctionTestCollection.deSerializeJson(mocksRoot);
+   _unitFunctionTestCollection->deSerializeJson(funcsRoot);
+   _mockFunctionTestCollection->deSerializeJson(mocksRoot);
    
 }
 
 void FunctionTestDataFile::serializeJson(Json::Value &jsonRoot) const
 {
    jsonRoot["mocks"] = Json::Value(Json::arrayValue);
-   mockFunctionTestCollection.serializeJson(jsonRoot["mocks"]);
+   _mockFunctionTestCollection->serializeJson(jsonRoot["mocks"]);
    
    jsonRoot["funcs"] = Json::Value(Json::arrayValue);
-   unitFunctionTestCollection.serializeJson(jsonRoot["funcs"]);
+   _unitFunctionTestCollection->serializeJson(jsonRoot["funcs"]);
 }

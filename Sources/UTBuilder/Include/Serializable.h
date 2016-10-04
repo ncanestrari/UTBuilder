@@ -1,7 +1,10 @@
 #ifndef _UTBuilder_Serializable_h__
 #define _UTBuilder_Serializable_h__
 
+#include <json/json.h>
 
+
+// abstract class
 
 class Serializable 
 {
@@ -11,6 +14,7 @@ public:
    ~Serializable() {}
    
    virtual void serializeJson(Json::Value &jsonRoot) const = 0;
+   
    
    virtual void deSerializeJson(const Json::Value &jsonRoot, const void* refData) = 0;
 

@@ -173,21 +173,24 @@ FunctionTestContent::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode
 }
 
 
-void FunctionTestContent::deSerializeJson(const FunctionTestContent *funcTestContentAST, const Json::Value &jsonRoot)
+void FunctionTestContent::deSerializeJson(const Json::Value &jsonRoot, const void *refData)
 {
+   const FunctionTestContent *funcTestContentfromAST = static_cast<const FunctionTestContent *>(refData);
+   
    const Json::Value& content = jsonRoot["content"];
    const unsigned int size = content.size();
 
-   _funcDecl = funcTestContentAST->getFunctionDecl();
+   _funcDecl = funcTestContentfromAST->getFunctionDecl();
    
    _tests.resize(size);
 
-   std::shared_ptr<const FunctionTestData> funcTestReference = funcTestContentAST->getTest(0);
+//    take the first test in the AST content. It will be used for validity check
+   std::shared_ptr<const FunctionTestData> funcTestReference = funcTestContentfromAST->getTest(0);
    
    for (int i = 0; i < size; ++i) {
        const Json::Value& jsonTest = content[i];
        std::shared_ptr<FunctionTestData> test = std::make_shared<FunctionTestData>(nullptr);
-       test->deSerializeJson( funcTestReference.get(), jsonTest);
+       test->deSerializeJson( jsonTest,  funcTestReference.get() );
        _tests[i] = test;
    }
 }

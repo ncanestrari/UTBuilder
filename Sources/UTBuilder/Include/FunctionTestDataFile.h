@@ -2,6 +2,7 @@
 #ifndef _UTBuilder_FunctionTestDataFile_h__
 #define _UTBuilder_FunctionTestDataFile_h__
 
+#include "Serializable.h"
 #include "FunctionTestCollection.h"
 
 // for the singleton template
@@ -10,26 +11,37 @@
 
 
 
-class FunctionTestDataFile :  public Singleton<FunctionTestDataFile> {
-   
-protected:
-   
-//    DataFile() {}
+class FunctionTestDataFile :  public Serializable , public Singleton<FunctionTestDataFile> {
    
 public:
    
-   void clearCollections();
+   FunctionTestDataFile();
+   
+   ~FunctionTestDataFile();
+   
    
    void initCollections(const FunctionDeclKeySetMap   &funcDeclsMap,
                         const FunctionDeclKeySetMap   &mockDeclsMap);
    
-   void deSerializeJson(const Json::Value &jsonRoot);
+
+   //    Serializable interface
+   virtual void serializeJson(Json::Value &jsonRoot ) const override;
+
+   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *refData = nullptr) override;
    
-   void serializeJson(Json::Value &jsonRoot) const;
    
-   UnitFunctionTestCollection unitFunctionTestCollection;
    
-   MockFunctionTestCollection mockFunctionTestCollection;
+//    UnitFunctionTestCollection unitFunctionTestCollection;
+//    MockFunctionTestCollection mockFunctionTestCollection;
+   
+   std::shared_ptr<FunctionTestCollection> _unitFunctionTestCollection;
+   std::shared_ptr<FunctionTestCollection> _mockFunctionTestCollection;
+   
+   
+private:
+   
+   void clearCollections();
+   
 };
 
 

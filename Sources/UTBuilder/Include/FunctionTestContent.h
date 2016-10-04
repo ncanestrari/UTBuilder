@@ -4,17 +4,16 @@
 
 #include <clang/AST/Decl.h>
 #include <iostream>
-#include <json/json.h>
 #include <map>
 #include <set>
 #include <string>
 
-// #include "NameValueTypeNode.h"
+#include "Serializable.h"
 
 #include "FunctionTestData.h"
 
 
-class FunctionTestContent {
+class FunctionTestContent : public Serializable {
 
 public:
    
@@ -56,10 +55,11 @@ public:
    std::shared_ptr<FunctionTestData> getTest(const unsigned int idx) const;
    
    
-   void serializeJson(Json::Value &jsonRoot ) const;
+//    Serializable interface
+   virtual void serializeJson(Json::Value &jsonRoot ) const override;
 
-   void deSerializeJson(const FunctionTestContent * funcTestContentAST, const Json::Value &jsonRoot);
-
+   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *refData) override;
+   
    
    void writeAsStruct(void);
 

@@ -26,6 +26,56 @@ using Plustache::Context;
 using Plustache::template_t;
 
 
+IWriter::IWriter(const std::string            &fileName,
+           const std::string            &templateFileName,
+           const clang::SourceManager   &sourceMgr )
+   : _fileName(fileName)
+   , _templateFileName(templateFileName)
+   , _sourceMgr(sourceMgr)
+{
+}
+
+   
+void IWriter::createFile( const std::string  &outFileName)
+{
+   
+   if ( _context.get() == nullptr )
+   {
+      cout << "ERROR: context for file template " << _templateFileName << " not created" << std::endl;
+      return;
+   }
+   
+   
+   template_t     t;
+   stringstream   buffer;
+   string         result;
+
+   boost::filesystem::path full_path(boost::filesystem::current_path());
+   std::cout << full_path.string();
+   ifstream template_file(_templateFileName);
+
+   if (template_file.fail()) {
+      std::cout << "template file not found: " << _templateFileName << std::endl;
+      return;
+   }
+
+   buffer << template_file.rdbuf();
+   string         template_buff(buffer.str());
+
+   result = t.render(template_buff, *_context.get() );
+
+   std::ofstream outputFile;
+   std::string outputFileName = outFileName;
+   outputFile.open(outputFileName, std::fstream::out);
+   outputFile << result;
+   outputFile.close();
+
+   std::cout << "file written: " << outputFileName << std::endl;
+}
+
+
+   
+   
 Writer::Writer(const std::string            &fileName,
                const clang::SourceManager   &sourceMgr)
    : _fileName(fileName)
@@ -79,7 +129,7 @@ void Writer::createUnitTestFile(void)
    }
 
 
-   WriteTemplate(CreateUnitTestContext(includePaths, FunctionTestDataFile::get().unitFunctionTestCollection),
+   WriteTemplate(CreateUnitTestContext(includePaths, FunctionTestDataFile::get()._unitFunctionTestCollection.get()),
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/UT.template"),
                  _fileName + "-ugtest.cpp");
 
@@ -161,9 +211,9 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
 
    out.str("");
 
-   const MockFunctionTestCollection& mockFuncTestCollection = FunctionTestDataFile::get().mockFunctionTestCollection;
+   const FunctionTestCollection* mockFuncTestCollection = FunctionTestDataFile::get()._mockFunctionTestCollection.get();
 
-   for ( const std::pair< std::string, FunctionTestContent>& func : mockFuncTestCollection.dataJson() ) {
+   for ( const std::pair< std::string, FunctionTestContent>& func : mockFuncTestCollection->dataFromJson() ) {
 
       const std::string &name = func.first;
       const FunctionTestContent &funcParams = func.second;
@@ -188,7 +238,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
 
 std::shared_ptr<const Plustache::Context>
 Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
-                              const UnitFunctionTestCollection   &funcData)
+                              const FunctionTestCollection   *funcData)
 {
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
 
@@ -208,7 +258,7 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
    std::ostringstream    code;
 
   
-   for (const std::pair< std::string, FunctionTestContent>& iter : funcData.dataJson() ) {
+   for (const std::pair< std::string, FunctionTestContent>& iter : funcData->dataFromJson() ) {
 
       const FunctionTestContent& funcParams = iter.second;
 

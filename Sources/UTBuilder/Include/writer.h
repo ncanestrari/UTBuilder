@@ -20,6 +20,31 @@ namespace Plustache {
 class Context;
 }
 
+class IWriter {
+   
+public:
+  
+   IWriter(const std::string            &fileName,
+           const std::string            &templateFileName,
+           const clang::SourceManager   &sourceMgr );
+   
+   void createFile( const std::string  &outFileName);
+
+protected:
+   
+   virtual std::shared_ptr<const Plustache::Context> createContext(const std::set<std::string> & includePaths, const void* data) = 0;
+   
+   
+   const std::string            _fileName;
+   const std::string            _templateFileName;
+   const clang::SourceManager   &_sourceMgr;
+   
+   std::shared_ptr<const Plustache::Context>  _context;
+};
+
+
+
+
 class Writer {
 
 public:
@@ -38,7 +63,7 @@ private:
    std::shared_ptr<const Plustache::Context> CreateMockContext(const std::set<std::string>   &includePaths,
                                                                const FunctionDeclKeySetMap   &funcDeclsMap);
    std::shared_ptr<const Plustache::Context> CreateUnitTestContext(const std::set<std::string>   &includePaths,
-                                                                   const UnitFunctionTestCollection   &funcData);
+                                                                   const FunctionTestCollection   *funcData);
    std::shared_ptr<const Plustache::Context> CreateSerializationContext(const std::set<std::string>                      &includePaths,
                                                                         const std::set<const clang::TypedefNameDecl *>   &typedefNameDecls);
    std::shared_ptr<const Plustache::Context> CreateSerializationStructuresContext(const std::set<std::string>   &includePaths,

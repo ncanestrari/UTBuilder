@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 
+#include "Serializable.h"
 #include "FunctionTestContent.h"
 
 
@@ -16,7 +17,7 @@
 // }
 
 
-class FunctionTestCollection {
+class FunctionTestCollection : public Serializable {
 public:
    
    FunctionTestCollection() {}
@@ -26,61 +27,62 @@ public:
    ~FunctionTestCollection() {}
    
    // override and fill the _data map
-//    virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) {}
+   virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) {}
    
    void clear()
    {
-      _dataAST.clear();
-      _dataJson.clear();
+      _dataFromAST.clear();
+      _dataFromJson.clear();
    }
 
    FunctionTestContent *findContentFromAST(const std::string &key);
 
-//    void serializeAST(Json::Value &jsonRoot) const;
-   void serializeJson(Json::Value &jsonRoot) const;
-//    void deSerialize(Json::Value &jsonRoot);
-   void deSerializeJson(const Json::Value &jsonRoot);
+//    Serializable interface
+   virtual void serializeJson(Json::Value &jsonRoot ) const override;
 
-   const std::map< std::string, FunctionTestContent> &dataAST(void)
+   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *refData = nullptr) override;
+   
+
+   const std::map< std::string, FunctionTestContent> &dataFromAST(void)
    {
-      return _dataAST;
+      return _dataFromAST;
    }
    
-   const std::map< std::string, FunctionTestContent> &dataJson(void) const
+   const std::map< std::string, FunctionTestContent> &dataFromJson(void) const
    {
-      return _dataJson;
+      return _dataFromJson;
    }
 
 protected:
 
-   std::map< std::string, FunctionTestContent> _dataAST;
-   std::map< std::string, FunctionTestContent> _dataJson;
+   std::map< std::string, FunctionTestContent> _dataFromAST;
+   std::map< std::string, FunctionTestContent> _dataFromJson;
 
 };
 
 
 
-class UnitFunctionTestCollection : public FunctionTestCollection //, public Singleton<UnitFunctionTestCollection> {
+class UnitFunctionTestCollection : public FunctionTestCollection 
 {
 public:
 
    UnitFunctionTestCollection() {}
    ~UnitFunctionTestCollection() {}
    
-   void init(const FunctionDeclKeySetMap   &funcDeclsMap);
+   virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) override;
 
 };
 
 
 
-class MockFunctionTestCollection : public FunctionTestCollection //, public Singleton<MockFunctionTestCollection> {
+class MockFunctionTestCollection : public FunctionTestCollection
 {
 public:
    
    MockFunctionTestCollection() {}
    ~MockFunctionTestCollection() {}
 
-   void init(const FunctionDeclKeySetMap   &funcDeclsMap);
+   virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) override;
 
 };
 
