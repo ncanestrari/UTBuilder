@@ -7,36 +7,36 @@
 #include <set>
 #include <string>
 
+#include "singleton.h"
 
-class OptionParser
+
+class OptionParser : public Singleton<OptionParser>
 {
 public:
-   OptionParser(int ac, char* av[]) : 
-   _ac(ac), 
-   _av(av) {}
+   OptionParser(void) {}
    
    OptionParser(const OptionParser& other) : 
-   _ac(other._ac), 
-   _av(other._av), 
    _vm(other._vm), 
    _all(other._all) {}
    
    ~OptionParser(){}
 
-   bool createOptionMap(void);
+   bool createOptionMap(int ac, char* av[]);
    bool isExampleEnabled(void);
    bool isUnitTest(void);
    bool isModuleTest(void);
    const std::string & getOutputName(void) const;
    void getFileNames(std::vector<std::string> & ) const;
    const std::string & getJsonFileName(void) const;
+   void getCommercialCode(std::string &) const;
+   void getPackage(std::string &) const;
+   
    
 protected:
-   int    _ac;
-   char **_av;
+
    boost::program_options::variables_map _vm;
    boost::program_options::options_description _all;
-   
+   void getFirstAvailableFile(std::string &firstFile) const; 
 
 };
 

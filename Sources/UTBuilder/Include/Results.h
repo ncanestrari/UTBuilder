@@ -7,6 +7,7 @@
 #include <map>
 
 #include "FunctionTestContent.h"
+#include "singleton.h"
 
 namespace clang {
 class FunctionDecl;
@@ -18,24 +19,7 @@ class Type;
 
 typedef std::set<const clang::FunctionDecl *> FunctionDeclSet;
 typedef std::map<const clang::FunctionDecl *, FunctionDeclSet > FunctionDeclKeySetMap;
-
 typedef std::map< std::string, const clang::FunctionDecl * > FunctionNameDeclMap;
-
-
-template <typename T>
-class Singleton {
-protected:
-   Singleton() {};
-   ~Singleton() {};
-
-public:
-
-   static T &get(void)
-   {
-      static T instance;
-      return instance;
-   }
-};
 
 
 class FunctionsToUnitTest : public Singleton<FunctionsToUnitTest> {
@@ -56,10 +40,10 @@ public:
     * 2nd step: the mockVisitor::VisitCallExpr function
     * for each key of FunctionDecl* to unit test the set is filled with the FunctionDecl* of functions to mock
     */
-   FunctionDeclKeySetMap      declKeySetMap; //functionsToUnitTestMap;
+   FunctionDeclKeySetMap declKeySetMap; //functionsToUnitTestMap;
 
    // only for C: no overloaded and overriden functions
-   FunctionNameDeclMap nameDeclMap; //functionsToUnitTestName;
+   FunctionNameDeclMap   nameDeclMap; //functionsToUnitTestName;
 
 };
 
@@ -76,10 +60,12 @@ public:
     * each set stores the FunctionDecl* of the caller ( all the functions to unit test that call the mock function of the key
     * this map is filled in the mockVisitor::VisitCallExpr function
     */
-   FunctionDeclKeySetMap      declKeySetMap; // functionsToMockMap;
+   
+   // functionsToMockMap;
+   FunctionDeclKeySetMap  declKeySetMap;
 
    // only for C: no overloaded and overriden functions
-   FunctionNameDeclMap nameDeclMap;
+   FunctionNameDeclMap    nameDeclMap;
 
 };
 
@@ -95,17 +81,12 @@ public:
    static results &get(void);
    void clear();
 
-
    std::set<const clang::RecordDecl *>        structDecls;
-
    std::set<const clang::TypedefNameDecl *>   typedefNameDecls;
-   std::set<std::string>                     includesForUnitTest;
-
+   std::set<std::string>                      includesForUnitTest;
    std::set<const clang::Type *>              functionDeclTypes;
 
 };
 
 
-
 #endif // _UTBuilder_Results_h__
-

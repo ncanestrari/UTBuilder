@@ -31,7 +31,7 @@ JsonReader::JsonReader()
  * 
  * @return        true if process works, false otherwise 
  */
-bool JsonReader::parse(DataFile &data,
+bool JsonReader::parse(DataFile      &data,
                        const string  &fileName)
 {
    ifstream jsonFile;

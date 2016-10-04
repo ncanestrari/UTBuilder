@@ -24,6 +24,17 @@ DEFINE_FFF_GLOBALS;
 
 
 /**
+ * Useful functions
+ */
+
+FqStatus_t CreateStatusOK(void){
+   FqStatus_t Status;
+   FillStatusOK(Status);
+   return Status;
+}
+
+
+/**
  * MOCKED FUNCTIONS BEGIN
  */
 
@@ -122,22 +133,39 @@ FAKE_VALUE_FUNC(FbBool_t, TrapKeyIsOn, FbChar_t *);
 
 
 void reset_all_mocks(){
+   /* Reset all generated mocks to no behaviour */
 {{# mocks}}
    RESET_FAKE({{mockname}});{{newline}}
 {{/ mocks}}
+   /* Reset all fixed mocks to no behaviour */
+   RESET_FAKE(Em_Malloc);
+   RESET_FAKE(Em_IMalloc);
+   RESET_FAKE(Em_Realloc);
+   RESET_FAKE(Em_IRealloc);
+   RESET_FAKE(Em_Free);
+   RESET_FAKE(IsMemoryStatusOK);
+   RESET_FAKE(AllocateInitPrObject);
+   RESET_FAKE(AllocatePrObject);
+   RESET_FAKE(AllocatePrObjectHdr);
+   RESET_FAKE(IncreasePrObject);
+   RESET_FAKE(TrapKeyIsOn);
+   RESET_FAKE(PrintLine);
    FFF_RESET_HISTORY();
+   /* Set all fix mocks to their standard behaviour */
    Em_Malloc_fake.custom_fake = malloc;
    Em_IMalloc_fake.custom_fake = calloc;
    Em_Realloc_fake.custom_fake = realloc;
    Em_Free_fake.custom_fake = free;
    Em_IRealloc_fake.custom_fake = Em_IRealloc_custom;
    IsMemoryStatusOK_fake.return_val = TRUE;
-   PrintLine_fake.custom_fake = PrintLine_custom;
    AllocateInitPrObject_fake.custom_fake = AllocateInitPrObject_custom;
    AllocatePrObject_fake.custom_fake = AllocatePrObject_custom;
    AllocatePrObjectHdr_fake.custom_fake = AllocatePrObjectHdr_custom;
    IncreasePrObject_fake.custom_fake = IncreasePrObject_custom;
-   TrapKeyIsOn_fake.return_val = TrapKeyIsOn;
+   TrapKeyIsOn_fake.return_val = FALSE;
+#ifdef UNIT_TEST_PRINT
+   PrintLine_fake.custom_fake = PrintLine_custom;
+#endif
 }
 
 /**

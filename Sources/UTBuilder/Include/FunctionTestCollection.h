@@ -11,10 +11,6 @@
 #include "Results.h"
 
 
-// namespace clang {
-// class FunctionDecl;
-// }
-
 
 class FunctionTestCollection {
 public:

@@ -4,9 +4,12 @@
 
 
 #include "FunctionTestCollection.h"
+#include "ProjectDescription.h"
+
+#include <json/json.h>
 
 // for the singleton template
-#include "Results.h"
+#include "singleton.h"
 
 
 
@@ -26,6 +29,8 @@ public:
    UnitFunctionTestCollection unitFunctionTestCollection;
    
    MockFunctionTestCollection mockFunctionTestCollection;
+   
+   ProjectDescription projectDescription;
 };
 
 

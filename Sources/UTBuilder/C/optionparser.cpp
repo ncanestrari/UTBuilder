@@ -35,6 +35,7 @@ using std::vector;
 
 
 #include "globber.h"
+#include "utils.h"
 
 /* Auxillary type to handle list of comma separated string */
 class CommaSeparatedVector
@@ -89,10 +90,13 @@ static void conflicting_options(const variables_map &vm, const string &opt1, con
 }
 
 
-/* OptionParser class method definition */
+/* Auxillary Function */
 
-bool OptionParser::createOptionMap(void)
-{
+
+
+/* OptionParser class method definition */
+bool OptionParser::createOptionMap(int ac, char* av[])
+{   
    //setup general options
    options_description general("General options");
    
@@ -122,12 +126,9 @@ bool OptionParser::createOptionMap(void)
       ("example,e", value<bool>(), "will create an example.json for developer to play with")
       ;
    
-   //_all.add(general).add(json).add(example);
-   
    options_description visible;
-   //visible.add(json).add(example);
    
-   store(parse_command_line(_ac, _av, _all), _vm);
+   store(parse_command_line(ac, av, _all), _vm);
    
    //Declare conflicting options
    conflicting_options(_vm, "json", "files");
@@ -136,14 +137,17 @@ bool OptionParser::createOptionMap(void)
    conflicting_options(_vm, "json", "example");
    
    //if help is called 
-   if(_vm.count("help")){
-      //cout << visible;
+   if( _vm.count("help") ){
       return false;
    }
    
-   if(_vm.count("version")){
+   if( _vm.count("version") ){
       cout << _vm["version"].as<string>();
       return false;
+   }
+   
+   if( _vm.count("json") ){
+      
    }
    
    return true;
@@ -171,7 +175,6 @@ const string & OptionParser::getOutputName(void) const
    if( _vm.count("output") ){
       return _vm["output"].as<string>();
    } else {
-      //cout << _all;
       throw logic_error(string("No output name provided."));
    }
 }
@@ -203,7 +206,39 @@ const string & OptionParser::getJsonFileName(void) const
    if( _vm.count("json") ){
       return _vm["json"].as<string>();
    } else {
-      //cout << _all;
       throw logic_error(string("No json file provided."));
    }
 }
+
+string& OptionParser::getFirstAvailableFile(void) const
+{
+   if( isExampleEnabled() ){
+      //grab the ci from the first file | the first dir
+      if( _vm.count("files") && _vm["files"].as<CommaSeparatedVector>().values.size() >= 1 ){
+         firstFile = _vm["files"].as<CommaSeparatedVector>().values[0];
+         return;
+      }
+      if( _vm.count("dirs") && _vm["dirs"].as<CommaSeparatedVector>().values.size() >= 1 ){
+         firstFile = _vm["dirs"].as<CommaSeparatedVector>().values[0];
+         return;
+      }
+   } else {
+      //grab the ci from the json file
+      if( _vm.count("json") ){
+         firstFile = _vm["json"].as<string>();
+         return;
+      }
+   }
+   throw logic_error(string("not able to find any information!"));
+}
+
+void OptionParser::getCommercialCode(string &ci) const
+{
+   ci = utils::extractCommercialCodePath( getFirstAvailableFile() );
+}
+
+void OptionParser::getPackage(string &package) const
+{
+   package = utils::extractPackagePath( getFirstAvailableFile() );
+}
+
