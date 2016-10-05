@@ -33,8 +33,6 @@ string utils::extractPackagePath(const string &fileNamePath)
 void utils::getIncludePaths(const string   &package,
                             vector<string> &include_folders)
 {
-
-   include_folders.clear();
    string repo(package);
    //now str is the Repository
    const string matchers_[] = { "/Sources/*/Include/", "/Input_API/*/API/", "/Input_API/*/API/*/" };
@@ -44,9 +42,19 @@ void utils::getIncludePaths(const string   &package,
       vector<string> ret = glob(path);
       include_folders.insert(include_folders.end(), ret.begin(), ret.end());
    }
-
-   return;
 }
+
+void utils::getSourcePaths(const string& package, vector< string >& source_folders)
+{
+   string repo(package);
+   //now str is the Repository
+   const string matchers = "/Sources/*/C/";
+
+   string path = repo + matchers;
+   vector<string> ret = glob(path);
+   source_folders.insert(source_folders.end(), ret.begin(), ret.end());
+}
+
 
 
 string utils::removeFileExtension(const string &fileNamePath)

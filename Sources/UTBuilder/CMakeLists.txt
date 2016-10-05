@@ -8,44 +8,47 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set ( HEADER_FILES
    Include/Consumer.h
+   Include/DataFile.h
    Include/FuncUTDefVisitor.h
-   Include/globber.h
-   Include/MockVisitor.h
-   Include/optionparser.h
-   Include/Results.h
-   Include/StructVisitor.h
-   Include/TypedefVisitor.h
-   Include/utils.h
-   Include/writer.h
+   Include/FunctionTestCollection.h
+   Include/FunctionTestContent.h
+   Include/FunctionTestData.h
    Include/JsonReader.h
    Include/JsonWriter.h
-   Include/DataFile.h
-   Include/FunctionTestContent.h
-   Include/FunctionTestCollection.h
-   Include/FunctionTestData.h
+   Include/MockVisitor.h
    Include/NameValueTypeNode.h
+   Include/PrecompilerOptionAST.h
+   Include/ProjectDescription.h
+   Include/Results.h
    Include/Serializable.h
+   Include/StructVisitor.h
+   Include/TypedefVisitor.h
+   Include/globber.h
+   Include/optionparser.h
+   Include/utils.h
+   Include/writer.h
    )
 
 set ( SOURCE_FILES
    C/main.cpp
    C/Consumer.cpp
    C/FuncUTDefVisitor.cpp
-   C/globber.cpp
+   C/FunctionTestCollection.cpp
+   C/FunctionTestContent.cpp
+   C/FunctionTestData.cpp
+   C/FunctionTestDataFile.cpp
+   C/JsonReader.cpp
+   C/JsonWriter.cpp
    C/MockVisitor.cpp
-   C/optionparser.cpp
+   C/NameValueTypeNode.cpp
+   C/ProjectDescription.cpp
    C/Results.cpp
    C/StructVisitor.cpp
    C/TypedefVisitor.cpp
+   C/globber.cpp
+   C/optionparser.cpp
    C/utils.cpp 
    C/writer.cpp
-   C/JsonReader.cpp
-   C/JsonWriter.cpp
-   C/FunctionTestDataFile.cpp
-   C/FunctionTestContent.cpp
-   C/FunctionTestCollection.cpp
-   C/FunctionTestData.cpp
-   C/NameValueTypeNode.cpp
    )
 
 set( CMAKE_INCLUDE_CURRENT_DIR TRUE )

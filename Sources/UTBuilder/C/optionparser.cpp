@@ -95,7 +95,7 @@ static void conflicting_options(const variables_map &vm, const string &opt1, con
 
 
 /* OptionParser class method definition */
-bool OptionParser::createOptionMap(int ac, char* av[])
+bool OptionParser::createOptionMap(int ac, const char* av[])
 {   
    //setup general options
    options_description general("General options");
@@ -170,7 +170,7 @@ bool OptionParser::isModuleTest(void)
    return !isUnitTest();
 }
 
-const string & OptionParser::getOutputName(void) const
+const string & OptionParser::getOutputName(void)
 {   
    if( _vm.count("output") ){
       return _vm["output"].as<string>();
@@ -179,7 +179,7 @@ const string & OptionParser::getOutputName(void) const
    }
 }
 
-void OptionParser::getFileNames(vector<string> & files) const
+void OptionParser::getFileNames(vector<string> & files)
 {
    //if dirs get the files
    if( _vm.count("dirs") ){
@@ -201,7 +201,7 @@ void OptionParser::getFileNames(vector<string> & files) const
    }
 }
 
-const string & OptionParser::getJsonFileName(void) const
+const string & OptionParser::getJsonFileName(void)
 {
    if( _vm.count("json") ){
       return _vm["json"].as<string>();
@@ -210,34 +210,31 @@ const string & OptionParser::getJsonFileName(void) const
    }
 }
 
-string& OptionParser::getFirstAvailableFile(void) const
+const string& OptionParser::getFirstAvailableFile(void)
 {
    if( isExampleEnabled() ){
       //grab the ci from the first file | the first dir
       if( _vm.count("files") && _vm["files"].as<CommaSeparatedVector>().values.size() >= 1 ){
-         firstFile = _vm["files"].as<CommaSeparatedVector>().values[0];
-         return;
+         return _vm["files"].as<CommaSeparatedVector>().values[0];
       }
       if( _vm.count("dirs") && _vm["dirs"].as<CommaSeparatedVector>().values.size() >= 1 ){
-         firstFile = _vm["dirs"].as<CommaSeparatedVector>().values[0];
-         return;
+         return _vm["dirs"].as<CommaSeparatedVector>().values[0];
       }
    } else {
       //grab the ci from the json file
       if( _vm.count("json") ){
-         firstFile = _vm["json"].as<string>();
-         return;
+         return _vm["json"].as<string>();
       }
    }
    throw logic_error(string("not able to find any information!"));
 }
 
-void OptionParser::getCommercialCode(string &ci) const
+void OptionParser::getCommercialCode(string &ci)
 {
    ci = utils::extractCommercialCodePath( getFirstAvailableFile() );
 }
 
-void OptionParser::getPackage(string &package) const
+void OptionParser::getPackage(string &package)
 {
    package = utils::extractPackagePath( getFirstAvailableFile() );
 }

@@ -21,22 +21,22 @@ public:
    
    ~OptionParser(){}
 
-   bool createOptionMap(int ac, char* av[]);
+   bool createOptionMap(int ac, const char* av[]);
    bool isExampleEnabled(void);
    bool isUnitTest(void);
    bool isModuleTest(void);
-   const std::string & getOutputName(void) const;
-   void getFileNames(std::vector<std::string> & ) const;
-   const std::string & getJsonFileName(void) const;
-   void getCommercialCode(std::string &) const;
-   void getPackage(std::string &) const;
+   const std::string & getOutputName(void);
+   void getFileNames(std::vector<std::string> & );
+   const std::string & getJsonFileName(void);
+   void getCommercialCode(std::string &);
+   void getPackage(std::string &);
    
    
 protected:
 
    boost::program_options::variables_map _vm;
    boost::program_options::options_description _all;
-   void getFirstAvailableFile(std::string &firstFile) const; 
+   const std::string& getFirstAvailableFile(void); 
 
 };
 

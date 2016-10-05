@@ -8,7 +8,7 @@
 
 
 
-JsonWriter::JsonWriter(const FunctionTestDataFile& dataFile)
+JsonWriter::JsonWriter(FunctionTestDataFile& dataFile)
 : _dataFile(dataFile)
 {
 }

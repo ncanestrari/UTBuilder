@@ -3,38 +3,28 @@
 #define _UTBuilder_FunctionTestDataFile_h__
 
 #include "FunctionTestCollection.h"
-#include "ProjectDescription.h"
 
+#include <clang/Frontend/CompilerInstance.h>
 #include <json/json.h>
 
-// for the singleton template
+#include "ProjectDescription.h"
 #include "singleton.h"
 
 
 
-
 class FunctionTestDataFile :  public Singleton<FunctionTestDataFile> {
-   
-protected:
-   
-//    DataFile() {}
-   
 public:
-   
-   void clearCollections();
-   
-   void initCollections(const FunctionDeclKeySetMap   &funcDeclsMap,
-                        const FunctionDeclKeySetMap   &mockDeclsMap);
-   
-   void deSerializeJson(const Json::Value &jsonRoot);
-   
-   void serializeJson(Json::Value &jsonRoot) const;
+
+   void deSerializeJson(const Json::Value &jsonRoot);   
+   void serializeJson(Json::Value &jsonRoot);
    
    UnitFunctionTestCollection unitFunctionTestCollection;
-   
    MockFunctionTestCollection mockFunctionTestCollection;
-   
    ProjectDescription projectDescription;
+   clang::CompilerInstance compiler;
+protected:
+   void computeAST(void);
+   
 };
 
 

@@ -10,7 +10,7 @@
 class JsonWriter {
 
 public:
-   JsonWriter(const FunctionTestDataFile& dataFile);
+   JsonWriter(FunctionTestDataFile& dataFile);
    ~JsonWriter() {}
 
    void templateFile(const std::string &fileName);
@@ -18,7 +18,7 @@ public:
 
 private:
 
-   const FunctionTestDataFile& _dataFile;
+   FunctionTestDataFile& _dataFile;
 
 };
 
