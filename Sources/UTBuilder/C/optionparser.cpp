@@ -126,7 +126,9 @@ bool OptionParser::createOptionMap(int ac, const char* av[])
       ("example", value<bool>(), "will create an example.json for developer to play with")
       ;
    
-      _all.add(general).add(json).add(example);
+   options_description visible;
+   visible.add(example).add(json);
+   _all.add(general).add(json).add(example);
    
    store(parse_command_line(ac, av, _all), _vm);
    
@@ -138,16 +140,13 @@ bool OptionParser::createOptionMap(int ac, const char* av[])
    
    //if help is called 
    if( _vm.count("help") ){
+      cout << visible;
       return false;
    }
    
    if( _vm.count("version") ){
-      cout << _vm["version"].as<string>();
+      cout << "0.1 Beta\n";
       return false;
-   }
-   
-   if( _vm.count("json") ){
-      
    }
    
    return true;

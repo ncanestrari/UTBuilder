@@ -33,9 +33,6 @@ int main(int argc, const char *argv[])
    if( !needToContinue ){
       return EXIT_SUCCESS;
    }
-
-   
-
    
    if( OptionParser::get().isExampleEnabled() ) {
       JsonWriter jsonWriter( FunctionTestDataFile::get() );
@@ -50,6 +47,8 @@ int main(int argc, const char *argv[])
    Writer writer(FunctionTestDataFile::get().getProjectDescription().getOutputFileName(), FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
    writer.createFiles();
 
+   //rm the fakesource.c 
+   
    return EXIT_SUCCESS;
 }
 

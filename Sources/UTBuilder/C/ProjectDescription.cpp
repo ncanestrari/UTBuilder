@@ -34,10 +34,11 @@ void ProjectDescription::deserializeJson(const Value &rootDesc)
    for( const auto &dir : _dirNames ){
       //get all c files in dir
       vector<string> cfiles = glob(dir+"*.c");//TODO full path?
-      _fileNames.insert(_fileNames.begin(), cfiles.begin(), cfiles.end());
+      _fileNames.insert(_fileNames.end(), cfiles.begin(), cfiles.end());
       cfiles = glob(dir+"*.cpp");//TODO full path?
-      _fileNames.insert(_fileNames.begin(), cfiles.begin(), cfiles.end());
+      _fileNames.insert(_fileNames.end(), cfiles.begin(), cfiles.end());
    }
+   //_inputFileName = _fileNames[0];
 }
 
 void ProjectDescription::clear(void)
@@ -78,7 +79,7 @@ void ProjectDescription::createFakeSource(void)
    inputFile.open(_inputFileName);
    for( const auto &fileName : _fileNames){
       boost::filesystem::path filepath(fileName);
-      inputFile << "#include \"" << filepath.filename() << "\"" << endl;
+      inputFile << "#include " << filepath.filename() << endl;
    }
    inputFile.close();
 }
