@@ -21,7 +21,6 @@ using Json::Value;
 void FillWithArrayOfStringFromField(vector<string> &vstr, const Value &rootValue, const char *key)
 {
    size_t size = rootValue[key].size();
-   vstr.resize(size);
    for( int i = 0; i < size; ++i){
       vstr.push_back( rootValue[key][i].asString() );
    }   
@@ -41,31 +40,11 @@ void ProjectDescription::deserializeJson(const Value &rootDesc)
    }
 }
 
-void ProjectDescription::setOutputFileName(const string &outputFileName)
-{
-   _outputFileName = outputFileName;
-}
-
-void ProjectDescription::setFileNames(const vector<string> &fileNames)
-{
-   _fileNames = fileNames;
-}
-
-void ProjectDescription::setDirNames(const vector<string> &dirNames)
-{
-   _dirNames = dirNames;
-}
-
-vector<string>& ProjectDescription::getAllFileNames(void)
-{
-   return _fileNames;
-}
-
 void ProjectDescription::clear(void)
 {
    _outputFileName = "";
-   _fileNames = {};
-   _dirNames = {};
+   _fileNames.clear();
+   _dirNames.clear();
 }
 
 void ProjectDescription::init(void)
@@ -99,22 +78,7 @@ void ProjectDescription::createFakeSource(void)
    inputFile.open(_inputFileName);
    for( const auto &fileName : _fileNames){
       boost::filesystem::path filepath(fileName);
-      inputFile << "#include \"" << basename(filepath) << "\"" << endl;
+      inputFile << "#include \"" << filepath.filename() << "\"" << endl;
    }
    inputFile.close();
-}
-
-string& ProjectDescription::getPackageFullPath(void)
-{
-   return _workspace;
-}
-
-string& ProjectDescription::getInputFileName(void)
-{
-   return _inputFileName;
-}
-
-vector<string>& ProjectDescription::getIncludePaths(void)
-{
-   return _includePaths;
 }

@@ -108,25 +108,25 @@ bool OptionParser::createOptionMap(int ac, const char* av[])
    \nTo create an json example file\n\n";
    
    general.add_options()
-      ("help,h", help_message)
-      ("version,v", "0.1beta")
+      ("help", help_message)
+      ("version", "0.1beta")
       ;
    
    //setup json options
    options_description json("Json options");
    json.add_options()
-      ("json,j", value<string>(), "json file to be loaded")
+      ("json", value<string>(), "json file to be loaded")
       ;
    
    options_description example("create Json example");
    example.add_options()
-      ("files,f", value<CommaSeparatedVector>()->multitoken(), "list of files comma separated")
-      ("dirs,d", value<CommaSeparatedVector>()->multitoken(), "list of directories comma separated")
-      ("output,o", value<string>(), "basename of the out files\n\tas in output-mocks.h output-utest.cpp output-mtest.cpp")
-      ("example,e", value<bool>(), "will create an example.json for developer to play with")
+      ("files", value<CommaSeparatedVector>()->multitoken(), "list of files comma separated")
+      ("dirs", value<CommaSeparatedVector>()->multitoken(), "list of directories comma separated")
+      ("output", value<string>(), "basename of the out files\n\tas in output-mocks.h output-utest.cpp output-mtest.cpp")
+      ("example", value<bool>(), "will create an example.json for developer to play with")
       ;
    
-   options_description visible;
+      _all.add(general).add(json).add(example);
    
    store(parse_command_line(ac, av, _all), _vm);
    

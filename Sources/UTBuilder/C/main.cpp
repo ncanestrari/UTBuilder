@@ -44,10 +44,10 @@ int main(int argc, const char *argv[])
    }
 
    JsonReader reader;
-   reader.parse( FunctionTestDataFile::get(), OptionParser::get().getOutputName() + funcsFileNameSuffix );
+   reader.parse( FunctionTestDataFile::get(), OptionParser::get().getJsonFileName() );
 
 
-   Writer writer(OptionParser::get().getOutputName(), FunctionTestDataFile::get().compiler.getSourceManager());
+   Writer writer(FunctionTestDataFile::get().getProjectDescription().getOutputFileName(), FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
    writer.createFiles();
 
    return EXIT_SUCCESS;

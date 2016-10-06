@@ -16,13 +16,8 @@ class FunctionTestCollection {
 public:
    
    FunctionTestCollection() {}
-   
    FunctionTestCollection(const FunctionTestCollection&) = delete;
-   
    ~FunctionTestCollection() {}
-   
-   // override and fill the _data map
-//    virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) {}
    
    void clear()
    {
@@ -32,20 +27,12 @@ public:
 
    FunctionTestContent *findContentFromAST(const std::string &key);
 
-//    void serializeAST(Json::Value &jsonRoot) const;
    void serializeJson(Json::Value &jsonRoot) const;
-//    void deSerialize(Json::Value &jsonRoot);
    void deSerializeJson(const Json::Value &jsonRoot);
 
-   const std::map< std::string, FunctionTestContent> &dataAST(void)
-   {
-      return _dataAST;
-   }
-   
-   const std::map< std::string, FunctionTestContent> &dataJson(void) const
-   {
-      return _dataJson;
-   }
+   //getters
+   const std::map< std::string, FunctionTestContent> &dataAST(void){ return _dataAST; }
+   const std::map< std::string, FunctionTestContent> &dataJson(void) const { return _dataJson; }
 
 protected:
 

@@ -79,7 +79,7 @@ void Writer::createUnitTestFile(void)
    }
 
 
-   WriteTemplate(CreateUnitTestContext(includePaths, FunctionTestDataFile::get().unitFunctionTestCollection),
+   WriteTemplate(CreateUnitTestContext(includePaths, FunctionTestDataFile::get().getUnitTestCollection()),
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/UT.template"),
                  _fileName + "-ugtest.cpp");
 
@@ -89,18 +89,14 @@ void Writer::createUnitTestFile(void)
 void Writer::CreateSerializationFile(void)
 {
    std::ostringstream out;
-
    boost::filesystem::path fpathUT(_fileName);
    std::string fnameUT = fpathUT.filename().string();
-
    std::set<std::string> includePaths;
 
    for (const auto& typedefDecl : results::get().typedefNameDecls) {
       // get declaration source location
       const std::string declSrcFile = utils::getDeclSourceFile(typedefDecl, _sourceMgr);
-
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
-
       if (!includeFile.empty()) {
          includePaths.insert(includeFile);
       }
@@ -109,14 +105,11 @@ void Writer::CreateSerializationFile(void)
    for (const auto& structDecl : results::get().structDecls) {
       // get declaration source location
       const std::string declSrcFile = utils::getDeclSourceFile(structDecl, _sourceMgr);
-
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
-
       if (!includeFile.empty()) {
          includePaths.insert(includeFile);
       }
    }
-
 
    WriteTemplate(CreateSerializationContext(includePaths, results::get().typedefNameDecls),
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/serialization.template"),
@@ -125,9 +118,6 @@ void Writer::CreateSerializationFile(void)
    WriteTemplate(CreateStructuresToSerializeContext(includePaths, FunctionsToUnitTest::get().declKeySetMap),
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/serialization-struct.template"),
                  utils::changeFilePathToInclude(_fileName) + "-serialization-struct.h");
-
-
-
 }
 
 
@@ -161,7 +151,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
 
    out.str("");
 
-   const MockFunctionTestCollection& mockFuncTestCollection = FunctionTestDataFile::get().mockFunctionTestCollection;
+   const MockFunctionTestCollection& mockFuncTestCollection = FunctionTestDataFile::get().getMockTestCollection();
 
    for ( const std::pair< std::string, FunctionTestContent>& func : mockFuncTestCollection.dataJson() ) {
 
@@ -266,29 +256,22 @@ Writer::CreateSerializationContext(const std::set<std::string>                  
 
 
    for (const auto& typedefDecl : typedefNameDecls) {
-
       objectToSerialize.clear();
 
       const clang::QualType typedefQualType = typedefDecl->getUnderlyingType(); // ->getCanonicalTypeInternal();
-
       // appends the row and column to the name string
       const std::string declSrcFile = utils::getDeclSourceFileLine(typedefDecl, _sourceMgr);
 
       objectToSerialize["name"] = typedefDecl->getNameAsString();
       objectToSerialize["file"] = declSrcFile;
 
-
       if (const clang::RecordType *structType = typedefQualType->getAsStructureType()) {
-
-
          const clang::RecordDecl *structDecl = structType->getDecl();
 
          objectToSerialize["typedefStructName"] = structDecl->getNameAsString();
 
          out.str("");
-
          for (const auto& field : structDecl->fields()) {
-
             out << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << ";\n";
          }
 
@@ -300,8 +283,8 @@ Writer::CreateSerializationContext(const std::set<std::string>                  
       } else if (const clang::EnumType *enumType = typedefQualType->getAs<clang::EnumType>()) {
          const clang::EnumDecl *enumDecl = enumType->getDecl();
          objectToSerialize["typedefEnumName"] = enumDecl->getNameAsString();
-         out.str("");
 
+         out.str("");
          for (const auto& iter : enumDecl->enumerators()) {
             out << "   " << iter->getNameAsString() << "\t = " << iter->getInitVal().toString(10) << ",\n";
          }
@@ -309,7 +292,6 @@ Writer::CreateSerializationContext(const std::set<std::string>                  
          objectToSerialize["valuesToSerialize"] = out.str();
 
          const std::string qualTypeName = typedefQualType.getAsString();
-
          const clang::QualType canonicalQualType = typedefQualType->getCanonicalTypeInternal();
          const std::string canonicalTypeName = canonicalQualType.getAsString();
 
@@ -407,12 +389,10 @@ Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includ
    context->add("newline", "\n");
 
    std::vector<FunctionTestContent> funcParamsStructures;
-//    FunctionTestContent funcParamsStruct;
 
    for (const std::pair<const clang::FunctionDecl *, FunctionDeclSet >& iter : funcDeclsMap) {
       const clang::FunctionDecl *funcDecl = iter.first;
       const std::set<const clang::FunctionDecl *> &mockDeclSet = iter.second;
-//       funcParamsStruct.init(funcDecl, mockDeclSet);
       funcParamsStructures.push_back( FunctionTestContent(funcDecl, mockDeclSet) );
    }
 

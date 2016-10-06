@@ -18,14 +18,23 @@ public:
    void deSerializeJson(const Json::Value &jsonRoot);   
    void serializeJson(Json::Value &jsonRoot);
    
-   UnitFunctionTestCollection unitFunctionTestCollection;
-   MockFunctionTestCollection mockFunctionTestCollection;
-   ProjectDescription projectDescription;
-   clang::CompilerInstance compiler;
+   //getters
+   const clang::CompilerInstance & getCompilerInstance(void){ return _compiler; }
+   const clang::CompilerInstance & getCompilerInstance(void) const { return _compiler; }
+   const UnitFunctionTestCollection & getUnitTestCollection(void){ return _unitFunctionTestCollection; }
+   const UnitFunctionTestCollection & getUnitTestCollection(void) const { return _unitFunctionTestCollection; }
+   const MockFunctionTestCollection & getMockTestCollection(void){ return _mockFunctionTestCollection; }
+   const MockFunctionTestCollection & getMockTestCollection(void) const { return _mockFunctionTestCollection; }
+   const ProjectDescription & getProjectDescription(void){ return _projectDescription; }
+   const ProjectDescription & getProjectDescription(void) const { return _projectDescription; }
 protected:
    void computeAST(void);
-   
+   clang::CompilerInstance _compiler;
+   UnitFunctionTestCollection _unitFunctionTestCollection;
+   MockFunctionTestCollection _mockFunctionTestCollection;
+   ProjectDescription _projectDescription;
 };
 
 
 #endif /* _UTBuilder_FunctionTestDataFile_h__ */
+
