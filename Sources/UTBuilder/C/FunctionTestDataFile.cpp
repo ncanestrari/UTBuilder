@@ -132,7 +132,6 @@ void FunctionTestDataFile::computeAST(void)
       searchOpts.AddPath(PrecompilerOptionAST::additionalIncludePaths[i], clang::frontend::CSystem, false, false);
    }
 
-
    // create Preprocessor (Preprocessor is initialized with all the CompilerInstance include paths)
    _compiler.createPreprocessor(clang::TU_Module);
    clang::Preprocessor &preProcessor = _compiler.getPreprocessor();
