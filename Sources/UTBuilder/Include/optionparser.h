@@ -3,11 +3,32 @@
 #define OPTIONPARSER_H
 
 #include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
+#include <boost/program_options.hpp>
+#include <boost/tokenizer.hpp>
+#include <boost/token_functions.hpp>
+#include <boost/foreach.hpp>
 #include <set>
 #include <string>
+#include <iostream>
 
 #include "singleton.h"
+#include "utils.h"
+
+#define VERSION "0.1 beta"
+
+/* Auxillary type to handle list of comma separated string */
+class CommaSeparatedVector
+{
+public:
+   // values specified with --mylist will be stored here
+   std::vector<std::string> values;
+
+   // Function which validates additional tokens from command line.
+   friend std::istream& operator>>(std::istream& in, CommaSeparatedVector &csv);
+};
+
 
 
 class OptionParser : public Singleton<OptionParser>
@@ -21,21 +42,28 @@ public:
    
    ~OptionParser(){}
 
-   bool createOptionMap(int ac, const char* av[]);
-   bool isExampleEnabled(void);
-   bool isUnitTest(void);
-   bool isModuleTest(void);
-   const std::string & getOutputName(void);
-   void getFileNames(std::vector<std::string> & );
-   const std::string & getJsonFileName(void);
-   void getCommercialCode(std::string &);
-   void getPackage(std::string &);
+   void createOptionMap(int ac, const char* av[]);
+   void printHelp(void) { std::cout << _visible << std::endl; }
+   void printVersion(void) { std::cout << VERSION << std::endl; }
+   void printAll(void) { std::cout << _all << std::endl; }
    
+   bool isHelp(void) { return _vm.count("help"); }
+   bool isVersion(void) { return _vm.count("version"); }
+   bool isExampleEnabled(void) { return _vm.count("example"); }
+   bool isUnitTest(void) { return (_vm.count("files") && _vm["files"].as<CommaSeparatedVector>().values.size() > 1) || _vm.count("dirs"); }
+   bool isModuleTest(void) { return !isUnitTest(); }
+   
+   const std::string & getOutputName(void) { return _vm["output"].as<std::string>(); }
+   const std::string & getJsonFileName(void) { return _vm["json"].as<std::string>(); }
+   std::string getCommercialCode(void) { return utils::extractCommercialCodePath( getFirstAvailableFile() ); }
+   std::string getPackage(void) { return utils::extractPackagePath( getFirstAvailableFile() ); }
+   void getFileNames(std::vector<std::string>&);
    
 protected:
 
    boost::program_options::variables_map _vm;
    boost::program_options::options_description _all;
+   boost::program_options::options_description _visible;
    const std::string& getFirstAvailableFile(void); 
 
 };

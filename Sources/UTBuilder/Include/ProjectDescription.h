@@ -17,11 +17,7 @@ public:
    void clear(void);
    void init(void);
    void createFakeSource(void); // might go to utils...
-
-   //setters TODO get rid of this, either with a OptionParser setup
-   void setOutputFileName(const std::string &outputfile) { _outputFileName = outputfile; }
-   void setFileNames(const std::vector<std::string> &filenames) { _fileNames = filenames; }
-   void setDirNames(const std::vector<std::string> &dirnames) { _dirNames = dirnames; }
+   void getFromOptionParser(void);
    
    //getters 
    const std::vector<std::string>&  getAllFileNames(void){ return _fileNames; }

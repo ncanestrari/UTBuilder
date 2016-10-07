@@ -80,10 +80,7 @@ void FunctionTestDataFile::serializeJson(Value &jsonRoot)
    _projectDescription.init();
    
    //add from command line instead of desc
-   vector<string> filenames;
-   OptionParser::get().getFileNames(filenames);
-   _projectDescription.setFileNames(filenames);
-   _projectDescription.setOutputFileName(OptionParser::get().getOutputName());
+   _projectDescription.getFromOptionParser();
    
    //create the fare source to allow more than one source file
    _projectDescription.createFakeSource();

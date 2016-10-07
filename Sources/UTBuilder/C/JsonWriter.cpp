@@ -21,7 +21,6 @@ void JsonWriter::templateFile(const std::string  &fileName)
    
    _dataFile.serializeJson(jsonRoot);
 
-
    std::ofstream outputFile;
    std::string outputFileName = fileName + ".json";
    outputFile.open(outputFileName, std::fstream::out);

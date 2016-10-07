@@ -12,6 +12,7 @@
 #include "optionparser.h"
 #include "utils.h"
 
+
 using std::endl;
 using std::ofstream;
 using std::string;
@@ -51,11 +52,7 @@ void ProjectDescription::clear(void)
 void ProjectDescription::init(void)
 {
    //set _workspace
-   string ci;
-   OptionParser::get().getCommercialCode(ci);
-   string package;
-   OptionParser::get().getPackage(package);
-   _workspace = ci + "/" + package + "/";
+   _workspace = OptionParser::get().getCommercialCode() + "/" + OptionParser::get().getPackage() + "/";
    //fill IncludePaths
    utils::getIncludePaths( _workspace, _includePaths);
    /**
@@ -83,3 +80,10 @@ void ProjectDescription::createFakeSource(void)
    }
    inputFile.close();
 }
+
+void ProjectDescription::getFromOptionParser(void)
+{
+   OptionParser::get().getFileNames(_fileNames);
+   _inputFileName = OptionParser::get().getOutputName();
+}
+

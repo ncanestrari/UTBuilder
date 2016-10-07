@@ -419,7 +419,6 @@ Writer::WriteTemplate(std::shared_ptr<const Plustache::Context>  context,
    string         result;
 
    boost::filesystem::path full_path(boost::filesystem::current_path());
-   std::cout << full_path.string();
    ifstream template_file(templateFileName);
 
    if (template_file.fail()) {

@@ -37,17 +37,6 @@ using std::vector;
 #include "globber.h"
 #include "utils.h"
 
-/* Auxillary type to handle list of comma separated string */
-class CommaSeparatedVector
-{
-public:
-   // values specified with --mylist will be stored here
-   vector<string> values;
-
-   // Function which validates additional tokens from command line.
-   friend istream& operator>>(istream& in, CommaSeparatedVector &csv);
-};
-
 void tokenize(const string& str, vector<string>& tokens, const string& delimiters = ",")
 {
   // Skip delimiters at beginning.
@@ -68,6 +57,7 @@ void tokenize(const string& str, vector<string>& tokens, const string& delimiter
   }
 }
 
+
 istream& operator>>(istream& in, CommaSeparatedVector &csv)
 {
     string token;
@@ -77,8 +67,6 @@ istream& operator>>(istream& in, CommaSeparatedVector &csv)
 
     return in;
 }
-
-
 
 /* Auxillary Function to handle conflicting options */
 static void conflicting_options(const variables_map &vm, const string &opt1, const string &opt2)
@@ -95,21 +83,14 @@ static void conflicting_options(const variables_map &vm, const string &opt1, con
 
 
 /* OptionParser class method definition */
-bool OptionParser::createOptionMap(int ac, const char* av[])
+void OptionParser::createOptionMap(int ac, const char* av[])
 {   
    //setup general options
    options_description general("General options");
-   
-   const char help_message[] = 
-   "usage:\
-   \n   UTBuilder --json=<path/jsonfilename>\
-   \nTo generate the source files. Alternatively call\
-   \n   UTBuilder --example --files=<path1/source1>.c,... [--dirs=<path1>,...] --output=<path/output.json>\
-   \nTo create an json example file\n\n";
-   
+
    general.add_options()
-      ("help", help_message)
-      ("version", "0.1beta")
+      ("help", "print help message")
+      ("version", "print version")
       ;
    
    //setup json options
@@ -126,8 +107,7 @@ bool OptionParser::createOptionMap(int ac, const char* av[])
       ("example", value<bool>(), "will create an example.json for developer to play with")
       ;
    
-   options_description visible;
-   visible.add(example).add(json);
+   _visible.add(example).add(json);
    _all.add(general).add(json).add(example);
    
    store(parse_command_line(ac, av, _all), _vm);
@@ -137,48 +117,9 @@ bool OptionParser::createOptionMap(int ac, const char* av[])
    conflicting_options(_vm, "json", "dirs");
    conflicting_options(_vm, "json", "output");
    conflicting_options(_vm, "json", "example");
-   
-   //if help is called 
-   if( _vm.count("help") ){
-      cout << visible;
-      return false;
-   }
-   
-   if( _vm.count("version") ){
-      cout << "0.1 Beta\n";
-      return false;
-   }
-   
-   return true;
 }
 
-bool OptionParser::isExampleEnabled(void)
-{
-   return _vm.count("example");
-}
-
-bool OptionParser::isUnitTest(void)
-{
-   //TODO we are discarding the possibility of one file in a dir
-   bool ans = (_vm.count("files") && _vm["files"].as<CommaSeparatedVector>().values.size() > 1) || _vm.count("dirs"); 
-   return ans;
-}
-
-bool OptionParser::isModuleTest(void)
-{
-   return !isUnitTest();
-}
-
-const string & OptionParser::getOutputName(void)
-{   
-   if( _vm.count("output") ){
-      return _vm["output"].as<string>();
-   } else {
-      throw logic_error(string("No output name provided."));
-   }
-}
-
-void OptionParser::getFileNames(vector<string> & files)
+void OptionParser::getFileNames(vector<string> &files)
 {
    //if dirs get the files
    if( _vm.count("dirs") ){
@@ -195,17 +136,7 @@ void OptionParser::getFileNames(vector<string> & files)
    }
    
    if( !( _vm.count("dirs") || _vm.count("files")) ){
-      cout << _all;
       throw logic_error(string("No files or dirs options are provided."));
-   }
-}
-
-const string & OptionParser::getJsonFileName(void)
-{
-   if( _vm.count("json") ){
-      return _vm["json"].as<string>();
-   } else {
-      throw logic_error(string("No json file provided."));
    }
 }
 
@@ -228,13 +159,4 @@ const string& OptionParser::getFirstAvailableFile(void)
    throw logic_error(string("not able to find any information!"));
 }
 
-void OptionParser::getCommercialCode(string &ci)
-{
-   ci = utils::extractCommercialCodePath( getFirstAvailableFile() );
-}
-
-void OptionParser::getPackage(string &package)
-{
-   package = utils::extractPackagePath( getFirstAvailableFile() );
-}
 
