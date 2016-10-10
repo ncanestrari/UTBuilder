@@ -5,14 +5,18 @@
 #include <vector>
 #include <json/json.h>
 
+#include "Serializable.h"
 
-class ProjectDescription{
+class ProjectDescription : public Serializable {
 public:
    ProjectDescription(){}
    ~ProjectDescription(){}
    //ProjectDescription(const ProjectDescription&);
    ProjectDescription& operator=(ProjectDescription const&);
-   void deserializeJson(const Json::Value &);
+   
+   //    Serializable interface
+   virtual void serializeJson(Json::Value &jsonRoot ) const override {};
+   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *refData = nullptr) override;
    
    void clear(void);
    void init(void);

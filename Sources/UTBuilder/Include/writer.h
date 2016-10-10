@@ -38,7 +38,7 @@ private:
    std::shared_ptr<const Plustache::Context> CreateMockContext(const std::set<std::string>   &includePaths,
                                                                const FunctionDeclKeySetMap   &funcDeclsMap);
    std::shared_ptr<const Plustache::Context> CreateUnitTestContext(const std::set<std::string>   &includePaths,
-                                                                   const UnitFunctionTestCollection   &funcData);
+                                                                   const FunctionTestCollection      *funcData);
    std::shared_ptr<const Plustache::Context> CreateSerializationContext(const std::set<std::string>                      &includePaths,
                                                                         const std::set<const clang::TypedefNameDecl *>   &typedefNameDecls);
    std::shared_ptr<const Plustache::Context> CreateSerializationStructuresContext(const std::set<std::string>   &includePaths,

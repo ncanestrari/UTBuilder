@@ -151,9 +151,9 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
 
    out.str("");
 
-   const MockFunctionTestCollection& mockFuncTestCollection = FunctionTestDataFile::get().getMockTestCollection();
+   const FunctionTestCollection * mockFuncTestCollection = FunctionTestDataFile::get().getMockTestCollection();
 
-   for ( const std::pair< std::string, FunctionTestContent>& func : mockFuncTestCollection.dataJson() ) {
+   for ( const std::pair< std::string, FunctionTestContent>& func : mockFuncTestCollection->dataFromJson() ) {
 
       const std::string &name = func.first;
       const FunctionTestContent &funcParams = func.second;
@@ -178,7 +178,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
 
 std::shared_ptr<const Plustache::Context>
 Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
-                              const UnitFunctionTestCollection   &funcData)
+                              const FunctionTestCollection *   funcData)
 {
    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
 
@@ -198,7 +198,7 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
    std::ostringstream    code;
 
   
-   for (const std::pair< std::string, FunctionTestContent>& iter : funcData.dataJson() ) {
+   for (const std::pair< std::string, FunctionTestContent>& iter : funcData->dataFromJson() ) {
 
       const FunctionTestContent& funcParams = iter.second;
 

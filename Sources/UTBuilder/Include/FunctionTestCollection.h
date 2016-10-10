@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 
+#include "Serializable.h"
 #include "FunctionTestContent.h"
 
 
@@ -12,32 +13,37 @@
 
 
 
-class FunctionTestCollection {
+class FunctionTestCollection : public Serializable {
 public:
    
    FunctionTestCollection() {}
    FunctionTestCollection(const FunctionTestCollection&) = delete;
    ~FunctionTestCollection() {}
    
+   // override and fill the _data map
+   virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) {}
+   
+      //    Serializable interface
+   virtual void serializeJson(Json::Value &jsonRoot ) const override;
+   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *refData = nullptr) override;
+   
+   
    void clear()
    {
-      _dataAST.clear();
-      _dataJson.clear();
+      _dataFromAST.clear();
+      _dataFromJson.clear();
    }
 
    FunctionTestContent *findContentFromAST(const std::string &key);
 
-   void serializeJson(Json::Value &jsonRoot) const;
-   void deSerializeJson(const Json::Value &jsonRoot);
-
    //getters
-   const std::map< std::string, FunctionTestContent> &dataAST(void){ return _dataAST; }
-   const std::map< std::string, FunctionTestContent> &dataJson(void) const { return _dataJson; }
+   const std::map< std::string, FunctionTestContent> &dataFromAST(void){ return _dataFromAST; }
+   const std::map< std::string, FunctionTestContent> &dataFromJson(void) const { return _dataFromJson; }
 
 protected:
 
-   std::map< std::string, FunctionTestContent> _dataAST;
-   std::map< std::string, FunctionTestContent> _dataJson;
+   std::map< std::string, FunctionTestContent> _dataFromAST;
+   std::map< std::string, FunctionTestContent> _dataFromJson;
 
 };
 
@@ -50,7 +56,7 @@ public:
    UnitFunctionTestCollection() {}
    ~UnitFunctionTestCollection() {}
    
-   void init(const FunctionDeclKeySetMap   &funcDeclsMap);
+    virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) override;
 
 };
 
@@ -63,7 +69,7 @@ public:
    MockFunctionTestCollection() {}
    ~MockFunctionTestCollection() {}
 
-   void init(const FunctionDeclKeySetMap   &funcDeclsMap);
+    virtual void init(const FunctionDeclKeySetMap   &funcDeclsMap) override;
 
 };
 

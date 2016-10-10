@@ -2,6 +2,8 @@
 #define _UTBuilder_Serializable_h__
 
 
+#include <json/json.h>
+
 
 class Serializable 
 {

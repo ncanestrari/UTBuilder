@@ -123,7 +123,7 @@ void FunctionTestData::serializeJsonTree(std::shared_ptr<NameValueTypeNode<const
 }
 
 
-void FunctionTestData::serializeJson(Json::Value &jsonParent)
+void FunctionTestData::serializeJson(Json::Value &jsonParent) const
 {   
    serializeJsonTree(_inputTree, jsonParent);
    serializeJsonTree(_outputTree, jsonParent);
@@ -190,16 +190,18 @@ FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<co
 }
 
 
-void FunctionTestData::deSerializeJson(const FunctionTestData *other, const Json::Value &jsonParent)
+void FunctionTestData::deSerializeJson(const Json::Value &jsonParent, const void *refData)
 {
-
+   //    data from AST used as reference for validation 
+   const FunctionTestData *refDataAST = static_cast<const FunctionTestData *>(refData);
+   
    const Json::Value & inputValue = jsonParent["input"];
    const Json::Value & outputValue = jsonParent["output"];
    const Json::Value & mocksValue = jsonParent["mock-funcs-call"];
    
-   _inputTree = deSerializeTreeJson(other->_inputTree, inputValue);
-   _outputTree = deSerializeTreeJson(other->_outputTree, outputValue);
-   _mocksTree = deSerializeTreeJson(other->_mocksTree, mocksValue);
+   _inputTree = deSerializeTreeJson(refDataAST->_inputTree, inputValue);
+   _outputTree = deSerializeTreeJson(refDataAST->_outputTree, outputValue);
+   _mocksTree = deSerializeTreeJson(refDataAST->_mocksTree, mocksValue);
    
 }
 

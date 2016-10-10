@@ -12,27 +12,35 @@
 
 
 
-class FunctionTestDataFile :  public Singleton<FunctionTestDataFile> {
+class FunctionTestDataFile :  public Serializable, public Singleton<FunctionTestDataFile> {
 public:
 
-   void deSerializeJson(const Json::Value &jsonRoot);   
-   void serializeJson(Json::Value &jsonRoot);
+   void initCollections(const FunctionDeclKeySetMap   &funcDeclsMap,
+                        const FunctionDeclKeySetMap   &mockDeclsMap);
    
+   //    Serializable interface
+   virtual void serializeJson(Json::Value &jsonRoot ) const override;
+   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *refData = nullptr) override;
+      
    //getters
    const clang::CompilerInstance & getCompilerInstance(void){ return _compiler; }
    const clang::CompilerInstance & getCompilerInstance(void) const { return _compiler; }
-   const UnitFunctionTestCollection & getUnitTestCollection(void){ return _unitFunctionTestCollection; }
-   const UnitFunctionTestCollection & getUnitTestCollection(void) const { return _unitFunctionTestCollection; }
-   const MockFunctionTestCollection & getMockTestCollection(void){ return _mockFunctionTestCollection; }
-   const MockFunctionTestCollection & getMockTestCollection(void) const { return _mockFunctionTestCollection; }
+   const FunctionTestCollection * getUnitTestCollection(void){ return _unitFunctionTestCollection.get(); }
+   const FunctionTestCollection * getUnitTestCollection(void) const { return _unitFunctionTestCollection.get(); }
+   const FunctionTestCollection * getMockTestCollection(void){ return _mockFunctionTestCollection.get(); }
+   const FunctionTestCollection * getMockTestCollection(void) const { return _mockFunctionTestCollection.get(); }
    const ProjectDescription & getProjectDescription(void){ return _projectDescription; }
    const ProjectDescription & getProjectDescription(void) const { return _projectDescription; }
 protected:
-   void computeAST(void);
-   clang::CompilerInstance _compiler;
-   UnitFunctionTestCollection _unitFunctionTestCollection;
-   MockFunctionTestCollection _mockFunctionTestCollection;
-   ProjectDescription _projectDescription;
+   void computeAST(void) const;
+   void clearCollections(void);
+    
+   mutable clang::CompilerInstance _compiler;
+//    UnitFunctionTestCollection _unitFunctionTestCollection;
+//    MockFunctionTestCollection _mockFunctionTestCollection;
+   std::shared_ptr<FunctionTestCollection> _unitFunctionTestCollection;
+   std::shared_ptr<FunctionTestCollection> _mockFunctionTestCollection;
+   mutable ProjectDescription _projectDescription;
 };
 
 

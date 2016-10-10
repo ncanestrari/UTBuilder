@@ -9,12 +9,12 @@
 #include <set>
 #include <string>
 
-// #include "NameValueTypeNode.h"
+#include "Serializable.h"
 
 #include "FunctionTestData.h"
 
 
-class FunctionTestContent {
+class FunctionTestContent : public Serializable {
 
 public:
    
@@ -32,6 +32,11 @@ public:
    ~FunctionTestContent();
 
 
+   //    Serializable interface
+   virtual void serializeJson(Json::Value &jsonRoot ) const override;
+   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *refData) override;
+   
+   
    std::string getName(void) const{ return _funcDecl->getNameAsString(); }
    std::string getName(const unsigned int index) const;
 
@@ -43,9 +48,7 @@ public:
 
    const std::vector< std::shared_ptr<FunctionTestData> >& getTests(void) const;
    std::shared_ptr<FunctionTestData> getTest(const unsigned int idx) const;
-   void serializeJson(Json::Value &jsonRoot ) const;
-
-   void deSerializeJson(const FunctionTestContent * funcTestContentAST, const Json::Value &jsonRoot);   
+ 
    void writeAsStruct(void);
 
    // temp functions to  generate files automatically

@@ -27,7 +27,7 @@ void FillWithArrayOfStringFromField(vector<string> &vstr, const Value &rootValue
    }   
 }
 
-void ProjectDescription::deserializeJson(const Value &rootDesc)
+void ProjectDescription::deSerializeJson(const Value &rootDesc, const void * )
 {
    FillWithArrayOfStringFromField(_fileNames, rootDesc, "files");
    FillWithArrayOfStringFromField(_dirNames,  rootDesc, "dirs");

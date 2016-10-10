@@ -4,11 +4,11 @@
 
 // #include <clang/AST/Decl.h>
 #include <iostream>
-#include <json/json.h>
 
 #include <string>
 #include <set>
 
+#include "Serializable.h"
 #include "NameValueTypeNode.h"
 
 namespace clang{
@@ -16,7 +16,7 @@ namespace clang{
 }
 
 
-class FunctionTestData {
+class FunctionTestData :  public Serializable {
 
 public:
    
@@ -29,11 +29,10 @@ public:
    ~FunctionTestData();
 
 
-
-   void serializeJson(Json::Value &jsonRoot );
-
-
-   void deSerializeJson(const FunctionTestData *funcTestData, const Json::Value &jsonRoot);
+   //    Serializable interface
+   virtual void serializeJson(Json::Value &jsonRoot ) const override;
+   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *funcTestData) override;
+   
 
    void writeAsStruct(void);
    

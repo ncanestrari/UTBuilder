@@ -25,13 +25,36 @@ using Json::Value;
 using Json::arrayValue;
 
 
+void FunctionTestDataFile::clearCollections() 
+{
+   _projectDescription.clear();
+   
+   if ( _unitFunctionTestCollection.get() != nullptr)
+      _unitFunctionTestCollection->clear();
+   
+   if ( _mockFunctionTestCollection.get() != nullptr)
+      _mockFunctionTestCollection->clear();
+}
 
-void FunctionTestDataFile::deSerializeJson(const Value &jsonRoot)
+void FunctionTestDataFile::initCollections(const FunctionDeclKeySetMap   &funcDeclsMap,
+                               const FunctionDeclKeySetMap   &mockDeclsMap)
+{
+//    clearCollections();
+
+   _unitFunctionTestCollection = std::make_shared<UnitFunctionTestCollection>();
+   _unitFunctionTestCollection->init(funcDeclsMap);
+   
+   _mockFunctionTestCollection = std::make_shared<MockFunctionTestCollection>();
+   _mockFunctionTestCollection->init(mockDeclsMap);
+}
+
+void FunctionTestDataFile::deSerializeJson(const Json::Value &jsonRoot, const void* )
 {
    //clear every members
-   _projectDescription.clear();
-   _mockFunctionTestCollection.clear();
-   _unitFunctionTestCollection.clear();
+//    _projectDescription.clear();
+   clearCollections();
+//    _mockFunctionTestCollection.clear();
+//    _unitFunctionTestCollection.clear();
 
    //init projectDescription up to the OptionParser level
    _projectDescription.init();
@@ -42,7 +65,7 @@ void FunctionTestDataFile::deSerializeJson(const Value &jsonRoot)
    if( descRoot.empty() ){
       cout << "project description not found in input json file: " << endl;
    }
-   _projectDescription.deserializeJson(descRoot);
+   _projectDescription.deSerializeJson(descRoot);
    
    //create the fare source to allow more than one source file
    _projectDescription.createFakeSource();
@@ -51,31 +74,33 @@ void FunctionTestDataFile::deSerializeJson(const Value &jsonRoot)
    computeAST();
 
    //collections init
-   _mockFunctionTestCollection.init(FunctionsToMock::get().declKeySetMap);
-   _unitFunctionTestCollection.init(FunctionsToUnitTest::get().declKeySetMap);
+   initCollections( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
+//    _mockFunctionTestCollection.init(FunctionsToMock::get().declKeySetMap);
+//    _unitFunctionTestCollection.init(FunctionsToUnitTest::get().declKeySetMap);
    
    //load json defined mocks
    const Value& mocksRoot = jsonRoot["mocks"];
    if( mocksRoot.empty() ){
       cout << "functions to mock not found in input json file: " << endl;
    }
-   _mockFunctionTestCollection.deSerializeJson(mocksRoot);
+   _mockFunctionTestCollection->deSerializeJson(mocksRoot);
    
    //load json defined unit/module tests
    const Value& funcsRoot = jsonRoot["funcs"];
    if( funcsRoot.empty() ){
       cout << "functions to test not found in input json file: " << endl;
    }
-   _unitFunctionTestCollection.deSerializeJson(funcsRoot);
+   _unitFunctionTestCollection->deSerializeJson(funcsRoot);
    
 }
 
-void FunctionTestDataFile::serializeJson(Value &jsonRoot)
+void FunctionTestDataFile::serializeJson(Value &jsonRoot) const
 {
    //clear every members
-   _projectDescription.clear();
-   _mockFunctionTestCollection.clear();
-   _unitFunctionTestCollection.clear();
+//    _projectDescription.clear();
+//    clearCollections();
+//    _mockFunctionTestCollection.clear();
+//    _unitFunctionTestCollection.clear();
 
    _projectDescription.init();
    
@@ -90,13 +115,13 @@ void FunctionTestDataFile::serializeJson(Value &jsonRoot)
    
    //init projectDescription up to the
    jsonRoot["funcs"] = Value(arrayValue);
-   _unitFunctionTestCollection.serializeJson(jsonRoot["funcs"]);
+   _unitFunctionTestCollection->serializeJson(jsonRoot["funcs"]);
    
    jsonRoot["mocks"] = Value(arrayValue);
-   _mockFunctionTestCollection.serializeJson(jsonRoot["mocks"]);
+   _mockFunctionTestCollection->serializeJson(jsonRoot["mocks"]);
 }
 
-void FunctionTestDataFile::computeAST(void)
+void FunctionTestDataFile::computeAST(void) const
 {
    // CompilerInstance
    // create DiagnosticOptions (not used ?)
