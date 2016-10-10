@@ -5,17 +5,18 @@
 #include <clang/AST/RecursiveASTVisitor.h>
 
 #include <string>
+#include <vector>
 
 template <typename Derived>
 class Visitor : public clang::RecursiveASTVisitor<Derived> {
 
 public:
-   explicit Visitor(clang::ASTContext   *context,
-                    std::string          fileName) :  _context(context), _fileName(fileName) {};
+   explicit Visitor(clang::ASTContext*              context,
+                    const std::vector<std::string>& fileNames) :  _context(context), _fileNames(fileNames) {};
 
 protected:
-   clang::ASTContext *_context;
-   std::string _fileName;
+   clang::ASTContext*              _context;
+   const std::vector<std::string>& _fileNames;
 };
 
 #endif // UTBUILDER_VISITOR_H_

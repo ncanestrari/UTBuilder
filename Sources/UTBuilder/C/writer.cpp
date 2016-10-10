@@ -382,7 +382,7 @@ Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includ
       Include["include"] = iter;
       context->add("includes", Include);
    }
-   Include["include"] = Include["include"] = utils::changeFileExtension(boost::filesystem::path(_fileName).filename().string(), "h");
+   //Include["include"] = Include["include"] = utils::changeFileExtension(boost::filesystem::path(_fileName).filename().string(), "h");
    context->add("includes", Include);
 
    context->add("filename", _fileName);

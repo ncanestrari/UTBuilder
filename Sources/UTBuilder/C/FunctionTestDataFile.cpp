@@ -152,7 +152,7 @@ void FunctionTestDataFile::computeAST(void)
    _compiler.createASTContext();
 
    // create UTBuilder consumer
-   Consumer astConsumer(&_compiler.getASTContext(), _projectDescription.getInputFileName());
+   Consumer astConsumer(&_compiler.getASTContext(), _projectDescription.getAllFileNames());//pass source files
 
    // clear the results before parsing the AST
    results::get().clear();

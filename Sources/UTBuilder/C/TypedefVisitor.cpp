@@ -9,8 +9,9 @@
 #include <iostream>
 
 
-TypedefVisitor::TypedefVisitor(clang::ASTContext *context, std::string fileName)
-   : Visitor(context, fileName)
+TypedefVisitor::TypedefVisitor(clang::ASTContext*              context,
+                               const std::vector<std::string>& fileNames)
+   : Visitor(context, fileNames)
 {}
 
 

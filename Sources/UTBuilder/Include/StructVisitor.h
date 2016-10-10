@@ -7,8 +7,8 @@
 class StructVisitor : public Visitor<StructVisitor> {
 
 public:
-   explicit StructVisitor(clang::ASTContext    *context,
-                          std::string           fileName);
+   explicit StructVisitor(clang::ASTContext*               context,
+                          const std::vector<std::string>&  fileNames);
 
    bool VisitDecl(clang::Decl *decl);
 

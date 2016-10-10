@@ -6,8 +6,9 @@
 #include "Results.h"
 
 
-StructVisitor::StructVisitor(clang::ASTContext *context, std::string fileName)
-   : Visitor(context, fileName)
+StructVisitor::StructVisitor(clang::ASTContext*              context,
+                             const std::vector<std::string>& fileNames)
+   : Visitor(context, fileNames)
 {
 }
 

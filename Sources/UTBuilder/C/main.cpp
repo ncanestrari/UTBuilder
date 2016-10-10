@@ -53,8 +53,11 @@ int main(int argc, const char *argv[])
 
       JsonReader reader;
       reader.parse( FunctionTestDataFile::get(), OptionParser::get().getJsonFileName() );
-
-      Writer writer(FunctionTestDataFile::get().getProjectDescription().getOutputFileName(), FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
+      
+      std::string outputFileName = OptionParser::get().getCommercialCode() + "/" + 
+                                   OptionParser::get().getPackage() + "/" + 
+                                   FunctionTestDataFile::get().getProjectDescription().getOutputFileName();
+      Writer writer( outputFileName, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
       writer.createFiles();
 
    } catch (std::exception &e){

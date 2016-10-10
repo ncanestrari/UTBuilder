@@ -8,10 +8,11 @@
 #include "Results.h"
 #include "utils.h"
 
+#include <vector>
 
-MockVisitor::MockVisitor(clang::ASTContext   *context,
-                         std::string          fileName)
-   : Visitor(context, fileName)
+MockVisitor::MockVisitor(clang::ASTContext*              context,
+                         const std::vector<std::string>& fileNames)
+   : Visitor(context, fileNames)
 {
 }
 
@@ -45,11 +46,14 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr *funcCall)
    const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, srcMgr);
 
    // check if the statement is in the input argument file
-   if (declSrcFile.find(_fileName) != std::string::npos) {
-      // this function doesn't need to be mocked but tested
-      return true;
-   }
 
+   for (const auto & fileName : _fileNames){
+      if (declSrcFile.find(fileName) != std::string::npos) {
+         // this function doesn't need to be mocked but tested
+         return true;
+      }
+   }
+   
 
    // TODO: fix this
    // temporary check

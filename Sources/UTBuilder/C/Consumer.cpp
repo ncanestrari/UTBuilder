@@ -10,8 +10,8 @@
 #include <clang/AST/ASTContext.h>
 
 
-Consumer::Consumer(clang::ASTContext  *context,
-                   std::string         fileName)
+Consumer::Consumer(clang::ASTContext*              context,
+                   const std::vector<std::string>& fileNames)
    : ASTConsumer()
    , _mockVisitor(nullptr)
    , _defVisitor(nullptr)
@@ -19,11 +19,11 @@ Consumer::Consumer(clang::ASTContext  *context,
    , _typedefVisitor(nullptr)
    , _structVisitor(nullptr)
 {
-   _mockVisitor = std::make_shared<MockVisitor>(context, fileName);
-   _defVisitor = std::make_shared<FuncUTDefVisitor>(context, fileName);
-   _declVisitor = std::make_shared<FuncUTDeclVisitor>(context, fileName);
-   _typedefVisitor = std::make_shared<TypedefVisitor>(context, fileName);
-   _structVisitor = std::make_shared<StructVisitor>(context, fileName);
+   _mockVisitor = std::make_shared<MockVisitor>(context, fileNames);
+   _defVisitor = std::make_shared<FuncUTDefVisitor>(context, fileNames);
+   _declVisitor = std::make_shared<FuncUTDeclVisitor>(context, fileNames);
+   _typedefVisitor = std::make_shared<TypedefVisitor>(context, fileNames);
+   _structVisitor = std::make_shared<StructVisitor>(context, fileNames);
 }
 
 

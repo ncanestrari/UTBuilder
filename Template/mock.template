@@ -14,6 +14,7 @@
 #include "printline.h"
 #include "fqtype.h"
 
+
 #include "fff.h"
 
 {{# includes}}
@@ -41,7 +42,7 @@ FqStatus_t CreateStatusOK(void){
 /**
  * Fix custom mocks for everyday use
  */
-
+/*
 void *Em_IRealloc_custom( void *oldptr, size_t newsize )
 {
    void   *newptr;
@@ -97,11 +98,13 @@ void IncreasePrObject_custom(void     **pObject,
    *pObject = Em_Realloc(*pObject, Size);
    *pIsAllocated = *pObject ? TRUE : FALSE;
 }
+*/
+
 
 /**
  * Fix mocks for everyday use
  */
-
+/*
 FAKE_VALUE_FUNC(void *, Em_Malloc, size_t );
 FAKE_VALUE_FUNC(void *, Em_IMalloc, size_t );
 FAKE_VALUE_FUNC(void *, Em_Realloc, void *, size_t);
@@ -114,7 +117,7 @@ FAKE_VOID_FUNC(AllocatePrObject, void**, FbBool_t*, size_t);
 FAKE_VOID_FUNC(AllocatePrObjectHdr, void**, FbBool_t*, size_t, FbUint_t);
 FAKE_VOID_FUNC(IncreasePrObject, void**, FbBool_t*, size_t);
 FAKE_VALUE_FUNC(FbBool_t, TrapKeyIsOn, FbChar_t *);
-
+*/
 
 
 /**
@@ -138,6 +141,7 @@ void reset_all_mocks(){
    RESET_FAKE({{mockname}});{{newline}}
 {{/ mocks}}
    /* Reset all fixed mocks to no behaviour */
+   /*
    RESET_FAKE(Em_Malloc);
    RESET_FAKE(Em_IMalloc);
    RESET_FAKE(Em_Realloc);
@@ -151,7 +155,9 @@ void reset_all_mocks(){
    RESET_FAKE(TrapKeyIsOn);
    RESET_FAKE(PrintLine);
    FFF_RESET_HISTORY();
+   */
    /* Set all fix mocks to their standard behaviour */
+   /*
    Em_Malloc_fake.custom_fake = malloc;
    Em_IMalloc_fake.custom_fake = calloc;
    Em_Realloc_fake.custom_fake = realloc;
@@ -166,6 +172,7 @@ void reset_all_mocks(){
 #ifdef UNIT_TEST_PRINT
    PrintLine_fake.custom_fake = PrintLine_custom;
 #endif
+   */
 }
 
 /**

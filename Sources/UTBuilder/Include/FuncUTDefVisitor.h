@@ -8,7 +8,8 @@ class FuncUTDefVisitor : public Visitor<FuncUTDefVisitor> {
 
 public:
 
-   explicit FuncUTDefVisitor(clang::ASTContext *context, std::string fileName);
+   explicit FuncUTDefVisitor(clang::ASTContext*               context,
+                             const std::vector<std::string>&  fileNames);
 
    bool VisitDecl(clang::Decl *decl);
 
@@ -20,7 +21,8 @@ class FuncUTDeclVisitor : public Visitor<FuncUTDeclVisitor> {
 
 public:
 
-   explicit FuncUTDeclVisitor(clang::ASTContext *context, std::string fileName);
+   explicit FuncUTDeclVisitor(clang::ASTContext*               context,
+                              const std::vector<std::string>&  fileNames);
 
    bool VisitDecl(clang::Decl *decl);
 

@@ -5,7 +5,7 @@
 #include <clang/AST/ASTConsumer.h>
 #include <memory>
 #include <string>
-
+#include <vector>
 
 class FuncUTDefVisitor;
 class FuncUTDeclVisitor;
@@ -16,8 +16,8 @@ class MockVisitor;
 class Consumer : public clang::ASTConsumer {
 
 public:
-   Consumer(clang::ASTContext   *context,
-            std::string          fileName);
+   Consumer(clang::ASTContext*               context,
+            const std::vector<std::string>&  fileNames);
    ~Consumer() {}
 
    virtual void HandleTranslationUnit(clang::ASTContext &ctx) override;

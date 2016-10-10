@@ -10,9 +10,9 @@ class TypedefVisitor : public Visitor<TypedefVisitor> {
 
 public:
 
-   explicit TypedefVisitor(clang::ASTContext    *context,
-                           std::string           fileName);
-
+   explicit TypedefVisitor(clang::ASTContext*               context,
+                           const std::vector<std::string>&  fileNames);
+   
    bool VisitDecl(clang::Decl *decl);
 
 };

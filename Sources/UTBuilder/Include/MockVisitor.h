@@ -14,8 +14,8 @@ class MockVisitor : public Visitor<MockVisitor> {
    const clang::FunctionDecl *_lastFuncDecl;
 
 public:
-   MockVisitor(clang::ASTContext   *context,
-               std::string          fileName);
+   MockVisitor(clang::ASTContext*               context,
+               const std::vector<std::string>&  fileNames);
 
    bool VisitCallExpr(clang::CallExpr *call);
 
