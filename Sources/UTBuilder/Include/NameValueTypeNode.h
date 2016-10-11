@@ -14,41 +14,35 @@ class NameValueTypeNode {
    const std::string _name;
    const T           _type;
    const std::string _value;
-
+   bool              _isArray;
+   
    std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > > _children;
 
 public:
-
-   
-   explicit NameValueTypeNode(const char *name, T type = T(), const char *value = "\0")
+   size_t            index;
+   explicit NameValueTypeNode(const char *name, T type = T(), const char *value = "\0", bool isArray=false)
       : _name(name)
       , _type(type)
       , _value(value)
+      , _isArray(isArray)
+      , index(0)
    {}
 
    ~NameValueTypeNode() {}
 
-   const std::string &getName(void) const
-   {
-      return _name;
-   }
+   const std::string &getName(void) const { return _name; }
+   const std::string &getValue(void) const { return _value; }
+   T getType(void) const { return _type; }
+   unsigned int getNumChildern(void) { return _children.size(); }
+   const std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > >  &getChildren(void) const { return _children; }
+   void addChild(std::shared_ptr<NameValueTypeNode<T> > child) { _children[child->_name] = child; }
 
-
-   const std::string &getValue(void) const
-   {
-      return _value;
-   }
-
-   T getType(void) const
-   {
-      return _type;
-   }
-
-   unsigned int getNumChildern(void)
-   {
-      return _children.size();
-   }
-
+   const bool isArray(void){ return _isArray; }
+   //const size_t getArraySize(void){ return _value.size(); }
+   
+   void setValue(const char *value ) { _value = value; }
+   
+   
    std::shared_ptr<NameValueTypeNode<T> > getChild(const char *name) const
    {
       auto iter = _children.find(name);
@@ -59,15 +53,6 @@ public:
       return iter->second;
    }
 
-   const std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > >  &getChildren(void) const
-   {
-      return _children;
-   }
-
-   void addChild(std::shared_ptr<NameValueTypeNode<T> > child)
-   {
-      _children[child->_name] = child;
-   }
 
    std::shared_ptr<NameValueTypeNode<T> > addChild(const char *name, T type, const char *value )
    {
@@ -77,10 +62,6 @@ public:
       return child;
    }
 
-   void setValue(const char *value )
-   {
-      _value = value;
-   }
 
 };
 
