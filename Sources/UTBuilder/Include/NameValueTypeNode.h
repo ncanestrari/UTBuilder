@@ -6,6 +6,9 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <exception>
+
+#define DECIMAL_BASE (10)
 
 
 template <typename T>
@@ -14,18 +17,22 @@ class NameValueTypeNode {
    const std::string _name;
    const T           _type;
    const std::string _value;
-   bool              _isArray;
    
    std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > > _children;
 
+   bool _isNameInteger(void){
+      if(_name.empty()) { return false; }
+      char* p;
+      strtol(_name.c_str(), &p, DECIMAL_BASE);
+      return (*p == '\0');
+   }
+   
 public:
-   size_t            index;
-   explicit NameValueTypeNode(const char *name, T type = T(), const char *value = "\0", bool isArray=false)
+
+   explicit NameValueTypeNode(const char *name, T type = T(), const char *value = "\0")
       : _name(name)
       , _type(type)
       , _value(value)
-      , _isArray(isArray)
-      , index(0)
    {}
 
    ~NameValueTypeNode() {}
@@ -37,7 +44,7 @@ public:
    const std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > >  &getChildren(void) const { return _children; }
    void addChild(std::shared_ptr<NameValueTypeNode<T> > child) { _children[child->_name] = child; }
 
-   const bool isArray(void){ return _isArray; }
+   const bool isArray(void){ return _isNameInteger(); }
    //const size_t getArraySize(void){ return _value.size(); }
    
    void setValue(const char *value ) { _value = value; }
@@ -63,6 +70,25 @@ public:
    }
 
 
+   std::string & getIndexAsString(void)
+   {
+      if(_isNameInteger()){
+         return _name;
+      } else {
+         throw std::logic_error(std::string("Error getIndexAsString: name is not an index\n"));
+      }
+   }
+
+   
+   int getIndex(void)
+   {
+      if(_isNameInteger()){
+         return stoi(_name);
+      } else {
+         throw std::logic_error(std::string("Error getIndexAsString: name is not an index\n"));
+      }
+   }
+   
 };
 
 

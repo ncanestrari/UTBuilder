@@ -133,26 +133,27 @@ void FunctionTestData::serializeJson(Json::Value &jsonParent) const
 
 std::shared_ptr<NameValueTypeNode<clang::QualType> >
 FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<clang::QualType> > referenceTree,
-                                      const Json::Value &fieldItem)
+                                      const Json::Value &fieldItem,
+                                      const std::string& arrayIndex)
 {
-   const std::string &treeKeyName = referenceTree->getName();
+   const std::string &treeKeyName = arrayIndex.empty() ? referenceTree->getName() : arrayIndex;
+   
    std::shared_ptr<NameValueTypeNode<clang::QualType> > root;
    
    if( fieldItem.isArray() ){
-      root = std::make_shared<NameValueTypeNode<clang::QualType> >(treeKeyName.c_str(), referenceTree->getType(), "\0", true);
+  
+      root = std::make_shared<NameValueTypeNode<clang::QualType> >(treeKeyName.c_str(), referenceTree->getType() );
 
-      std::cout << "array key: " << treeKeyName<< std::endl;
-      size_t counter = 0;
+      size_t arrayIndexCounter = 0;
       for (Json::ValueConstIterator iter = fieldItem.begin() ; iter != fieldItem.end() ; iter++) {
-         auto childReferenceTree = referenceTree ;
-         std::shared_ptr<NameValueTypeNode<clang::QualType> > child = deSerializeTreeJson(childReferenceTree, *iter);
-         root->addChild(child);
-         std::cout << "child key: " << iter.key().asString() << "     child value: " << *iter << std::endl;
-         
-         child->index = counter;         
-         counter++;
+         auto childReferenceTree = referenceTree;
+         std::shared_ptr<NameValueTypeNode<clang::QualType> > child = 
+            deSerializeTreeJson(childReferenceTree, *iter,std::to_string(arrayIndexCounter));
+         root->addChild(child);       
+         arrayIndexCounter++;
       }
    } else if ( fieldItem.isObject() ) {
+      
       root = std::make_shared<NameValueTypeNode<clang::QualType> >(treeKeyName.c_str(), referenceTree->getType());
 
       for (Json::ValueConstIterator iter = fieldItem.begin() ; iter != fieldItem.end() ; iter++) {
@@ -170,14 +171,25 @@ FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<cl
 }
 
 std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> >
-FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > referenceTree, const Json::Value &fieldItem)
+FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > referenceTree, 
+                                      const Json::Value &fieldItem,
+                                      const std::string& arrayIndex )
 {
 
-   const std::string &treeKeyName = referenceTree->getName();
+   const std::string &treeKeyName = arrayIndex.empty() ? referenceTree->getName() : arrayIndex;
 
    std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > root;
    if (fieldItem.isArray() ){
-      
+      root = std::make_shared<NameValueTypeNode<const clang::FunctionDecl *> >(treeKeyName.c_str(), referenceTree->getType() );
+
+      size_t arrayIndexCounter = 0;
+      for (Json::ValueConstIterator iter = fieldItem.begin() ; iter != fieldItem.end() ; iter++) {
+         auto childReferenceTree = referenceTree;
+         std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > child = 
+            deSerializeTreeJson(childReferenceTree, *iter,std::to_string(arrayIndexCounter));
+         root->addChild(child);       
+         arrayIndexCounter++;
+      }
    }
    else if (fieldItem.isObject() == true) {
       

@@ -62,10 +62,13 @@ private:
 
    static std::shared_ptr<NameValueTypeNode<clang::QualType> >
    deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<clang::QualType> > referenceTree,
-                       const Json::Value &fieldItem);
+                       const Json::Value &fieldItem, 
+                       const std::string& arrayIndex = "" );
 
    static std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> >
-   deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > tree, const Json::Value &fieldItem);
+   deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > tree, 
+                       const Json::Value &fieldItem,
+                       const std::string& arrayIndex = "" );
 
    // vectors of trees
    std::shared_ptr<NameValueTypeNode<clang::QualType> > _inputTree;
