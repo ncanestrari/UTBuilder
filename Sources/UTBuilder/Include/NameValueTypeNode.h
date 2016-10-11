@@ -20,7 +20,7 @@ class NameValueTypeNode {
    
    std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > > _children;
 
-   bool _isNameInteger(void){
+   bool _isNameInteger(void) const {
       if(_name.empty()) { return false; }
       char* p;
       strtol(_name.c_str(), &p, DECIMAL_BASE);
@@ -44,7 +44,15 @@ public:
    const std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > >  &getChildren(void) const { return _children; }
    void addChild(std::shared_ptr<NameValueTypeNode<T> > child) { _children[child->_name] = child; }
 
-   const bool isArray(void){ return _isNameInteger(); }
+   const bool isArrayElement(void) const { return _isNameInteger(); }
+   
+   const bool isArray(void) const { 
+      if (_children.size() > 0 ) {
+         return _children.begin()->second->_isNameInteger();
+      }
+      return false;
+   }
+   
    //const size_t getArraySize(void){ return _value.size(); }
    
    void setValue(const char *value ) { _value = value; }
@@ -70,7 +78,7 @@ public:
    }
 
 
-   std::string & getIndexAsString(void)
+   const std::string & getIndexAsString(void)
    {
       if(_isNameInteger()){
          return _name;

@@ -136,6 +136,7 @@ FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<cl
                                       const Json::Value &fieldItem,
                                       const std::string& arrayIndex)
 {
+   // if arrayIndex is not an empty string it will use as name for this node creation
    const std::string &treeKeyName = arrayIndex.empty() ? referenceTree->getName() : arrayIndex;
    
    std::shared_ptr<NameValueTypeNode<clang::QualType> > root;
@@ -147,6 +148,7 @@ FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<cl
       size_t arrayIndexCounter = 0;
       for (Json::ValueConstIterator iter = fieldItem.begin() ; iter != fieldItem.end() ; iter++) {
          auto childReferenceTree = referenceTree;
+         // convert arrayIndexCounter to string and pass it as array index 
          std::shared_ptr<NameValueTypeNode<clang::QualType> > child = 
             deSerializeTreeJson(childReferenceTree, *iter,std::to_string(arrayIndexCounter));
          root->addChild(child);       
@@ -175,7 +177,7 @@ FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<co
                                       const Json::Value &fieldItem,
                                       const std::string& arrayIndex )
 {
-
+   // if arrayIndex is not an empty string it will use as name for this node creation
    const std::string &treeKeyName = arrayIndex.empty() ? referenceTree->getName() : arrayIndex;
 
    std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > root;
@@ -185,6 +187,7 @@ FunctionTestData::deSerializeTreeJson(const std::shared_ptr<NameValueTypeNode<co
       size_t arrayIndexCounter = 0;
       for (Json::ValueConstIterator iter = fieldItem.begin() ; iter != fieldItem.end() ; iter++) {
          auto childReferenceTree = referenceTree;
+         // convert arrayIndexCounter to string and pass it as array index 
          std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > child = 
             deSerializeTreeJson(childReferenceTree, *iter,std::to_string(arrayIndexCounter));
          root->addChild(child);       
@@ -271,6 +274,7 @@ static const char *writeStructureValue(std::ostringstream &os,
                                        const std::string &indent)
 {
    std::string structName = name + tree->getName();
+
    if (tree->getNumChildern() > 0) {
       structName += ".";
       for (const auto& child : tree->getChildren()) {
@@ -290,7 +294,7 @@ static const char *writeStructureComparison(std::ostringstream &os,
                                             const std::string &name,
                                             const std::string &indent)
 {
-   std::string structName = name + tree->getName();
+   std::string structName = name + tree->getName();   
 
    if (tree->getNumChildern() > 0) {
 
@@ -359,8 +363,10 @@ void FunctionTestData::writeGoogleTest(std::ostringstream &os, const clang::Func
       os  << " input." << currentParam->getNameAsString();
       for (int i = 1; i < numParms; ++i) {
          const clang::ParmVarDecl *currentParam = funcDecl->getParamDecl(i);
-         if (currentParam->getOriginalType()->isAnyPointerType()) { //need to be inproved
-            os  << ", &input." << currentParam->getNameAsString();
+         if (currentParam->getOriginalType()->isAnyPointerType()) {
+            //need to be improved
+//             os  << ", &input." << currentParam->getNameAsString();
+            os  << ", input." << currentParam->getNameAsString();
          } else {
             os  << ", input." << currentParam->getNameAsString();
          }

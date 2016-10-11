@@ -204,10 +204,10 @@ static const char *getStructureField(std::ostringstream &os, const clang::QualTy
 
    std::string typestr = qualType.getUnqualifiedType().getAsString();
    pos = typestr.find("*", pos);
-   while (pos != std::string::npos) {
-      typestr = typestr.erase(pos, 1);
-      pos = typestr.find("*", pos);
-   }
+//    while (pos != std::string::npos) {
+//       typestr = typestr.erase(pos, 1);
+//       pos = typestr.find("*", pos);
+//    }
 
    return typestr.c_str();
 }
@@ -235,7 +235,17 @@ static const char *writeStructureValue(std::ostringstream &os,
                                        const std::string &indent)
 {
    std::string structName = name + tree->getName();
-   if (tree->getNumChildern() > 0) {
+   
+   if ( tree->isArray() ) {
+      if (tree->getNumChildern() > 0) {
+         structName += ".";
+         os << indent << structName << " = malloc(" << tree->getNumChildern() << "*sizeof(" << tree->getType().getAsString() << "));\n";
+         for (auto child : tree->getChildren()) {
+            writeStructureValue(os, child.second, structName, indent);
+         }
+      }
+   }
+   else if (tree->getNumChildern() > 0) {
       structName += ".";
       for (auto child : tree->getChildren()) {
          writeStructureValue(os, child.second, structName, indent);
@@ -254,11 +264,12 @@ static const char *writeStructureComparison(std::ostringstream &os,
                                             const std::string &name,
                                             const std::string &indent)
 {
-   std::string structName = name + tree->getName();
+   std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
 
    if (tree->getNumChildern() > 0) {
 
-      structName += ".";
+      if ( !tree->isArray() )
+         structName += ".";
 
       for (auto child : tree->getChildren()) {
          writeStructureComparison(os, child.second, structName, indent);
@@ -322,8 +333,10 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
       os  << " input." << currentParam->getNameAsString();
       for (int ii = 1; ii < numParms; ++ii) {
          const clang::ParmVarDecl *currentParam = obj.getFunctionDecl()->getParamDecl(ii);
-         if (currentParam->getOriginalType()->isAnyPointerType()) { //need to be inproved
-            os  << ", &input." << currentParam->getNameAsString();
+         if (currentParam->getOriginalType()->isAnyPointerType()) { 
+            //need to be improved
+//             os  << ", &input." << currentParam->getNameAsString();
+            os  << ", input." << currentParam->getNameAsString();
          } else {
             os  << ", input." << currentParam->getNameAsString();
          }
