@@ -460,7 +460,8 @@ static void writeMockValue(std::ostringstream &os,
             pos = typestr.find("*", pos);
          }
 
-         os << "   " << structName << " = alloca(" << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
+         os << "   " << structName << " = static_cast<"<< tree->getType().getAsString() << ">(calloc(" << tree->getNumChildern() << ", sizeof(" << typestr << ")));\n";
+//          os << "   " << "memset(&" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
       }
    }
    
@@ -521,7 +522,9 @@ void Writer::FakeFunctionDefinition(const std::string                           
    for (const auto& child : outTree->getChildren()) {
       if (child.first == "retval") {
          out << "   " << child.second->getType().getAsString() << " retval;\n";
-         out << "   memset(&retval,0,sizeof(" << child.second->getType().getAsString() << "));\n";
+         if ( !child.second->getType()->isAnyPointerType() ) {
+            out << "   memset(&retval,0,sizeof(" << child.second->getType().getAsString() << "));\n";
+         }
       }
       writeMockValue(out, child.second, "");
    }
