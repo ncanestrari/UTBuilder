@@ -234,19 +234,29 @@ static const char *writeStructureValue(std::ostringstream &os,
                                        const std::string &name,
                                        const std::string &indent)
 {
-   std::string structName = name + tree->getName();
+   std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
    
    if ( tree->isArray() ) {
+//    this is a pointer to allocate: write the memory allocation line
       if (tree->getNumChildern() > 0) {
-         structName += ".";
-         os << indent << structName << " = malloc(" << tree->getNumChildern() << "*sizeof(" << tree->getType().getAsString() << "));\n";
-         for (auto child : tree->getChildren()) {
-            writeStructureValue(os, child.second, structName, indent);
+         // move in utils::
+         size_t pos = 0;
+         std::string typestr = tree->getType().getUnqualifiedType().getAsString();
+         pos = typestr.find("*", pos);
+         while (pos != std::string::npos) {
+            typestr = typestr.erase(pos, 1);
+            pos = typestr.find("*", pos);
          }
+
+         os << indent << structName << " = alloca(" << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
       }
    }
-   else if (tree->getNumChildern() > 0) {
-      structName += ".";
+
+   if (tree->getNumChildern() > 0) {
+      
+      if ( !tree->isArray() )
+         structName += ".";
+      
       for (auto child : tree->getChildren()) {
          writeStructureValue(os, child.second, structName, indent);
       }
@@ -297,6 +307,8 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
 
    //    mocks No recursion in mock tree
    auto children = obj.getTest(i)->getMockTree()->getChildren();
+   if ( children.size() > 0)
+      os << "// initialize mock functions\n";
    for (auto iter : children) {
       const std::string &value = iter.second->getValue();
       if (value != "") {
@@ -304,6 +316,15 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
          //TODO fill the context with necessary manually written mocks fill the custom_fake with the content
       }
    }
+   
+   os << "\n";
+   
+   os << "// fill the input struct with json file values" << "\n";
+   if (obj.getNumParams() > 0) {
+      os << writeStructureValue(os, obj.getTests()[i]->getInputTree(), "", indent) << "\n";
+   }
+
+   os << "\n";
 
    //    output declaration
    const clang::QualType returnType = obj.getFunctionDecl()->getReturnType();
@@ -311,18 +332,9 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
 
    if (returnTypeString != "void") {
       os << indent << returnTypeString << " retval;" << "\n";
+      os << indent << "retval = ";
    }
 
-   os << "// fill the input struct with json file values" << "\n";
-   if (obj.getNumParams() > 0) {
-      os << writeStructureValue(os, obj.getTests()[i]->getInputTree(), "", indent) << "\n";
-   }
-
-   os << "\n" <<  indent;
-
-   if (returnTypeString != "void") {
-      os << "retval = ";
-   }
 
    os << obj.getName() << "(";
 
@@ -352,6 +364,13 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
          writeStructureComparison(os, child.second, "input.", indent);
       }
    }
+   
+//    os << ");\n\n";
+//    os << "// free allocated memory" << "\n";
+//    if (obj.getNumParams() > 0) {
+//       os << writeFreeMemory(os, obj.getTests()[i]->getInputTree(), "", indent) << "\n";
+//    }
+   
 }
 
 

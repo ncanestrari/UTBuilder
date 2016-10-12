@@ -25,6 +25,7 @@
 #include <llvm/Support/Host.h>
 
 
+#include <sys/resource.h>
 
 static const char *mocksFileNameSuffix = "-mocks.json";
 static const char *funcsFileNameSuffix = "-unitTest.json";
@@ -32,6 +33,11 @@ static const char *funcsFileNameSuffix = "-unitTest.json";
 
 int main(int argc, const char *argv[])
 {
+
+//    struct rlimit limit;
+//    getrlimit (RLIMIT_STACK, &limit);
+//    printf ("\nStack Limit = %ld and %ld max\n", limit.rlim_cur, limit.rlim_max);
+
    try {
       OptionParser::get().createOptionMap(argc, argv);
       

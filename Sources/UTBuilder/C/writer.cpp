@@ -445,10 +445,30 @@ static void writeMockValue(std::ostringstream &os,
                            const std::shared_ptr<NameValueTypeNode<clang::QualType> > tree,
                            const std::string &name)
 {
-   std::string structName = name + tree->getName();
+   
+   std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
 
+   if ( tree->isArray() ) {
+//    this is a pointer to allocate: write the memory allocation line
+      if (tree->getNumChildern() > 0) {
+         // move in utils::
+         size_t pos = 0;
+         std::string typestr = tree->getType().getUnqualifiedType().getAsString();
+         pos = typestr.find("*", pos);
+         while (pos != std::string::npos) {
+            typestr = typestr.erase(pos, 1);
+            pos = typestr.find("*", pos);
+         }
+
+         os << "   " << structName << " = alloca(" << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
+      }
+   }
+   
    if (tree->getNumChildern() > 0) {
-      structName += ".";
+      
+      if ( !tree->isArray() )
+         structName += ".";
+      
       for (const auto& child : tree->getChildren()) {
          writeMockValue(os, child.second, structName);
       }
@@ -457,7 +477,7 @@ static void writeMockValue(std::ostringstream &os,
          if (tree->getName() == "retval") {
             os << "   retval = " << tree->getValue() << ";\n";
          } else if (tree->getType()->isAnyPointerType()) {
-            os << "   *" << structName << " = " << tree->getValue() << ";\n";
+            os << "   " << structName << " = " << tree->getValue() << ";\n";
          } else {
             os << "   " << structName << " = " << tree->getValue() << ";\n";
          }

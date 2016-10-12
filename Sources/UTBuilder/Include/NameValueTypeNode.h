@@ -14,12 +14,25 @@
 template <typename T>
 class NameValueTypeNode {
    
+   /** 
+    * if this node is an object _name is empty
+    * if this node is an array element _name is the index in the array
+    */
    const std::string _name;
+   
+   /** 
+    *  _type is clang::QualType for input and output data trees
+    *  _type is clang::FunctionDecl* for mock function trees
+    */
    const T           _type;
+   
+
    const std::string _value;
+   
    
    std::map< std::string, std::shared_ptr<NameValueTypeNode<T> > > _children;
 
+   
    bool _isNameInteger(void) const {
       if(_name.empty()) { return false; }
       char* p;
