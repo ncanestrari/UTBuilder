@@ -18,7 +18,7 @@ JsonWriter::JsonWriter(FunctionTestDataFile& dataFile)
 void JsonWriter::templateFile(const std::string  &fileName)
 {
    Json::Value jsonRoot;
-   
+ 
    _dataFile.serializeJson(jsonRoot);
 
    std::ofstream outputFile;

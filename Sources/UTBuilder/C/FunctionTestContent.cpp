@@ -303,9 +303,18 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
 
 
    //    input declaration
+   os << "// input structure declaration" << "\n";
    os << indent << structName << " input;" << "\n";
    os << indent << "memset( &input, 0, sizeof(" << structName << ") );" << "\n\n";
 
+   
+   os << "// fill the input struct with json file values" << "\n";
+   if (obj.getNumParams() > 0) {
+      os << writeStructureValue(os, obj.getTests()[i]->getInputTree(), "", indent) << "\n";
+   }
+   
+   os << "\n";
+      
    //    mocks No recursion in mock tree
    auto children = obj.getTest(i)->getMockTree()->getChildren();
    if ( children.size() > 0)
@@ -316,13 +325,6 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
          os << indent << iter.first << "_fake.custom_fake = " << value << ";\n";
          //TODO fill the context with necessary manually written mocks fill the custom_fake with the content
       }
-   }
-   
-   os << "\n";
-   
-   os << "// fill the input struct with json file values" << "\n";
-   if (obj.getNumParams() > 0) {
-      os << writeStructureValue(os, obj.getTests()[i]->getInputTree(), "", indent) << "\n";
    }
 
    os << "\n";

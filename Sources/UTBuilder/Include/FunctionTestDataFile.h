@@ -18,6 +18,8 @@ public:
    void initCollections(const FunctionDeclKeySetMap   &funcDeclsMap,
                         const FunctionDeclKeySetMap   &mockDeclsMap);
    
+   void computeAST(void);
+      
    //    Serializable interface
    virtual void serializeJson(Json::Value &jsonRoot ) const override;
    virtual void deSerializeJson(const Json::Value &jsonRoot, const void *refData = nullptr) override;
@@ -32,7 +34,7 @@ public:
    const ProjectDescription & getProjectDescription(void){ return _projectDescription; }
    const ProjectDescription & getProjectDescription(void) const { return _projectDescription; }
 protected:
-   void computeAST(void) const;
+
    void clearCollections(void);
     
    mutable clang::CompilerInstance _compiler;

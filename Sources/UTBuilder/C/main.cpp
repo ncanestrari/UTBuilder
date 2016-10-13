@@ -51,6 +51,8 @@ int main(int argc, const char *argv[])
          return EXIT_SUCCESS;
       }
       
+      FunctionTestDataFile::get().computeAST();
+      
       if( OptionParser::get().isExampleEnabled() ) {
          JsonWriter jsonWriter( FunctionTestDataFile::get() );
          jsonWriter.templateFile(OptionParser::get().getOutputName());
@@ -67,6 +69,7 @@ int main(int argc, const char *argv[])
       writer.createFiles();
 
    } catch (std::exception &e){
+      std::cout << e.what() << std::endl;
       OptionParser::get().printAll();
       return EXIT_FAILURE;
       //std::cout << e.what() << std::endl;

@@ -23,6 +23,7 @@ using std::string;
 using std::vector;
 using Json::Value;
 using Json::arrayValue;
+using Json::objectValue;
 
 
 void FunctionTestDataFile::clearCollections() 
@@ -71,10 +72,10 @@ void FunctionTestDataFile::deSerializeJson(const Json::Value &jsonRoot, const vo
    _projectDescription.createFakeSource();
    
    //compute the AST for the fake file, create the maps needed to init the collection
-   computeAST();
+//    computeAST();
 
    //collections init
-   initCollections( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
+//    initCollections( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
 //    _mockFunctionTestCollection.init(FunctionsToMock::get().declKeySetMap);
 //    _unitFunctionTestCollection.init(FunctionsToUnitTest::get().declKeySetMap);
    
@@ -102,16 +103,13 @@ void FunctionTestDataFile::serializeJson(Value &jsonRoot) const
 //    _mockFunctionTestCollection.clear();
 //    _unitFunctionTestCollection.clear();
 
-   _projectDescription.init();
-   
-   //add from command line instead of desc
-   _projectDescription.getFromOptionParser();
-   
-   //create the fare source to allow more than one source file
-   _projectDescription.createFakeSource();
+
    
    //compute the AST for the fake file, create the maps needed to init the collection
-   computeAST();
+//    computeAST();
+   
+   jsonRoot["desc"] = Value(objectValue);
+   _projectDescription.serializeJson(jsonRoot["desc"]);
    
    //init projectDescription up to the
    jsonRoot["funcs"] = Value(arrayValue);
@@ -121,8 +119,16 @@ void FunctionTestDataFile::serializeJson(Value &jsonRoot) const
    _mockFunctionTestCollection->serializeJson(jsonRoot["mocks"]);
 }
 
-void FunctionTestDataFile::computeAST(void) const
+void FunctionTestDataFile::computeAST(void)
 {
+   _projectDescription.init();
+   
+   //add from command line instead of desc
+   _projectDescription.getFromOptionParser();
+
+   //create the fare source to allow more than one source file
+   _projectDescription.createFakeSource();
+   
    // CompilerInstance
    // create DiagnosticOptions (not used ?)
    // creare DiagnosticEngine
@@ -184,4 +190,7 @@ void FunctionTestDataFile::computeAST(void) const
 
    // Parse the AST and execute all the visitors
    clang::ParseAST(_compiler.getPreprocessor(), &astConsumer, _compiler.getASTContext());
+   
+   //collections init
+   initCollections( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
 }

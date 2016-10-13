@@ -11,6 +11,63 @@
 #define DECIMAL_BASE (10)
 
 
+class NameValueNode {
+
+   const std::string _name;
+   const std::string _value;
+   std::map< std::string, std::unique_ptr<NameValueNode> > _children;
+   
+public:
+   explicit NameValueNode(const char *name, const char *value = "\0")
+      : _name(name)
+      , _value(value)
+   {}
+
+   ~NameValueNode() {}
+
+   const std::string &getName(void) const { return _name; }
+   const std::string &getValue(void) const { return _value; }
+   
+   
+   unsigned int getNumChildern(void) { return _children.size(); }
+   const std::map< std::string, std::unique_ptr<NameValueNode> >  &getChildren(void) const { return _children; }
+   void addChild(NameValueNode* child) { _children[child->_name] = std::unique_ptr<NameValueNode>(child); }
+   const NameValueNode* getChild(const char *name) const
+   {
+      auto iter = _children.find(name);
+      if (iter == _children.end()) {
+         std::cout << "ERROR: node " << _name << " has no child named '" << name << "'" << std::endl; 
+         return nullptr;
+      }
+      return iter->second.get();
+   }
+
+
+   const NameValueNode* addChild(const char *name, const char *value )
+   {
+      _children[name] = std::unique_ptr<NameValueNode>(new NameValueNode(name, value) );
+      return getChild(name);
+   }
+};
+
+
+template <typename T>
+class TypeNameValueNode : public NameValueNode {
+   
+   T _type;
+   
+public:
+   T getType(void) const { _type; }
+};
+
+
+
+class NameValueFunctionDeclNode : public NameValueNode {
+   
+   clang::FunctionDecl* _type;
+};
+
+
 template <typename T>
 class NameValueTypeNode {
    

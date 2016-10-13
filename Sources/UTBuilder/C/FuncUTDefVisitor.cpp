@@ -7,12 +7,13 @@
 
 #include "Results.h"
 #include "utils.h"
-
+#include "optionparser.h"
 
 FuncUTDefVisitor::FuncUTDefVisitor(clang::ASTContext*              context, 
                                    const std::vector<std::string>& fileNames)
    : Visitor(context, fileNames)
-{}
+{
+}
 
 
 
@@ -27,15 +28,30 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
    if (func->hasBody()) {
       // get declaration source location
       const std::string declSrcFile = utils::getDeclSourceFile(func, _context->getSourceManager());
-
+      const std::string funcName = func->getNameAsString();
+      
       // check if the funcDecl is in the input argument file
       bool found = false;
       for (const auto & fileName : _fileNames){
-         if (declSrcFile.find(fileName) != std::string::npos) {
-            // add to map with an empty set
-            FunctionsToUnitTest::get().declKeySetMap[func] = FunctionDeclSet();
-            FunctionsToUnitTest::get().nameDeclMap[func->getNameAsString()] = func;
+         
+         if (declSrcFile.find(fileName) == std::string::npos) {
+//             funcDecl is NOT in the input argument file
+            continue;
          }
+         
+         
+         if ( OptionParser::get().isFunctionToTestEnabled() ) {
+            // one more check: is the funcDecl in the command line Option Parser -functions list ?
+            static std::set<std::string>  functionToTestFromOptionParser = OptionParser::get().getFunctionsToTest();
+            if ( functionToTestFromOptionParser.find(funcName) == functionToTestFromOptionParser.end() ) {
+               continue;
+            }
+         }
+
+         // add to map with an empty set
+         FunctionsToUnitTest::get().declKeySetMap[func] = FunctionDeclSet();
+         FunctionsToUnitTest::get().nameDeclMap[funcName] = func;
+         
       }
    }
 

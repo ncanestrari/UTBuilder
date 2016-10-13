@@ -103,6 +103,7 @@ void OptionParser::createOptionMap(int ac, const char* av[])
    example.add_options()
       ("files", value<CommaSeparatedVector>()->multitoken(), "list of files comma separated")
       ("dirs", value<CommaSeparatedVector>()->multitoken(), "list of directories comma separated")
+      ("functions", value<CommaSeparatedVector>()->multitoken(), "list of functions to test comma separated")
       ("output", value<string>(), "basename of the out files\n\tas in output-mocks.h output-utest.cpp output-mtest.cpp")
       ("example", value<bool>(), "will create an example.json for developer to play with")
       ;
@@ -115,6 +116,7 @@ void OptionParser::createOptionMap(int ac, const char* av[])
    //Declare conflicting options
    conflicting_options(_vm, "json", "files");
    conflicting_options(_vm, "json", "dirs");
+   conflicting_options(_vm, "json", "functions");
    conflicting_options(_vm, "json", "output");
    conflicting_options(_vm, "json", "example");
 }
@@ -139,6 +141,16 @@ void OptionParser::getFileNames(vector<string> &files)
       throw logic_error(string("No files or dirs options are provided."));
    }
 }
+
+const set<string> OptionParser::getFunctionsToTest() {
+   const vector<string>& functionsStr = _vm["functions"].as<CommaSeparatedVector>().values;
+   return set<string>(functionsStr.begin(),functionsStr.end());
+}
+// void OptionParser::getFunctionsToTest(std::set<std::string>& functions)
+// {
+//    const std::vector<std::string>& functionsStr = _vm["functions"].as<CommaSeparatedVector>().values;
+//    functions.insert(functionsStr.begin(),functionsStr.end()); 
+// }
 
 const string& OptionParser::getFirstAvailableFile(void)
 {

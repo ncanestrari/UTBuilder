@@ -52,12 +52,16 @@ public:
    bool isExampleEnabled(void) { return _vm.count("example"); }
    bool isUnitTest(void) { return (_vm.count("files") && _vm["files"].as<CommaSeparatedVector>().values.size() > 1) || _vm.count("dirs"); }
    bool isModuleTest(void) { return !isUnitTest(); }
+   bool isFunctionToTestEnabled(void){ return _vm.count("functions"); }
    
+//    const std::vector<std::string>& getFunctionsToTest(void) { return _vm["functions"].as<CommaSeparatedVector>().values; }
    const std::string & getOutputName(void) { return _vm["output"].as<std::string>(); }
    const std::string & getJsonFileName(void) { return _vm["json"].as<std::string>(); }
    std::string getCommercialCode(void) { return utils::extractCommercialCodePath( getFirstAvailableFile() ); }
    std::string getPackage(void) { return utils::extractPackagePath( getFirstAvailableFile() ); }
    void getFileNames(std::vector<std::string>&);
+//    void getFunctionsToTest(std::set<std::string>&);
+   const std::set<std::string> getFunctionsToTest();
    
 protected:
 
