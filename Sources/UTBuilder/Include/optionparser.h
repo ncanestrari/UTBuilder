@@ -53,6 +53,7 @@ public:
    bool isUnitTest(void) { return (_vm.count("files") && _vm["files"].as<CommaSeparatedVector>().values.size() > 1) || _vm.count("dirs"); }
    bool isModuleTest(void) { return !isUnitTest(); }
    bool isFunctionToTestEnabled(void){ return _vm.count("functions"); }
+   bool isJsonFileNameEnabled(void) { return _vm.count("json"); }
    
 //    const std::vector<std::string>& getFunctionsToTest(void) { return _vm["functions"].as<CommaSeparatedVector>().values; }
    const std::string & getOutputName(void) { return _vm["output"].as<std::string>(); }

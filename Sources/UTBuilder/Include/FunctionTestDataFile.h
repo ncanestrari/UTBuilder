@@ -37,12 +37,12 @@ protected:
 
    void clearCollections(void);
     
-   mutable clang::CompilerInstance _compiler;
+   clang::CompilerInstance _compiler;
 //    UnitFunctionTestCollection _unitFunctionTestCollection;
 //    MockFunctionTestCollection _mockFunctionTestCollection;
    std::shared_ptr<FunctionTestCollection> _unitFunctionTestCollection;
    std::shared_ptr<FunctionTestCollection> _mockFunctionTestCollection;
-   mutable ProjectDescription _projectDescription;
+   ProjectDescription _projectDescription;
 };
 
 

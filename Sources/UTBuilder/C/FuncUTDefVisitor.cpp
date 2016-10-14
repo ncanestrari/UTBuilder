@@ -35,7 +35,7 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
       for (const auto & fileName : _fileNames){
          
          if (declSrcFile.find(fileName) == std::string::npos) {
-//             funcDecl is NOT in the input argument file
+//             funcDecl is NOT in the input argument file"Sources/CurrencyTools/C/currency-convert.c"
             continue;
          }
          

@@ -52,24 +52,21 @@ void FunctionTestDataFile::initCollections(const FunctionDeclKeySetMap   &funcDe
 void FunctionTestDataFile::deSerializeJson(const Json::Value &jsonRoot, const void* )
 {
    //clear every members
-//    _projectDescription.clear();
-   clearCollections();
-//    _mockFunctionTestCollection.clear();
-//    _unitFunctionTestCollection.clear();
-
-   //init projectDescription up to the OptionParser level
-   _projectDescription.init();
-   
-   //this function is only called by the real case (not the example)
-   //so read the desc from json to know what are the files to be loaded
-   const Value& descRoot = jsonRoot["desc"];
-   if( descRoot.empty() ){
-      cout << "project description not found in input json file: " << endl;
-   }
-   _projectDescription.deSerializeJson(descRoot);
-   
-   //create the fare source to allow more than one source file
-   _projectDescription.createFakeSource();
+//    clearCollections();
+// 
+//    //init projectDescription up to the OptionParser level
+//    _projectDescription.init();
+//    
+//    //this function is only called by the real case (not the example)
+//    //so read the desc from json to know what are the files to be loaded
+//    const Value& descRoot = jsonRoot["desc"];
+//    if( descRoot.empty() ){
+//       cout << "project description not found in input json file: " << endl;
+//    }
+//    _projectDescription.deSerializeJson(descRoot);
+//    
+//    //create the fare source to allow more than one source file
+//    _projectDescription.createFakeSource();
    
    //compute the AST for the fake file, create the maps needed to init the collection
 //    computeAST();
@@ -123,7 +120,7 @@ void FunctionTestDataFile::computeAST(void)
 {
    _projectDescription.init();
    
-   //add from command line instead of desc
+   //get the files from command line args or from the json file "desc" : {"files"}
    _projectDescription.getFromOptionParser();
 
    //create the fare source to allow more than one source file

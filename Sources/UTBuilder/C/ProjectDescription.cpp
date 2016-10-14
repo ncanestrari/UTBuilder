@@ -15,6 +15,7 @@
 
 using std::endl;
 using std::ofstream;
+using std::ifstream;
 using std::string;
 using std::vector;
 using Json::Value;
@@ -52,7 +53,7 @@ void ProjectDescription::clear(void)
 void ProjectDescription::init(void)
 {
    //set _workspace
-   _workspace = OptionParser::get().getCommercialCode() + "/" + OptionParser::get().getPackage() + "/";
+   _workspace = OptionParser::get().getCommercialCode() + OptionParser::get().getPackage();
    //fill IncludePaths
    utils::getIncludePaths( _workspace, _includePaths);
    /**
@@ -67,7 +68,7 @@ void ProjectDescription::init(void)
     * 
     */
    utils::getSourcePaths( _workspace, _includePaths);
-   _inputFileName = _workspace + "fakesource.c";
+   _inputFileName = _workspace + "/" + "fakesource.c";
 }
 
 void ProjectDescription::createFakeSource(void)
@@ -83,7 +84,34 @@ void ProjectDescription::createFakeSource(void)
 
 void ProjectDescription::getFromOptionParser(void)
 {
-   OptionParser::get().getFileNames(_fileNames);
-   _inputFileName = OptionParser::get().getOutputName();
+   
+   if ( OptionParser::get().isJsonFileNameEnabled() ) {
+     // we need to fil _fileNames form the input args or from the json file "desc" : {"files"}
+      const string jsonFileName = OptionParser::get().getJsonFileName();
+   
+      ifstream jsonFile;
+
+      jsonFile.open(jsonFileName);
+      if (jsonFile.is_open() == false) {
+         std::cout << "json file not found: " << jsonFileName << endl;
+         return;
+      } else {
+         std::cout << "reading json file: " << jsonFileName << endl;
+         
+         Json::Value jsonRoot;
+         jsonFile >> jsonRoot;
+         
+         deSerializeJson(jsonRoot["desc"]);     
+      }
+      
+      jsonFile.close(); 
+   }
+   else {
+       //add from command line instead of desc
+      OptionParser::get().getFileNames(_fileNames);
+      init();
+//       _inputFileName = OptionParser::get().getOutputName();      
+   }
+   
 }
 
