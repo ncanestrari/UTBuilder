@@ -28,6 +28,28 @@ void FillWithArrayOfStringFromField(vector<string> &vstr, const Value &rootValue
    }   
 }
 
+void ProjectDescription::serializeJson(Json::Value &jsonRoot ) const
+{
+   if ( OptionParser::get().isJsonFileNameEnabled() ) {
+      // don't add anything
+   }
+   else {
+      
+      //Json::Value jsonChild = Json::Value(Json::objectValue);
+      jsonRoot["ouput"] =  OptionParser::get().getOutputName();
+      jsonRoot["files"] = Json::Value(Json::arrayValue);
+      
+      vector<string> fileNames;
+      OptionParser::get().getFileNames(fileNames);
+      for (unsigned int i = 0; i < fileNames.size(); ++i) {
+         jsonRoot["files"][i] = fileNames[i];
+      }
+      
+      //jsonRoot.append(jsonChild);
+   }
+
+}
+
 void ProjectDescription::deSerializeJson(const Value &rootDesc, const void * )
 {
    FillWithArrayOfStringFromField(_fileNames, rootDesc, "files");

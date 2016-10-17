@@ -15,7 +15,7 @@ public:
    ProjectDescription& operator=(ProjectDescription const&);
    
    //    Serializable interface
-   virtual void serializeJson(Json::Value &jsonRoot ) const override {};
+   virtual void serializeJson(Json::Value &jsonRoot ) const override;
    virtual void deSerializeJson(const Json::Value &jsonRoot, const void *refData = nullptr) override;
    
    void clear(void);

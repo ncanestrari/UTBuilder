@@ -31,7 +31,6 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
       const std::string funcName = func->getNameAsString();
       
       // check if the funcDecl is in the input argument file
-      bool found = false;
       for (const auto & fileName : _fileNames){
          
          if (declSrcFile.find(fileName) == std::string::npos) {
@@ -41,7 +40,8 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
          
          
          if ( OptionParser::get().isFunctionToTestEnabled() ) {
-            // one more check: is the funcDecl in the command line Option Parser -functions list ?
+            /* one more check: is the funcDecl in the command line Option Parser -functions list ? */
+            /* initialized only once */
             static std::set<std::string>  functionToTestFromOptionParser = OptionParser::get().getFunctionsToTest();
             if ( functionToTestFromOptionParser.find(funcName) == functionToTestFromOptionParser.end() ) {
                continue;

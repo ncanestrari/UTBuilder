@@ -25,6 +25,7 @@ bool MockVisitor::VisitDecl(clang::Decl *decl)
       return true;
    }
 
+   // keep the last function definition. this will be the caller of the mock functions
    if (func->hasBody()) {
       _lastFuncDecl = func;
    }
@@ -63,6 +64,14 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr *funcCall)
       return true;
    }
 
+   // check if the caller (_lastFuncDecl) needs to be tested
+   const std::string callerFuncName = _lastFuncDecl->getNameAsString();
+   FunctionNameDeclMap::iterator funcToTestIter = FunctionsToUnitTest::get().nameDeclMap.find(callerFuncName);
+   if ( FunctionsToUnitTest::get().nameDeclMap.find(callerFuncName) == FunctionsToUnitTest::get().nameDeclMap.end() ) {
+      return true;
+   }
+   
+   
    // mock this function
    FunctionDeclKeySetMap::iterator iter = FunctionsToMock::get().declKeySetMap.find(funcDecl);
    if (iter != FunctionsToMock::get().declKeySetMap.end()) {

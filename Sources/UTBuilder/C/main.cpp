@@ -55,6 +55,7 @@ int main(int argc, const char *argv[])
       
       if( OptionParser::get().isExampleEnabled() ) {
          JsonWriter jsonWriter( FunctionTestDataFile::get() );
+         // do we have to check if OptionParser::get().getOutputName() is empty ?
          jsonWriter.templateFile(OptionParser::get().getOutputName());
          return EXIT_SUCCESS;
       }
