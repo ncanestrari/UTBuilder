@@ -36,7 +36,7 @@ void ProjectDescription::serializeJson(Json::Value &jsonRoot ) const
    else {
       
       //Json::Value jsonChild = Json::Value(Json::objectValue);
-      jsonRoot["ouput"] =  OptionParser::get().getOutputName();
+      jsonRoot["output"] =  OptionParser::get().getOutputName();
       jsonRoot["files"] = Json::Value(Json::arrayValue);
       
       vector<string> fileNames;

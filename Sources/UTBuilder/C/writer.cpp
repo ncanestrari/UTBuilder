@@ -520,7 +520,8 @@ void Writer::FakeFunctionDefinition(const std::string                           
 
 
    for (const auto& child : outTree->getChildren()) {
-      if (child.first == "retval") {
+      if ( (child.first == "retval") && 
+           ! (child.second->getType().getAsString() == "void") ) {
          out << "   " << child.second->getType().getAsString() << " retval;\n";
          if ( !child.second->getType()->isAnyPointerType() ) {
             out << "   memset(&retval,0,sizeof(" << child.second->getType().getAsString() << "));\n";

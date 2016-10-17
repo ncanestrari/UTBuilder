@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <fstream>
-
+#include <stdexcept>
 
 
 
@@ -24,6 +24,9 @@ void JsonWriter::templateFile(const std::string  &fileName)
    std::ofstream outputFile;
    std::string outputFileName = fileName + ".json";
    outputFile.open(outputFileName, std::fstream::out);
+   if( !outputFile.is_open() ){
+      throw std::logic_error("cannot open file" + outputFileName + "\n");
+   }
    outputFile << jsonRoot;
    outputFile.close();
 
