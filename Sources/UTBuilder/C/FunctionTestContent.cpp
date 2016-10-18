@@ -229,7 +229,7 @@ void  FunctionTestContent::writeAsStructure(std::ostringstream &os, const Functi
 }
 
 
-static const char *writeStructureValue(std::ostringstream &os,
+static void writeStructureValue(std::ostringstream &os,
                                        const std::shared_ptr<NameValueTypeNode<clang::QualType> > tree,
                                        const std::string &name,
                                        const std::string &indent)
@@ -267,10 +267,10 @@ static const char *writeStructureValue(std::ostringstream &os,
       }
    }
 
-   return "";
+   return;
 }
 
-static const char *writeStructureComparison(std::ostringstream &os,
+static void writeStructureComparison(std::ostringstream &os,
                                             const std::shared_ptr<NameValueTypeNode<clang::QualType> > tree,
                                             const std::string &name,
                                             const std::string &indent)
@@ -291,7 +291,6 @@ static const char *writeStructureComparison(std::ostringstream &os,
       }
    }
 
-   return "";
 }
 
 void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const FunctionTestContent &obj, const unsigned int i)
@@ -310,7 +309,7 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
    
    os << "// fill the input struct with json file values" << "\n";
    if (obj.getNumParams() > 0) {
-      os << writeStructureValue(os, obj.getTests()[i]->getInputTree(), "", indent) << "\n";
+      writeStructureValue(os, obj.getTests()[i]->getInputTree(), "", indent);
    }
    
    os << "\n";

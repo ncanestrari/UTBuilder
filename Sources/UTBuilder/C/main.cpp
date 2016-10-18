@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "Results.h"
 #include "writer.h"
+#include "UnitTestData.h"
 
 #include <iostream>
 #include <fstream>
@@ -52,6 +53,11 @@ int main(int argc, const char *argv[])
       }
       
       FunctionTestDataFile::get().computeAST();
+      
+      // test UnitTestData
+      UnitTestData unitTestData( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
+      unitTestData.buildCollectionTree();
+      
       
       if( OptionParser::get().isExampleEnabled() ) {
          JsonWriter jsonWriter( FunctionTestDataFile::get() );

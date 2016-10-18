@@ -11,23 +11,46 @@
 #define DECIMAL_BASE (10)
 
 
+
 class NameValueNode {
 
    const std::string _name;
    const std::string _value;
    std::map< std::string, std::unique_ptr<NameValueNode> > _children;
    
-public:
-   explicit NameValueNode(const char *name, const char *value = "\0")
+   
+protected:
+   
+      NameValueNode(const char *name, const char *value)
       : _name(name)
       , _value(value)
    {}
+   
+public:
 
+
+   static NameValueNode* createValue(const char *name, const char *value = "\0") {
+      return new NameValueNode(name, value);
+   }
+   
+   static NameValueNode* createObject(const char *name) {
+      return new NameValueNode(name, "object");
+   }
+   
+   static NameValueNode* createArray(const char *index) {
+      return new NameValueNode(index, "array");
+   }
+   
    ~NameValueNode() {}
 
    const std::string &getName(void) const { return _name; }
    const std::string &getValue(void) const { return _value; }
    
+
+   virtual void* getType() { return nullptr; }
+   
+   bool isArray() { return (_name == "array" ); }
+   bool isObject() { return (_name == "object" );}
    
    unsigned int getNumChildern(void) { return _children.size(); }
    const std::map< std::string, std::unique_ptr<NameValueNode> >  &getChildren(void) const { return _children; }
@@ -43,7 +66,7 @@ public:
    }
 
 
-   const NameValueNode* addChild(const char *name, const char *value )
+   virtual const NameValueNode* addChild(const char *name, const char *value )
    {
       _children[name] = std::unique_ptr<NameValueNode>(new NameValueNode(name, value) );
       return getChild(name);
@@ -56,16 +79,25 @@ class TypeNameValueNode : public NameValueNode {
    
    T _type;
    
-public:
-   T getType(void) const { _type; }
-};
-
-
-
-class NameValueFunctionDeclNode : public NameValueNode {
    
-   clang::FunctionDecl* _type;
+protected:
+   
+   explicit TypeNameValueNode(const char *name, T type = T(), const char *value = "\0")
+      : NameValueNode(name, value)
+      , _type(type)
+   {}
+   
+public:
+   
+   static NameValueNode* create(const char *name, T type = T(), const char *value = "\0") 
+   {
+      return new TypeNameValueNode<T>(name, type, value);
+   }
+   
+   virtual void* getType() override final { return static_cast<T*>(&_type); }
+   
 };
+
 
 
 template <typename T>

@@ -77,6 +77,57 @@ std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > FunctionTestDat
 }
 
 
+NameValueNode* FunctionTestData::buildTree(const clang::FunctionDecl *funcDecl,
+                                               const std::set<const clang::FunctionDecl *> &mockFuncs)
+{
+   NameValueNode* unitTestNode = NameValueNode::createObjectNode("unitTest");
+   
+   if (funcDecl->getNumParams() > 0) {
+      
+      NameValueNode* inputNode = NameValueNode::createObjectNode("input");
+      
+      for (const auto& field : funcDecl->params()) {
+         
+         auto node = TypeNameValueNode<clang::QualType>::create(field->getNameAsString().c_str(), field->getType(), "");
+//          root->addChild(field->getNameAsString().c_str(), field->getType(), "");
+      }
+      
+      unitTestNode->addChild(inputNode);
+   }
+   
+   
+   NameValueNode* outputNode = NameValueNode::createObjectNode("output");
+   if (funcDecl->getNumParams() > 0) {
+     
+      for (const auto& field : funcDecl->params()) {
+         auto node = TypeNameValueNode<clang::QualType>::create(field->getNameAsString().c_str(), field->getType(), "");
+//          root->addChild(field->getNameAsString().c_str(), field->getType(), "");
+      }
+   }
+   
+   auto node = TypeNameValueNode<clang::QualType>::create("retval", funcDecl->getReturnType(), "");
+   outputNode->addChild(node);
+   unitTestNode->addChild(outputNode);
+   
+   // add return type
+//    root->addChild("retval", funcDecl->getReturnType(), "");
+   
+   
+   if ( mockFuncs.size() > 0 )
+   {
+      NameValueNode* mocksNode = NameValueNode::createObjectNode("mock-funcs-call");
+      
+      std::string value;
+      for (const clang::FunctionDecl* iter : mockFuncs) {
+         value = iter->getNameAsString() + "_0";
+         auto node = TypeNameValueNode<const clang::FunctionDecl*>::create(iter->getNameAsString().c_str(), iter, value.c_str());
+//          root->addChild(iter->getNameAsString().c_str(), iter, value.c_str());
+      }
+      
+      unitTestNode->addChild(mocksNode);
+   }
+}
+
 void FunctionTestData::serializeJsonTree(std::shared_ptr<NameValueTypeNode<clang::QualType> > tree, Json::Value &fieldItem)
 {
    std::string comment;
