@@ -249,7 +249,7 @@ static const char *writeStructureValue(std::ostringstream &os,
          }
 
          os << indent << structName << " = alloca(" << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
-         os << indent << "memset(&" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
+         os << indent << "memset(" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
       }
    }
 

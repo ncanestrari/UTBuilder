@@ -460,7 +460,7 @@ static void writeMockValue(std::ostringstream &os,
             pos = typestr.find("*", pos);
          }
 
-         os << "   " << structName << " = static_cast<"<< tree->getType().getAsString() << ">(calloc(" << tree->getNumChildern() << ", sizeof(" << typestr << ")));\n";
+//          os << "   " << structName << " = static_cast<"<< tree->getType().getAsString() << ">(calloc(" << tree->getNumChildern() << ", sizeof(" << typestr << ")));\n";
 //          os << "   " << "memset(&" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
       }
    }
