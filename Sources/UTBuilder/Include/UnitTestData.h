@@ -31,8 +31,8 @@ public:
 
 
 //    Serializable interface
-   virtual void serializeJson(Json::Value &jsonRoot ) const override;
-   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *funcTestData) override;
+   virtual void serializeJson(Json::Value &jsonRoot ) const override final;
+   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *funcTestData) override final;
 
 
    NameValueNode* buildCollectionTree();
@@ -61,6 +61,9 @@ private:
    
    NameValueNode* buildTreeFromAST( const clang::FunctionDecl *funcDecl,
                                     const std::set<const clang::FunctionDecl *> &mockFuncs);
+   
+   static void serializeJsonTree(Json::Value &jsonRoot, const NameValueNode* node);
+   
    
    std::unique_ptr<NameValueNode> _treeDataFromAST;
    std::unique_ptr<NameValueNode> _treeFromJson;

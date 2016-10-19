@@ -26,6 +26,15 @@ protected:
       , _value(value)
    {}
    
+   
+   bool _isNameInteger(void) const {
+      if(_name.empty()) { return false; }
+      char* p;
+      strtol(_name.c_str(), &p, DECIMAL_BASE);
+      return (*p == '\0');
+   }
+   
+   
 public:
 
 
@@ -37,9 +46,14 @@ public:
       return new NameValueNode(name, "object");
    }
    
-   static NameValueNode* createArray(const char *index) {
-      return new NameValueNode(index, "array");
+   static NameValueNode* createArray(const char *name) {
+      return new NameValueNode(name, "array");
    }
+   
+   static NameValueNode* createArrayElement(const char *index) {
+      return new NameValueNode(index, "arrayElement");
+   }
+   
    
    ~NameValueNode() {}
 
@@ -47,13 +61,28 @@ public:
    const std::string &getValue(void) const { return _value; }
    
 
-   virtual void* getType() { return nullptr; }
+   virtual void* getType() const { return nullptr; }
    
-   bool isArray() { return (_name == "array" ); }
-   bool isObject() { return (_name == "object" );}
+   bool isArray() const { return (_value == "array" ); }
+   bool isObject() const { return (_value == "object" );}
+   const bool isArrayElement(void) const { return (_value == "arrayElement"); }
    
-   unsigned int getNumChildern(void) { return _children.size(); }
-   const std::map< std::string, std::unique_ptr<NameValueNode> >  &getChildren(void) const { return _children; }
+   int getIndex(void) const
+   {
+      if ( isArrayElement() ) {
+         if(_isNameInteger()){
+            return stoi(_name);
+         } else {
+            throw std::logic_error(std::string("Error getIndexAsString: name is not an index\n"));
+         }
+      }
+      else {
+         return -1;
+      }
+   }
+   
+   unsigned int getNumChildern(void) const { return _children.size(); }
+   const std::map< std::string, std::unique_ptr<NameValueNode> >& getChildren(void) const { return _children; }
    void addChild(NameValueNode* child) { _children[child->_name] = std::unique_ptr<NameValueNode>(child); }
    const NameValueNode* getChild(const char *name) const
    {
@@ -77,7 +106,7 @@ public:
 template <typename T>
 class TypeNameValueNode : public NameValueNode {
    
-   T _type;
+   mutable T _type;
    
    
 protected:
@@ -94,7 +123,7 @@ public:
       return new TypeNameValueNode<T>(name, type, value);
    }
    
-   virtual void* getType() override final { return static_cast<T*>(&_type); }
+   virtual void* getType() const override final { return static_cast<T*>(&_type); }
    
 };
 

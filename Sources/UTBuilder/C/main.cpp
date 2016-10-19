@@ -57,10 +57,10 @@ int main(int argc, const char *argv[])
       // test UnitTestData
       UnitTestData unitTestData( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
       unitTestData.buildCollectionTree();
-      
+
       
       if( OptionParser::get().isExampleEnabled() ) {
-         JsonWriter jsonWriter( FunctionTestDataFile::get() );
+         JsonWriter jsonWriter( FunctionTestDataFile::get(), unitTestData );
          // do we have to check if OptionParser::get().getOutputName() is empty ?
          jsonWriter.templateFile(OptionParser::get().getOutputName());
          return EXIT_SUCCESS;

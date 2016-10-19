@@ -219,7 +219,7 @@ void  FunctionTestContent::writeAsStructure(std::ostringstream &os, const Functi
    os << "\n";
 
    if (obj.getNumParams() > 0) {
-      for (auto field : obj.getFunctionDecl()->params()) {
+      for (const auto& field : obj.getFunctionDecl()->params()) {
          clang::QualType qualType = field->getType();
          const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
 
@@ -258,7 +258,7 @@ static void writeStructureValue(std::ostringstream &os,
       if ( !tree->isArray() )
          structName += ".";
       
-      for (auto child : tree->getChildren()) {
+      for (const auto& child : tree->getChildren()) {
          writeStructureValue(os, child.second, structName, indent);
       }
    } else {
@@ -282,7 +282,7 @@ static void writeStructureComparison(std::ostringstream &os,
       if ( !tree->isArray() )
          structName += ".";
 
-      for (auto child : tree->getChildren()) {
+      for (const auto& child : tree->getChildren()) {
          writeStructureComparison(os, child.second, structName, indent);
       }
    } else {
@@ -315,10 +315,10 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
    os << "\n";
       
    //    mocks No recursion in mock tree
-   auto children = obj.getTest(i)->getMockTree()->getChildren();
+   const auto& children = obj.getTest(i)->getMockTree()->getChildren();
    if ( children.size() > 0)
       os << "// initialize mock functions\n";
-   for (auto iter : children) {
+   for (const auto& iter : children) {
       const std::string &value = iter.second->getValue();
       if (value != "") {
          os << indent << iter.first << "_fake.custom_fake = " << value << ";\n";
@@ -359,7 +359,7 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
    os << ");\n\n";
 
    os << "// check conditions" << "\n";
-   for (auto child : obj.getTests()[i]->getOutputTree()->getChildren()) {
+   for (const auto& child : obj.getTests()[i]->getOutputTree()->getChildren()) {
       if (child.first == "retval") {
          writeStructureComparison(os, child.second, "", indent);
       } else {
