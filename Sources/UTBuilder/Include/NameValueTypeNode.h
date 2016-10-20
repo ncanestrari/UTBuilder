@@ -37,6 +37,8 @@ protected:
    
 public:
 
+   static const char* _arrayIndex[];// = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+   static const unsigned int _arrayIndexSize; 
 
    static NameValueNode* createValue(const char *name, const char *value = "\0") {
       return new NameValueNode(name, value);
@@ -50,8 +52,12 @@ public:
       return new NameValueNode(name, "array");
    }
    
-   static NameValueNode* createArrayElement(const char *index) {
-      return new NameValueNode(index, "arrayElement");
+   static NameValueNode* createArrayElement(unsigned int index) {
+//       if ( index >= NameValueNode::_arrayIndexSize ) {
+//          throw std::out_of_range("Call to NameValueNode::createArrayElement with index > 9. Increase the static _arrayIndex size\n");
+//       }
+//       return new NameValueNode( NameValueNode::_arrayIndex[index], "arrayElement");
+      return new NameValueNode( std::to_string(index).c_str(), "arrayElement");
    }
    
    

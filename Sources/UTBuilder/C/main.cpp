@@ -66,7 +66,7 @@ int main(int argc, const char *argv[])
          return EXIT_SUCCESS;
       }
 
-      JsonReader reader;
+      JsonReader reader(unitTestData);
       reader.parse( FunctionTestDataFile::get(), OptionParser::get().getJsonFileName() );
       
       std::string outputFileName = FunctionTestDataFile::get().getProjectDescription().getOutputFileName();

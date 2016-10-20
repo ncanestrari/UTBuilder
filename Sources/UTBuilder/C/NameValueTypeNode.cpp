@@ -1,6 +1,9 @@
 #include "NameValueTypeNode.h"
 
 
+// the order of static vars initialization is always respected for each translation unit 
+const char* NameValueNode::_arrayIndex[] = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+const unsigned int NameValueNode::_arrayIndexSize = (sizeof((NameValueNode::_arrayIndex))/sizeof(*(NameValueNode::_arrayIndex)));
 
 // template specialization for clang::QualType type
 // QualType can be a structure and addChild is called recursevly for each struct field

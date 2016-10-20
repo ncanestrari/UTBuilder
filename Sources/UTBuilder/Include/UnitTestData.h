@@ -13,7 +13,6 @@ namespace clang{
 }
 
 
-
 class UnitTestData :  public Serializable //, public Singleton<UnitTestData>
 {
 
@@ -32,7 +31,7 @@ public:
 
 //    Serializable interface
    virtual void serializeJson(Json::Value &jsonRoot ) const override final;
-   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *funcTestData) override final;
+   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *funcTestData=nullptr) override final;
 
 
    NameValueNode* buildCollectionTree();
@@ -72,7 +71,7 @@ private:
    const FunctionDeclKeySetMap& _funcDeclsMap;
    const FunctionDeclKeySetMap& _mockDeclsMap;
   
-   static const unsigned int _defaultContentSize;
+   static const unsigned int _defaultExampleContentSize;
    
 };
 

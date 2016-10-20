@@ -18,7 +18,8 @@ using std::string;
 /** 
  * Constructor of JsonReader is empty
  */
-JsonReader::JsonReader()
+JsonReader::JsonReader(UnitTestData& unitTestData)
+: _unitTestData(unitTestData)
 {}
 
 
@@ -46,11 +47,12 @@ bool JsonReader::parse(FunctionTestDataFile &data,
       Json::Value jsonRoot;
       jsonFile >> jsonRoot;
       
-      data.deSerializeJson(jsonRoot);      
+      data.deSerializeJson(jsonRoot); 
+      _unitTestData.deSerializeJson(jsonRoot);
    }
    
    jsonFile.close();
-
+   
    return true;
 }
 
