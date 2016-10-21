@@ -671,7 +671,7 @@ bool UnitTestData::validiteData(void) {
       
       const NameValueNode* currentRefNode = std::get<0>(top);
       const NameValueNode* currentJsonNode = std::get<1>(top);
-//       NameValueNode* currentNode = std::get<2>(top);
+      NameValueNode* currentDataNode = std::get<2>(top);
       
       if ( currentJsonNode == nullptr )
          continue;
@@ -679,29 +679,49 @@ bool UnitTestData::validiteData(void) {
       const std::map< std::string, std::unique_ptr<NameValueNode> >& children = currentJsonNode->getChildren();
       for ( auto& child : children ) {
          
-         const std::string& childName = child.first;
-         const NameValueNode* childNode = child.second.get();
+         const std::string& childJsonName = child.first;
+         const NameValueNode* childJsonNode = child.second.get();
          
-         const NameValueNode* refChildNode = currentRefNode->getChild(childName.c_str());
+         const NameValueNode* refChildNode = currentRefNode->getChild(childJsonName.c_str());
          
          if ( refChildNode == nullptr ) {
-            std::cout << "ERROR: " << childName << " is NOT a valid object\n";
+            std::cout << "ERROR: " << childJsonName << " is NOT a valid object\n";
          }
          
-         if ( auto refQualTypeNode = dynamic_cast<const TypeNameValueNode<clang::QualType>* >(refChildNode) ) {
+         if ( childJsonNode->isObject() ) {
             
-            auto* newNode = TypeNameValueNode<clang::QualType>::create( childNode->getName().c_str(),
-                                                                         *static_cast<clang::QualType*>(refQualTypeNode->getType()), 
-                                                                         childNode->getValue().c_str() );
-            
+            NameValueNode* newObjectNode = NameValueNode::createObject(childJsonName.c_str());
+            currentDataNode->addChild(newObjectNode);
+            Stack.push( treeNodeTuple( refChildNode, childJsonNode, newObjectNode) );    
          }
-         else if ( auto refFuncDeclNode = dynamic_cast<const TypeNameValueNode<const clang::FunctionDecl*>* >(refChildNode) ) {
-
-//             auto* nameNode = TypeNameValueNode<const clang::FunctionDecl*>::create("_name", funcDecl, name.c_str());
-   
+         else if ( childJsonNode->isArray() ) {
+            
+            NameValueNode* newArrayNode = NameValueNode::createArray(childJsonName.c_str());
+            currentDataNode->addChild(newArrayNode);
+            Stack.push( treeNodeTuple( refChildNode, childJsonNode, newArrayNode) );  
+         }
+         else if (childJsonNode->isArrayElement() ) {
+            
+            NameValueNode* newArrayElementNode = NameValueNode::createArrayElement(childJsonNode->getIndex());
+            currentDataNode->addChild(newArrayElementNode);
+            Stack.push( treeNodeTuple( refChildNode, childJsonNode, newArrayElementNode) );  
          }
          else {
             
+            if ( auto refQualTypeNode = dynamic_cast<const TypeNameValueNode<clang::QualType>* >(refChildNode) ) {
+            
+               auto* newDataNode = TypeNameValueNode<clang::QualType>::create( childJsonName.c_str(),
+                                                                         *static_cast<clang::QualType*>(refQualTypeNode->getType()), 
+                                                                         childJsonNode->getValue().c_str() );
+               currentDataNode->addChild(newDataNode);            
+            }
+            else if ( auto refFuncDeclNode = dynamic_cast<const TypeNameValueNode<const clang::FunctionDecl*>* >(refChildNode) ) {
+
+               auto* newDataNode = TypeNameValueNode<const clang::FunctionDecl*>::create( childJsonName.c_str(),
+                                                                                    *static_cast<const clang::FunctionDecl**>(refQualTypeNode->getType()), 
+                                                                                    childJsonNode->getValue().c_str() );
+               currentDataNode->addChild(newDataNode);      
+            }
          }
          
       }
