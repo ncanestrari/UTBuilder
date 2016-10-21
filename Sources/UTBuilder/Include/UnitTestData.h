@@ -33,7 +33,8 @@ public:
    virtual void serializeJson(Json::Value &jsonRoot ) const override final;
    virtual void deSerializeJson(const Json::Value &jsonRoot, const void *funcTestData=nullptr) override final;
 
-
+   void serializeJsonData(Json::Value &jsonRoot) const;
+   
    NameValueNode* buildCollectionTree();
       
 private:
@@ -63,10 +64,13 @@ private:
    
    static void serializeJsonTree(Json::Value &jsonRoot, const NameValueNode* node);
    
+   bool validiteData(void);
    
-   std::unique_ptr<NameValueNode> _treeDataFromAST;
+   
+   std::unique_ptr<NameValueNode> _treeFromAST;
    std::unique_ptr<NameValueNode> _treeFromJson;
-
+   std::unique_ptr<NameValueNode> _treeData;
+   
    
    const FunctionDeclKeySetMap& _funcDeclsMap;
    const FunctionDeclKeySetMap& _mockDeclsMap;

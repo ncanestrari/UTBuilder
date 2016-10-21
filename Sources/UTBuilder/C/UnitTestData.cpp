@@ -40,7 +40,7 @@ void UnitTestData::clear()
 
 NameValueNode* UnitTestData::buildCollectionTree()
 {
-   _treeDataFromAST = std::unique_ptr<NameValueNode>( NameValueNode::createObject("dataAST") );
+   _treeFromAST = std::unique_ptr<NameValueNode>( NameValueNode::createObject("dataAST") );
  
    /**
     *   root 
@@ -52,13 +52,13 @@ NameValueNode* UnitTestData::buildCollectionTree()
     */
       
    NameValueNode* descNode = buildDescTree();
-   _treeDataFromAST->addChild(descNode);
+   _treeFromAST->addChild(descNode);
    
    NameValueNode* mocksNode = buildMocksTree();
-   _treeDataFromAST->addChild(mocksNode);
+   _treeFromAST->addChild(mocksNode);
    
    NameValueNode* funcsNode = buildFunctionsTree();
-   _treeDataFromAST->addChild(funcsNode); 
+   _treeFromAST->addChild(funcsNode); 
    
 }
    
@@ -366,7 +366,7 @@ void UnitTestData::serializeJson(Json::Value &jsonRoot) const
    typedef std::pair<Json::Value&, const NameValueNode*> JsonTreeNodePair;
    std::stack< JsonTreeNodePair > Stack;
    
-   Stack.push( JsonTreeNodePair(jsonRoot, _treeDataFromAST.get()) );
+   Stack.push( JsonTreeNodePair(jsonRoot, _treeFromAST.get()) );
    
    while ( !Stack.empty() ) {
     
@@ -579,9 +579,203 @@ static void deSerializeFuncs(const Json::Value &jsonRoot, NameValueNode* data, c
 void UnitTestData::deSerializeJson(const Json::Value &jsonRoot, const void *) 
 {   
    
-   _treeFromJson = std::unique_ptr<NameValueNode>( NameValueNode::createObject("dataJson") );
+//    _treeFromJson = std::unique_ptr<NameValueNode>( NameValueNode::createObject("dataJson") );
    
-   deSerializeMocks(jsonRoot, _treeFromJson.get(), _treeDataFromAST.get() );
-   deSerializeFuncs(jsonRoot, _treeFromJson.get(), _treeDataFromAST.get() );
+//    deSerializeMocks(jsonRoot, _treeFromJson.get(), _treeDataFromAST.get() );
+//    deSerializeFuncs(jsonRoot, _treeFromJson.get(), _treeDataFromAST.get() );
    
+
+   typedef std::pair<const Json::Value&, NameValueNode*> JsonTreeNodePair;
+   std::stack< JsonTreeNodePair > Stack;
+   
+   if ( jsonRoot.isObject() == true ) {
+      
+      _treeFromJson = std::unique_ptr<NameValueNode>( NameValueNode::createObject("dataJson") );
+   }
+   else {
+      std::cout << "ERROR: json root value is not an object\n";
+      return;
+   }
+
+   Stack.push( JsonTreeNodePair(jsonRoot, _treeFromJson.get()) );
+   
+   while ( !Stack.empty() ) {
+    
+//     check if it's safe get a const reference of the top of the stack and call pop()
+      const JsonTreeNodePair& topPair = Stack.top();
+      Stack.pop();
+      
+      const Json::Value& currentJson= topPair.first;
+      NameValueNode* currentNode = topPair.second;
+      
+      if ( currentJson.isNull() || currentJson.empty() )
+         continue;
+
+      
+//      currentJson should be an array or an object
+      Json::ValueConstIterator jsonIter = currentJson.end();
+      
+      // iterate reverse order
+      while ( jsonIter-- != currentJson.begin() ) {
+         
+         const std::string& name = jsonIter.key().asString();
+
+         if (jsonIter->isArray() ) {
+            
+            NameValueNode* arrayChildNode = NameValueNode::createArray(name.c_str());
+            currentNode->addChild(arrayChildNode);
+
+            // iterate reverse order
+            unsigned int arrIndex = currentJson[name].size();
+            while ( arrIndex-- > 0) {
+
+               NameValueNode* arrayElemChildNode = NameValueNode::createArrayElement( arrIndex );
+               arrayChildNode->addChild(arrayElemChildNode);
+               Stack.push( JsonTreeNodePair( (*jsonIter)[arrIndex], arrayElemChildNode) );
+            }
+                     }
+         else if (jsonIter->isObject() ) {
+            
+            NameValueNode* childObjectNode = NameValueNode::createObject(name.c_str());
+            currentNode->addChild(childObjectNode);
+            Stack.push( JsonTreeNodePair(*jsonIter, childObjectNode) );         
+         }
+         else { 
+            // set value
+            NameValueNode* childObjectNode = NameValueNode::createValue(name.c_str(), jsonIter->asCString() );
+            currentNode->addChild(childObjectNode);               
+         }
+      }
+      
+   } 
+   
+}
+
+
+bool UnitTestData::validiteData(void) {
+   
+   if (_treeFromJson.get() == nullptr || _treeFromAST.get() == nullptr )
+      return false;
+   
+   typedef std::tuple<const NameValueNode*, const NameValueNode*, NameValueNode* > treeNodeTuple;
+   std::stack< treeNodeTuple > Stack;
+   
+   _treeData = std::unique_ptr<NameValueNode>( NameValueNode::createObject("data") );
+   
+   Stack.push( treeNodeTuple(_treeFromAST.get(), _treeFromJson.get(), _treeData.get()) );
+   
+   while ( !Stack.empty() ) {
+      
+      const treeNodeTuple& top = Stack.top();
+      Stack.pop();
+      
+      const NameValueNode* currentRefNode = std::get<0>(top);
+      const NameValueNode* currentJsonNode = std::get<1>(top);
+//       NameValueNode* currentNode = std::get<2>(top);
+      
+      if ( currentJsonNode == nullptr )
+         continue;
+      
+      const std::map< std::string, std::unique_ptr<NameValueNode> >& children = currentJsonNode->getChildren();
+      for ( auto& child : children ) {
+         
+         const std::string& childName = child.first;
+         const NameValueNode* childNode = child.second.get();
+         
+         const NameValueNode* refChildNode = currentRefNode->getChild(childName.c_str());
+         
+         if ( refChildNode == nullptr ) {
+            std::cout << "ERROR: " << childName << " is NOT a valid object\n";
+         }
+         
+         if ( auto refQualTypeNode = dynamic_cast<const TypeNameValueNode<clang::QualType>* >(refChildNode) ) {
+            
+            auto* newNode = TypeNameValueNode<clang::QualType>::create( childNode->getName().c_str(),
+                                                                         *static_cast<clang::QualType*>(refQualTypeNode->getType()), 
+                                                                         childNode->getValue().c_str() );
+            
+         }
+         else if ( auto refFuncDeclNode = dynamic_cast<const TypeNameValueNode<const clang::FunctionDecl*>* >(refChildNode) ) {
+
+//             auto* nameNode = TypeNameValueNode<const clang::FunctionDecl*>::create("_name", funcDecl, name.c_str());
+   
+         }
+         else {
+            
+         }
+         
+      }
+   }
+}
+
+void UnitTestData::serializeJsonData(Json::Value &jsonRoot) const
+{   
+   jsonRoot = Json::Value(Json::objectValue);
+   
+   
+//    UnitTestData::serializeJsonTree(jsonRoot, _treeDataFromAST.get() );
+
+   typedef std::pair<Json::Value&, const NameValueNode*> JsonTreeNodePair;
+   std::stack< JsonTreeNodePair > Stack;
+   
+   Stack.push( JsonTreeNodePair(jsonRoot, _treeFromJson.get()) );
+   
+   while ( !Stack.empty() ) {
+    
+//     check if it's safe get a const reference of the top of the stack and call pop()
+      const JsonTreeNodePair& topPair = Stack.top();
+      Stack.pop();
+      
+      Json::Value& currentJson= topPair.first;
+      const NameValueNode* currentNode = topPair.second;
+      
+      const std::map< std::string, std::unique_ptr<NameValueNode> >& children = currentNode->getChildren();
+   
+      for (const auto& child : children) {
+         
+         const std::string& name = child.first;
+         const NameValueNode* childNode = child.second.get();
+         
+         if (childNode->isObject() ) {
+            
+            currentJson[name] = Json::Value(Json::objectValue);
+            UnitTestDataUtils::addJsonObjectComment(currentJson[name], childNode);
+            
+            Stack.push( JsonTreeNodePair(currentJson[name], childNode) );         
+         }
+         else if (childNode->isArray() ) {
+            
+            currentJson[name] = Json::Value(Json::arrayValue);
+            UnitTestDataUtils::addJsonArrayComment(currentJson[name], childNode);
+            
+            Stack.push( JsonTreeNodePair(currentJson[name], childNode) ); 
+         }
+         else if (childNode->isArrayElement() ) {
+            
+            const int index = childNode->getIndex();
+            currentJson[index] = Json::Value(Json::objectValue);         
+            UnitTestDataUtils::addJsonArrayElementComment(currentJson[index], childNode);
+   
+            Stack.push( JsonTreeNodePair(currentJson[index], childNode) ); 
+         }
+         else { 
+            
+            // if childNode is a struct {} keep recursing            
+            if ( childNode->getNumChildern() > 0 ) {
+               
+               currentJson[name] = Json::Value(Json::objectValue);
+               UnitTestDataUtils::addJsonStructValueComment(currentJson[name], childNode); 
+               
+               Stack.push( JsonTreeNodePair(currentJson[name], childNode) ); 
+            }
+            // childNode is not a struct {} stop recursing  
+            else {   
+               currentJson[name] = childNode->getValue();
+               UnitTestDataUtils::addJsonValueComment(currentJson[name], childNode);             
+            }
+            
+         }
+      }
+      
+   } 
 }
