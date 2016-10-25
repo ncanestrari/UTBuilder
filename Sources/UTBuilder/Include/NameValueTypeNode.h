@@ -34,13 +34,14 @@ protected:
       return (*p == '\0');
    }
    
-   
 public:
 
    static const char* _arrayIndex[];// = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
    static const unsigned int _arrayIndexSize; 
 
-   static NameValueNode* createValue(const char *name, const char *value = "\0") {
+   static const char* _arrayElementObject;
+   
+   static NameValueNode* createValue(const char *name, const char *value = "") {
       return new NameValueNode(name, value);
    }
    
@@ -52,17 +53,29 @@ public:
       return new NameValueNode(name, "array");
    }
    
-   static NameValueNode* createArrayElement(unsigned int index) {
+   static NameValueNode* createArrayElement(unsigned int index, const char* val = "") {
 //       if ( index >= NameValueNode::_arrayIndexSize ) {
 //          throw std::out_of_range("Call to NameValueNode::createArrayElement with index > 9. Increase the static _arrayIndex size\n");
 //       }
 //       return new NameValueNode( NameValueNode::_arrayIndex[index], "arrayElement");
-      return new NameValueNode( std::to_string(index).c_str(), "arrayElement");
+      if ( val == "") {
+         val = NameValueNode::_arrayElementObject;
+      }
+      return new NameValueNode( std::to_string(index).c_str(), val );
    }
+   
+//    static NameValueNode* createArrayElement(const char* index, const char* val = "arrayElement") {
+//       if ( val == "") {
+//          val = "arrayElement";
+//       }
+//       return new NameValueNode( index, val );
+//    }
    
    
    ~NameValueNode() {}
 
+//    void setValue(const char* value) { _value = value; }
+   
    const std::string &getName(void) const { return _name; }
    const std::string &getValue(void) const { return _value; }
    
@@ -71,7 +84,12 @@ public:
    
    bool isArray() const { return (_value == "array" ); }
    bool isObject() const { return (_value == "object" );}
-   const bool isArrayElement(void) const { return (_value == "arrayElement"); }
+   
+   const bool isArrayElement(void) const { return (_value == NameValueNode::_arrayElementObject || _isNameInteger() ); }
+   const bool isArrayElementObject(void) const { return (_value == NameValueNode::_arrayElementObject ); }
+   const bool isArrayElementValue(void) const { return ( _isNameInteger() ); }
+   
+   
    
    int getIndex(void) const
    {

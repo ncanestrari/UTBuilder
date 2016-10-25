@@ -66,6 +66,18 @@ NameValueNode* UnitTestData::buildDescTree()
 {
    NameValueNode* descNode = NameValueNode::createObject("desc");
    
+//    files
+   NameValueNode* filesChildNode = NameValueNode::createArray("files");
+   descNode->addChild(filesChildNode);
+      
+//    dirs
+   NameValueNode* dirsChildNode = NameValueNode::createArray("dirs");
+   descNode->addChild(dirsChildNode);
+   
+//    output
+   NameValueNode* outputChildNode = NameValueNode::createValue("output");
+   descNode->addChild(outputChildNode);            
+                
    
    return descNode;
 }
@@ -610,44 +622,68 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot, const void *)
       
       if ( currentJson.isNull() || currentJson.empty() )
          continue;
-
       
-//      currentJson should be an array or an object
-      Json::ValueConstIterator jsonIter = currentJson.end();
-      
-      // iterate reverse order
-      while ( jsonIter-- != currentJson.begin() ) {
-         
-         const std::string& name = jsonIter.key().asString();
-
-         if (jsonIter->isArray() ) {
+      if( currentJson.size() > 0 ) {
             
-            NameValueNode* arrayChildNode = NameValueNode::createArray(name.c_str());
-            currentNode->addChild(arrayChildNode);
+         Json::ValueConstIterator jsonBeginIter = currentJson.begin();
+         Json::ValueConstIterator jsonIter = currentJson.end();
+          
+         while ( jsonIter-- != jsonBeginIter ) { 
+             
+            if ( jsonIter.key().isString() ) {
+               
+               const std::string& name = jsonIter.key().asString();
+               
+               if ( jsonIter->isArray() ) {
 
-            // iterate reverse order
-            unsigned int arrIndex = currentJson[name].size();
-            while ( arrIndex-- > 0) {
+                  NameValueNode* arrayChildNode = NameValueNode::createArray(name.c_str());
+                  currentNode->addChild(arrayChildNode);
+                  Stack.push( JsonTreeNodePair( *jsonIter, arrayChildNode) );
+               }
+               else if ( jsonIter->isObject() ) {
 
-               NameValueNode* arrayElemChildNode = NameValueNode::createArrayElement( arrIndex );
-               arrayChildNode->addChild(arrayElemChildNode);
-               Stack.push( JsonTreeNodePair( (*jsonIter)[arrIndex], arrayElemChildNode) );
+                  NameValueNode* objectChildNode = NameValueNode::createObject( name.c_str() );
+                  currentNode->addChild(objectChildNode);
+                  Stack.push( JsonTreeNodePair( *jsonIter, objectChildNode) );
+               }
+               else {
+                  
+                  const char* value = jsonIter->asCString();
+                  std::cout << "key = " << name << "\tvalue = "  << value << std::endl;
+                  NameValueNode* valueChildNode = NameValueNode::createValue(name.c_str(), value );
+                  currentNode->addChild(valueChildNode); 
+               }
             }
-                     }
-         else if (jsonIter->isObject() ) {
-            
-            NameValueNode* childObjectNode = NameValueNode::createObject(name.c_str());
-            currentNode->addChild(childObjectNode);
-            Stack.push( JsonTreeNodePair(*jsonIter, childObjectNode) );         
-         }
-         else { 
-            // set value
-            NameValueNode* childObjectNode = NameValueNode::createValue(name.c_str(), jsonIter->asCString() );
-            currentNode->addChild(childObjectNode);               
-         }
+            else if ( jsonIter.key().isInt() ) {       
+//              array element
+
+                const int index = jsonIter.key().asInt();
+                
+                if ( jsonIter->isString() ) {
+                   
+                  const char* value = jsonIter->asCString();
+                  std::cout << "key = " << index << "\tvalue = "  << value << std::endl;
+                  NameValueNode* arrayElemChildNode = NameValueNode::createArrayElement(index,  value );
+                  currentNode->addChild(arrayElemChildNode);
+                }
+                else {
+                
+                   NameValueNode* arrayElemChildNode = NameValueNode::createArrayElement(index );
+                   currentNode->addChild(arrayElemChildNode);
+                   Stack.push( JsonTreeNodePair( *jsonIter, arrayElemChildNode) );  
+                }
+            } 
+                     
+          }                  
       }
-      
+      else {
+         
+         std::cout << "something is wrong in UnitTestData::deSerializeJson while loop";
+      }
+
    } 
+   
+//    validiteData();
    
 }
 
@@ -677,16 +713,21 @@ bool UnitTestData::validiteData(void) {
          continue;
       
       const std::map< std::string, std::unique_ptr<NameValueNode> >& children = currentJsonNode->getChildren();
-      for ( auto& child : children ) {
+      for (auto child=children.rbegin(); child!=children.rend(); ++child) {
          
-         const std::string& childJsonName = child.first;
-         const NameValueNode* childJsonNode = child.second.get();
+         const std::string& childJsonName = child->first;
+         const NameValueNode* childJsonNode = child->second.get();
          
-         const NameValueNode* refChildNode = currentRefNode->getChild(childJsonName.c_str());
-         
-         if ( refChildNode == nullptr ) {
-            std::cout << "ERROR: " << childJsonName << " is NOT a valid object\n";
+         const NameValueNode* refChildNode = nullptr;
+         if ( ( currentRefNode != nullptr ) && ( currentRefNode->getNumChildern() > 0 ) ) {
+            
+            refChildNode = currentRefNode->getChild(childJsonName.c_str());
+            if ( refChildNode == nullptr ) {
+               std::cout << "ERROR: " << childJsonName << " is NOT a valid object\n";
+            }
          }
+         
+
          
          if ( childJsonNode->isObject() ) {
             
@@ -718,9 +759,13 @@ bool UnitTestData::validiteData(void) {
             else if ( auto refFuncDeclNode = dynamic_cast<const TypeNameValueNode<const clang::FunctionDecl*>* >(refChildNode) ) {
 
                auto* newDataNode = TypeNameValueNode<const clang::FunctionDecl*>::create( childJsonName.c_str(),
-                                                                                    *static_cast<const clang::FunctionDecl**>(refQualTypeNode->getType()), 
+                                                                                    *static_cast<const clang::FunctionDecl**>(refFuncDeclNode->getType()), 
                                                                                     childJsonNode->getValue().c_str() );
                currentDataNode->addChild(newDataNode);      
+            }
+            else {
+               NameValueNode* newValueNode = NameValueNode::createValue(childJsonName.c_str(), childJsonNode->getValue().c_str() );
+               currentDataNode->addChild(newValueNode);
             }
          }
          
@@ -773,10 +818,17 @@ void UnitTestData::serializeJsonData(Json::Value &jsonRoot) const
          else if (childNode->isArrayElement() ) {
             
             const int index = childNode->getIndex();
-            currentJson[index] = Json::Value(Json::objectValue);         
-            UnitTestDataUtils::addJsonArrayElementComment(currentJson[index], childNode);
    
-            Stack.push( JsonTreeNodePair(currentJson[index], childNode) ); 
+//             if ( childNode->getValue() == NameValueNode::_arrayElementObject ) {
+            if ( childNode->isArrayElementObject() ) {
+               currentJson[index] = Json::Value(Json::objectValue);
+               Stack.push( JsonTreeNodePair(currentJson[index], childNode) ); 
+            }
+            else {
+               currentJson[index] = childNode->getValue();         
+            }
+            UnitTestDataUtils::addJsonArrayElementComment(currentJson[index], childNode);
+            
          }
          else { 
             
