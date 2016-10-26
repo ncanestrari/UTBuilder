@@ -36,7 +36,16 @@ public:
    void serializeJsonData(Json::Value &jsonRoot) const;
    
    NameValueNode* buildCollectionTree();
-      
+
+   const NameValueNode* getTreeData() const { return _treeData.get(); }
+   
+   const NameValueNode* getDescData() const { return _treeData->getChild("desc"); }
+   const NameValueNode* getFuncsData() const { return _treeData->getChild("funcs"); }
+   const NameValueNode* getMocksData() const { return _treeData->getChild("mocks"); }
+   
+   const FunctionDeclKeySetMap& getFunctionToTest() const { return _funcDeclsMap; }
+   const FunctionDeclKeySetMap& getFunctionToMock() const { return _mockDeclsMap; }
+   
 private:
 
    void clear(void);
@@ -56,7 +65,6 @@ private:
    NameValueNode* buildFunctionContentTree(const clang::FunctionDecl *funcDecl,
                             const std::set<const clang::FunctionDecl *> &mockFuncs);
    
-   std::unique_ptr<NameValueNode> _tree;
    
    
    NameValueNode* buildTreeFromAST( const clang::FunctionDecl *funcDecl,

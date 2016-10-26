@@ -7,6 +7,9 @@
 
 class NameValueNode;
 
+namespace clang {
+   class FunctionDecl;
+}
 
 class UnitTestDataUtils 
 {
@@ -21,6 +24,7 @@ public:
    static void addJsonValueComment(Json::Value& jsonValue, const NameValueNode* node);
    static void addJsonStructValueComment(Json::Value& jsonValue, const NameValueNode* node);
 
+   static void writeFunctionDeclAsStructure(std::ostringstream &os, const clang::FunctionDecl* funcDecl );
 };
 
 

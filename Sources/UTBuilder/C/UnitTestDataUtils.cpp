@@ -77,3 +77,37 @@ void UnitTestDataUtils::addJsonStructValueComment(Json::Value& jsonValue, const 
       }
    }
 }
+
+
+
+static const char * getStructureFieldRecursive(std::ostringstream &os, const clang::QualType &qualType, const std::string &indent)
+{
+   const std::string newIndent = indent + indent;
+   const clang::RecordType *structType = qualType->getAsStructureType();
+   size_t pos = 0;
+
+   std::string typestr = qualType.getUnqualifiedType().getAsString();
+//    pos = typestr.find("*", pos);
+//    while (pos != std::string::npos) {
+//       typestr = typestr.erase(pos, 1);
+//       pos = typestr.find("*", pos);
+//    }
+
+   return typestr.c_str();
+}
+
+void UnitTestDataUtils::writeFunctionDeclAsStructure(std::ostringstream &os, const clang::FunctionDecl* funcDecl )
+{
+   const std::string indent = "   ";
+
+   os << "\n";
+
+   if (funcDecl->getNumParams() > 0) {
+      for (const auto& field : funcDecl->params()) {
+         clang::QualType qualType = field->getType();
+         const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
+
+         os << indent << getStructureFieldRecursive(os, qualType, indent) << "\t" << field->getNameAsString() << "; \n"; // "<< canonicalQualType.getAsString() << "\n";
+      }
+   }
+}

@@ -320,54 +320,6 @@ NameValueNode* UnitTestData::buildTreeFromAST( const clang::FunctionDecl *funcDe
 
 
 
-void UnitTestData::serializeJsonTree(Json::Value& jsonParent, const NameValueNode* parentNode)
-{
-
-   const std::map< std::string, std::unique_ptr<NameValueNode> >& children = parentNode->getChildren();
-   
-   for (const auto& child : children) {
-      
-      const std::string& name = child.first;
-      const NameValueNode* childNode = child.second.get();
-      
-      if (childNode->isObject() ) {
-         
-         jsonParent[name] = Json::Value(Json::objectValue);
-         UnitTestDataUtils::addJsonObjectComment(jsonParent[name], childNode);
-         serializeJsonTree(jsonParent[name], childNode );          
-      }
-      else if (childNode->isArray() ) {
-         
-         jsonParent[name] = Json::Value(Json::arrayValue);
-         UnitTestDataUtils::addJsonArrayComment(jsonParent[name], childNode);
-         serializeJsonTree(jsonParent[name], childNode );
-      }
-      else if (childNode->isArrayElement() ) {
-         
-         const int index = childNode->getIndex();
-         jsonParent[index] = Json::Value(Json::objectValue);         
-         UnitTestDataUtils::addJsonArrayElementComment(jsonParent[index], childNode);
-         serializeJsonTree(jsonParent[index], childNode );
-      }
-      else { 
-         
-         // if childNode is a struct {} keep recursing            
-         if ( childNode->getNumChildern() > 0 ) {
-            
-            jsonParent[name] = Json::Value(Json::objectValue);
-            UnitTestDataUtils::addJsonStructValueComment(jsonParent[name], childNode); 
-            serializeJsonTree(jsonParent[name], childNode);
-         }
-         // childNode is not a struct {} stop recursing  
-         else {   
-            jsonParent[name] = childNode->getValue();
-            UnitTestDataUtils::addJsonValueComment(jsonParent[name], childNode);             
-         }
-         
-      }
-   }
-}
-
 void UnitTestData::serializeJson(Json::Value &jsonRoot) const
 {   
    jsonRoot = Json::Value(Json::objectValue);
@@ -441,161 +393,9 @@ void UnitTestData::serializeJson(Json::Value &jsonRoot) const
 }
 
 
-static NameValueNode* deSerializeMocksContent(const Json::Value &jsonContent, const NameValueNode* contentRefTree)
-{
-   NameValueNode* contentArray = NameValueNode::createArray("content");
-   
-   const unsigned int size = jsonContent.size();
-//    _funcDecl = funcTestContentfromAST->getFunctionDecl();
-   const NameValueNode* elemContentRefTree = contentRefTree->getChildren().begin()->second.get();
-   
-   for (unsigned int i = 0; i < size; ++i) {
-      
-       const Json::Value& jsonTest = jsonContent[i];       
-       
-       NameValueNode* contentArrayElem = NameValueNode::createArrayElement(i);
-       contentArray->addChild(contentArrayElem);
-       
-/*       
-       test->deSerializeJson( jsonTest, funcTestReference.get() );
-       _tests[i] = test;
-
-       
-      NameValueNode* contentElemArray = NameValueNode::createArrayElement(indexCounter);
-      contentArray->addChild(contentElemArray);
-   
-//       input
-      if (funcDecl->getNumParams() > 0) {
-         
-         NameValueNode* inputNode = NameValueNode::createObject("input");
-         contentElemArray->addChild(inputNode);
-         
-         for (const auto& field : funcDecl->params()) {
-            
-            auto* child = TypeNameValueNode<clang::QualType>::create(field->getNameAsString().c_str(), field->getType(), "");
-            inputNode->addChild(child);
-         }
-         
-         
-      }
-      
-//       output
-      NameValueNode* outputNode = NameValueNode::createObject("output");
-      contentElemArray->addChild(outputNode);
-      
-      if (funcDecl->getNumParams() > 0) {
-      
-         for (const auto& field : funcDecl->params()) {
-            auto* child = TypeNameValueNode<clang::QualType>::create(field->getNameAsString().c_str(), field->getType(), "");
-            outputNode->addChild(child);
-         }
-      }
-      
-      auto* retvalNode = TypeNameValueNode<clang::QualType>::create("retval", funcDecl->getReturnType(), "");
-      outputNode->addChild(retvalNode);
-      
-//       mock-funcs-call
-      if ( mockFuncs.size() > 0 )
-      {
-         NameValueNode* mocksNode = NameValueNode::createObject("mock-funcs-call");
-         contentElemArray->addChild(mocksNode);
-         
-         std::string value;
-         for (const clang::FunctionDecl* iter : mockFuncs) {
-            value = iter->getNameAsString() + "_" + NameValueNode::_arrayIndex[indexCounter];
-            auto* child = TypeNameValueNode<const clang::FunctionDecl*>::create(iter->getNameAsString().c_str(), iter, value.c_str());
-            mocksNode->addChild(child);
-         }
-         
-      }*/
-      
-   }
-   
-   return contentArray;
-}
-
-
-
-static void deSerializeMocks(const Json::Value &jsonRoot, NameValueNode* data, const NameValueNode* refTree)
-{
-    //load json defined mocks
-   const Json::Value& mocksRoot = jsonRoot["mocks"];
-   if( mocksRoot.empty() ){
-      std::cout << "functions to mock not found in input json file: " << std::endl;
-   }
-   
-   NameValueNode* mocksArray = NameValueNode::createArray("mocks");
-   data->addChild(mocksArray);
- 
-   const NameValueNode* mocksRefParent = refTree->getChild("mocks");
-
-   const unsigned int size = mocksRoot.size();
-
-   size_t objectCounter = 0;
-   for (unsigned int i = 0; i < size; ++i) {
-      
-      const Json::Value& value = mocksRoot[i];
-      const Json::Value funcNameValue = value.get("_name", "");
-      const std::string funcName = funcNameValue.asString();
-
-      // check validity
-      const NameValueNode* refFuncContent = UnitTestDataUtils::findContentFromAST(funcName, mocksRefParent);
-         
-      if ( refFuncContent != nullptr) {
-//          the func defined exists
-         
-         NameValueNode* arrElementNode = NameValueNode::createArrayElement( objectCounter );
-         mocksArray->addChild(arrElementNode);
-         objectCounter++;
-      
-         NameValueNode* nameNode = NameValueNode::createValue("_name", funcName.c_str() );
-         arrElementNode->addChild(nameNode);
-         
-         const Json::Value contentValue = value.get("content", "");
-         if ( contentValue.empty() )
-            continue;
-         
-         NameValueNode* contentObjNode = deSerializeMocksContent(contentValue, refFuncContent->getChild("content") ); //NameValueNode::createArrayNode("content");
-         arrElementNode->addChild(contentObjNode); 
-         
-         
-//          auto* nameNode = TypeNameValueNode<const clang::FunctionDecl*>::create("_name", funcDecl, name.c_str());
-//          arrElementNode->addChild(nameNode);
-         
-//          NameValueNode* contentObjNode = deSerializeMocksContent(funcDecl, mockDeclSet); //NameValueNode::createArrayNode("content");
-//          arrElementNode->addChild(contentObjNode);   
-         
-      }
-      else {
-//          the func defined doesn't exist
-         
-      }
-      
-   }
-}
-
-static void deSerializeFuncs(const Json::Value &jsonRoot, NameValueNode* data, const NameValueNode* refTree)
-{
-    //load json defined unit/module tests
-   const Json::Value& funcsRoot = jsonRoot["funcs"];
-   if( funcsRoot.empty() ){
-      std::cout << "functions to test not found in input json file: " << std::endl;
-   }
-   
-   NameValueNode* funcsNode = NameValueNode::createArray("funcs");
-   data->addChild(funcsNode);
-   
-}
-
-
 void UnitTestData::deSerializeJson(const Json::Value &jsonRoot, const void *) 
 {   
-   
-//    _treeFromJson = std::unique_ptr<NameValueNode>( NameValueNode::createObject("dataJson") );
-   
-//    deSerializeMocks(jsonRoot, _treeFromJson.get(), _treeDataFromAST.get() );
-//    deSerializeFuncs(jsonRoot, _treeFromJson.get(), _treeDataFromAST.get() );
-   
+      
 
    typedef std::pair<const Json::Value&, NameValueNode*> JsonTreeNodePair;
    std::stack< JsonTreeNodePair > Stack;
@@ -683,7 +483,7 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot, const void *)
 
    } 
    
-//    validiteData();
+   validiteData();
    
 }
 
@@ -731,8 +531,29 @@ bool UnitTestData::validiteData(void) {
          
          if ( childJsonNode->isObject() ) {
             
-            NameValueNode* newObjectNode = NameValueNode::createObject(childJsonName.c_str());
-            currentDataNode->addChild(newObjectNode);
+//             NameValueNode* newObjectNode = NameValueNode::createObject(childJsonName.c_str());
+//             currentDataNode->addChild(newObjectNode);
+            NameValueNode* newObjectNode;
+            
+            if ( auto refQualTypeNode = dynamic_cast<const TypeNameValueNode<clang::QualType>* >(refChildNode) ) {
+            
+               newObjectNode = TypeNameValueNode<clang::QualType>::create( childJsonName.c_str(),
+                                                                         *static_cast<clang::QualType*>(refQualTypeNode->getType()), 
+                                                                         childJsonNode->getValue().c_str() );
+               currentDataNode->addChild(newObjectNode);            
+            }
+            else if ( auto refFuncDeclNode = dynamic_cast<const TypeNameValueNode<const clang::FunctionDecl*>* >(refChildNode) ) {
+
+               newObjectNode = TypeNameValueNode<const clang::FunctionDecl*>::create( childJsonName.c_str(),
+                                                                                    *static_cast<const clang::FunctionDecl**>(refFuncDeclNode->getType()), 
+                                                                                    childJsonNode->getValue().c_str() );
+               currentDataNode->addChild(newObjectNode);      
+            }
+            else {
+               newObjectNode = NameValueNode::createObject(childJsonName.c_str() );
+               currentDataNode->addChild(newObjectNode);
+            }
+         
             Stack.push( treeNodeTuple( refChildNode, childJsonNode, newObjectNode) );    
          }
          else if ( childJsonNode->isArray() ) {
@@ -745,6 +566,26 @@ bool UnitTestData::validiteData(void) {
             
             NameValueNode* newArrayElementNode = NameValueNode::createArrayElement(childJsonNode->getIndex());
             currentDataNode->addChild(newArrayElementNode);
+            
+            if ( currentJsonNode->getName()=="funcs" || currentJsonNode->getName()=="mocks" ) {
+               
+               const NameValueNode* nameField = childJsonNode->getChild("_name");
+               if ( nameField== nullptr ) {
+                  std::cout << "ERROR: array object with index" << childJsonNode->getName() << " has no _name fieldt\n";
+               }
+               
+                
+               const std::map< std::string, std::unique_ptr<NameValueNode> >& currRefNodeChildren = currentRefNode->getChildren();
+               for ( const auto& refArrayObjectIter : currRefNodeChildren ) {
+                  if ( refArrayObjectIter.second->getChild("_name")->getValue() == nameField->getValue() ) {
+                     refChildNode = refArrayObjectIter.second.get();
+                     break;
+                  }
+               }
+               
+               
+            }
+            
             Stack.push( treeNodeTuple( refChildNode, childJsonNode, newArrayElementNode) );  
          }
          else {
@@ -783,7 +624,7 @@ void UnitTestData::serializeJsonData(Json::Value &jsonRoot) const
    typedef std::pair<Json::Value&, const NameValueNode*> JsonTreeNodePair;
    std::stack< JsonTreeNodePair > Stack;
    
-   Stack.push( JsonTreeNodePair(jsonRoot, _treeFromJson.get()) );
+   Stack.push( JsonTreeNodePair(jsonRoot, _treeData.get()) );
    
    while ( !Stack.empty() ) {
     

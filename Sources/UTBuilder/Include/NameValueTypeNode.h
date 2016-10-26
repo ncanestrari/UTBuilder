@@ -82,6 +82,7 @@ public:
 
    virtual void* getType() const { return nullptr; }
    
+   
    bool isArray() const { return (_value == "array" ); }
    bool isObject() const { return (_value == "object" );}
    
