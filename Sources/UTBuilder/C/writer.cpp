@@ -230,7 +230,7 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
 
    std::ostringstream    code;
 
-  
+  /*
    for (const std::pair< std::string, FunctionTestContent>&& iter : funcData->dataFromJson() ) {
 
       const FunctionTestContent& funcParams = iter.second;
@@ -251,8 +251,8 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
          context->add("functionToUnitTest", FunctionToUnitTest);
       }
    }
-
-   /*
+   */
+   
    const NameValueNode* funcsToTest = _data.getFuncsData();
    const std::map< std::string, std::unique_ptr<NameValueNode> >& funcs = funcsToTest->getChildren();
    for (const auto& arrayIndex : funcs) {
@@ -276,7 +276,7 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
          context->add("functionToUnitTest", FunctionToUnitTest);
       }
    }
-   */
+   
 
    // create a C++ class name from the fileName
    std::string TestFilename = boost::filesystem::path(_fileName).filename().string();

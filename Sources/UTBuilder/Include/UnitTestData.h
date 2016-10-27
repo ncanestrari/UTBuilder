@@ -1,7 +1,7 @@
 #ifndef _UTBuilder_UnitTestData_h__
 #define _UTBuilder_UnitTestData_h__
 
-#include "Serializable.h"
+// #include "Serializable.h"
 // #include "singleton.h"
 #include "NameValueTypeNode.h"
 #include "Results.h"
@@ -13,7 +13,7 @@ namespace clang{
 }
 
 
-class UnitTestData :  public Serializable //, public Singleton<UnitTestData>
+class UnitTestData //:  public Serializable //, public Singleton<UnitTestData>
 {
 
 public:
@@ -30,8 +30,8 @@ public:
 
 
 //    Serializable interface
-   virtual void serializeJson(Json::Value &jsonRoot ) const override final;
-   virtual void deSerializeJson(const Json::Value &jsonRoot, const void *funcTestData=nullptr) override final;
+   void serializeJson(Json::Value &jsonRoot, const NameValueNode* data = nullptr ) const;
+   void deSerializeJson(const Json::Value &jsonRoot );
 
    void serializeJsonData(Json::Value &jsonRoot) const;
    
@@ -73,6 +73,8 @@ private:
    static void serializeJsonTree(Json::Value &jsonRoot, const NameValueNode* node);
    
    bool validiteData(void);
+   
+   NameValueNode* createValidatedNode(const NameValueNode* refQualTypeNode,const NameValueNode* jsonNode );
    
    
    std::unique_ptr<NameValueNode> _treeFromAST;

@@ -6,9 +6,11 @@
 
 
 class NameValueNode;
+template<typename T> class TypeNameValueNode;
 
 namespace clang {
    class FunctionDecl;
+   class QualType;
 }
 
 class UnitTestDataUtils 
@@ -26,6 +28,19 @@ public:
 
    static void writeFunctionDeclAsStructure(std::ostringstream &os, const clang::FunctionDecl* funcDecl );
    static void writeGoogleTest(std::ostringstream &os,  const clang::FunctionDecl* funcDecl, const NameValueNode* contentElement );
+   
+   
+private:
+   
+   static void writeStructureValue( std::ostringstream &os,
+                                    const NameValueNode* tree,
+                                    const std::string &name,
+                                    const std::string &indent);
+   
+   static void writeStructureComparison( std::ostringstream &os,
+                                         const NameValueNode* tree,
+                                         const std::string &name,
+                                         const std::string &indent );
    
 };
 

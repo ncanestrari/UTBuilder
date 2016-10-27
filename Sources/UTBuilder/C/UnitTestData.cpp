@@ -320,17 +320,21 @@ NameValueNode* UnitTestData::buildTreeFromAST( const clang::FunctionDecl *funcDe
 
 
 
-void UnitTestData::serializeJson(Json::Value &jsonRoot) const
+void UnitTestData::serializeJson(Json::Value &jsonRoot, const NameValueNode* data) const
 {   
    jsonRoot = Json::Value(Json::objectValue);
    
    
 //    UnitTestData::serializeJsonTree(jsonRoot, _treeDataFromAST.get() );
 
+   if ( data == nullptr ) {
+      data =  _treeFromAST.get();
+   }
+   
    typedef std::pair<Json::Value&, const NameValueNode*> JsonTreeNodePair;
    std::stack< JsonTreeNodePair > Stack;
    
-   Stack.push( JsonTreeNodePair(jsonRoot, _treeFromAST.get()) );
+   Stack.push( JsonTreeNodePair(jsonRoot, data) );
    
    while ( !Stack.empty() ) {
     
@@ -393,7 +397,7 @@ void UnitTestData::serializeJson(Json::Value &jsonRoot) const
 }
 
 
-void UnitTestData::deSerializeJson(const Json::Value &jsonRoot, const void *) 
+void UnitTestData::deSerializeJson(const Json::Value &jsonRoot ) 
 {   
       
 
@@ -488,6 +492,38 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot, const void *)
 }
 
 
+NameValueNode* UnitTestData::createValidatedNode(const NameValueNode* refChildNode,const NameValueNode* jsonNode ) 
+{
+   
+   NameValueNode* newNode = nullptr;
+            
+   if ( auto refQualTypeNode = dynamic_cast<const TypeNameValueNode<clang::QualType>* >(refChildNode) ) {
+   
+      newNode = TypeNameValueNode<clang::QualType>::create( refChildNode->getName().c_str(),
+                                                            *static_cast<clang::QualType*>(refQualTypeNode->getType()), 
+                                                            jsonNode->getValue().c_str() );           
+   }
+   else if ( auto refFuncDeclNode = dynamic_cast<const TypeNameValueNode<const clang::FunctionDecl*>* >(refChildNode) ) {
+
+      newNode = TypeNameValueNode<const clang::FunctionDecl*>::create( refChildNode->getName().c_str(),
+                                                                       *static_cast<const clang::FunctionDecl**>(refFuncDeclNode->getType()), 
+                                                                       jsonNode->getValue().c_str() );    
+   }
+   else {
+      
+      if ( jsonNode->isObject()) {
+         newNode = NameValueNode::createObject( jsonNode->getName().c_str() );
+      }
+      else {
+//          is it a value ?
+         newNode = NameValueNode::createValue(jsonNode->getName().c_str(), jsonNode->getValue().c_str() );
+      }
+   }
+   
+   return newNode;
+}
+
+
 bool UnitTestData::validiteData(void) {
    
    if (_treeFromJson.get() == nullptr || _treeFromAST.get() == nullptr )
@@ -533,27 +569,8 @@ bool UnitTestData::validiteData(void) {
             
 //             NameValueNode* newObjectNode = NameValueNode::createObject(childJsonName.c_str());
 //             currentDataNode->addChild(newObjectNode);
-            NameValueNode* newObjectNode;
-            
-            if ( auto refQualTypeNode = dynamic_cast<const TypeNameValueNode<clang::QualType>* >(refChildNode) ) {
-            
-               newObjectNode = TypeNameValueNode<clang::QualType>::create( childJsonName.c_str(),
-                                                                         *static_cast<clang::QualType*>(refQualTypeNode->getType()), 
-                                                                         childJsonNode->getValue().c_str() );
-               currentDataNode->addChild(newObjectNode);            
-            }
-            else if ( auto refFuncDeclNode = dynamic_cast<const TypeNameValueNode<const clang::FunctionDecl*>* >(refChildNode) ) {
-
-               newObjectNode = TypeNameValueNode<const clang::FunctionDecl*>::create( childJsonName.c_str(),
-                                                                                    *static_cast<const clang::FunctionDecl**>(refFuncDeclNode->getType()), 
-                                                                                    childJsonNode->getValue().c_str() );
-               currentDataNode->addChild(newObjectNode);      
-            }
-            else {
-               newObjectNode = NameValueNode::createObject(childJsonName.c_str() );
-               currentDataNode->addChild(newObjectNode);
-            }
-         
+            NameValueNode* newObjectNode = createValidatedNode(refChildNode, childJsonNode );         
+            currentDataNode->addChild(newObjectNode);
             Stack.push( treeNodeTuple( refChildNode, childJsonNode, newObjectNode) );    
          }
          else if ( childJsonNode->isArray() ) {
@@ -590,24 +607,8 @@ bool UnitTestData::validiteData(void) {
          }
          else {
             
-            if ( auto refQualTypeNode = dynamic_cast<const TypeNameValueNode<clang::QualType>* >(refChildNode) ) {
-            
-               auto* newDataNode = TypeNameValueNode<clang::QualType>::create( childJsonName.c_str(),
-                                                                         *static_cast<clang::QualType*>(refQualTypeNode->getType()), 
-                                                                         childJsonNode->getValue().c_str() );
-               currentDataNode->addChild(newDataNode);            
-            }
-            else if ( auto refFuncDeclNode = dynamic_cast<const TypeNameValueNode<const clang::FunctionDecl*>* >(refChildNode) ) {
-
-               auto* newDataNode = TypeNameValueNode<const clang::FunctionDecl*>::create( childJsonName.c_str(),
-                                                                                    *static_cast<const clang::FunctionDecl**>(refFuncDeclNode->getType()), 
-                                                                                    childJsonNode->getValue().c_str() );
-               currentDataNode->addChild(newDataNode);      
-            }
-            else {
-               NameValueNode* newValueNode = NameValueNode::createValue(childJsonName.c_str(), childJsonNode->getValue().c_str() );
-               currentDataNode->addChild(newValueNode);
-            }
+            NameValueNode* newDataNode = createValidatedNode(refChildNode, childJsonNode );
+            currentDataNode->addChild(newDataNode); 
          }
          
       }

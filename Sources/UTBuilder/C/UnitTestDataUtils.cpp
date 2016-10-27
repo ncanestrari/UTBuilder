@@ -131,8 +131,7 @@ void UnitTestDataUtils::writeGoogleTest(std::ostringstream &os, const clang::Fun
    os << "// fill the input struct with json file values" << "\n";
    if (funcDecl->getNumParams() > 0) {
       const NameValueNode* inputTree = contentElement->getChild("input");
-//       writeStructureValue(os, obj.getTests()[i]->getInputTree(), "", indent);
-//       writeStructureValue(os, inputTree, "", indent);
+      writeStructureValue(os, inputTree, "", indent);
    }
    
    os << "\n";
@@ -191,9 +190,76 @@ void UnitTestDataUtils::writeGoogleTest(std::ostringstream &os, const clang::Fun
    
    for (const auto& child : outputChildren ) {
       if (child.first == "retval") {
-//          writeStructureComparison(os, child.second, "", indent);
+         writeStructureComparison(os, child.second.get(), "", indent);
       } else {
-//          writeStructureComparison(os, child.second, "input.", indent);
+         writeStructureComparison(os, child.second.get(), "input.", indent);
       }
    }
+}
+
+
+void UnitTestDataUtils::writeStructureValue( std::ostringstream &os,
+                                             const NameValueNode* tree,
+                                             const std::string &name,
+                                             const std::string &indent)
+{
+   std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
+   
+   if ( tree->isArray() ) {
+//    this is a pointer to allocate: write the memory allocation line
+      if (tree->getNumChildern() > 0) {
+         // move in utils::
+         size_t pos = 0;
+         clang::QualType type = *static_cast<clang::QualType*>(tree->getType());
+         std::string typestr = type.getUnqualifiedType().getAsString();
+         pos = typestr.find("*", pos);
+         while (pos != std::string::npos) {
+            typestr = typestr.erase(pos, 1);
+            pos = typestr.find("*", pos);
+         }
+
+         os << indent << structName << " = alloca(" << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
+         os << indent << "memset(&" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
+      }
+   }
+
+   if (tree->getNumChildern() > 0) {
+      
+      if ( !tree->isArray() )
+         structName += ".";
+      
+      for (const auto& child : tree->getChildren()) {
+         writeStructureValue(os, child.second.get(), structName, indent);
+      }
+   } else {
+      if (tree->getValue() != "") {
+         os << indent << structName << " = " << tree->getValue() << ";\n";
+      }
+   }
+
+   return;
+}
+
+
+void UnitTestDataUtils::writeStructureComparison(std::ostringstream &os,
+                                                 const NameValueNode* tree,
+                                                 const std::string &name,
+                                                 const std::string &indent )
+{
+   std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
+
+   if (tree->getNumChildern() > 0) {
+
+      if ( !tree->isArray() )
+         structName += ".";
+
+      for (const auto& child : tree->getChildren()) {
+         writeStructureComparison(os, child.second.get(), structName, indent);
+      }
+   } else {
+      if (tree->getValue() != "") {
+         os << indent << "EXPECT_EQ(" << structName << ", " << tree->getValue() << ");\n";
+      }
+   }
+
 }
