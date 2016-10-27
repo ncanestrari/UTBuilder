@@ -25,6 +25,8 @@ public:
    static void addJsonStructValueComment(Json::Value& jsonValue, const NameValueNode* node);
 
    static void writeFunctionDeclAsStructure(std::ostringstream &os, const clang::FunctionDecl* funcDecl );
+   static void writeGoogleTest(std::ostringstream &os,  const clang::FunctionDecl* funcDecl, const NameValueNode* contentElement );
+   
 };
 
 

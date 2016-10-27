@@ -111,3 +111,89 @@ void UnitTestDataUtils::writeFunctionDeclAsStructure(std::ostringstream &os, con
       }
    }
 }
+
+void UnitTestDataUtils::writeGoogleTest(std::ostringstream &os, const clang::FunctionDecl* funcDecl, const NameValueNode* contentElement ) 
+{
+ 
+   const std::string indent = "   ";
+
+   const std::string name = funcDecl->getNameAsString(); 
+   const std::string structName = name + "_params";
+//    structName.append("_params");
+
+
+   //    input declaration
+   os << "// input structure declaration" << "\n";
+   os << indent << structName << " input;" << "\n";
+   os << indent << "memset( &input, 0, sizeof(" << structName << ") );" << "\n\n";
+
+   
+   os << "// fill the input struct with json file values" << "\n";
+   if (funcDecl->getNumParams() > 0) {
+      const NameValueNode* inputTree = contentElement->getChild("input");
+//       writeStructureValue(os, obj.getTests()[i]->getInputTree(), "", indent);
+//       writeStructureValue(os, inputTree, "", indent);
+   }
+   
+   os << "\n";
+      
+   //    mocks No recursion in mock tree
+   const NameValueNode* mocksTree = contentElement->getChild("mock-funcs-call");
+   const auto& mocksChildren = mocksTree->getChildren();
+
+   if ( mocksChildren.size() > 0)
+      os << "// initialize mock functions\n";
+   for (const auto& iter : mocksChildren) {
+      const std::string &value = iter.second->getValue();
+      if (value != "") {
+         os << indent << iter.first << "_fake.custom_fake = " << value << ";\n";
+         //TODO fill the context with necessary manually written mocks fill the custom_fake with the content
+      }
+   }
+
+   os << "\n";
+
+   //    output declaration
+   const clang::QualType returnType = funcDecl->getReturnType();
+   const std::string &returnTypeString = returnType.getAsString();
+
+   if (returnTypeString != "void") {
+      os << indent << returnTypeString << " retval;" << "\n";
+      os << indent << "retval = ";
+   }
+
+
+   os << name << "(";
+
+   if ( funcDecl->getNumParams() > 0) {
+      const int numParms = funcDecl->getNumParams();
+      const clang::ParmVarDecl *currentParam = funcDecl->getParamDecl(0);
+
+      os  << " input." << currentParam->getNameAsString();
+      for (int ii = 1; ii < numParms; ++ii) {
+         const clang::ParmVarDecl *currentParam = funcDecl->getParamDecl(ii);
+         if (currentParam->getOriginalType()->isAnyPointerType()) { 
+            //need to be improved
+//             os  << ", &input." << currentParam->getNameAsString();
+            os  << ", input." << currentParam->getNameAsString();
+         } else {
+            os  << ", input." << currentParam->getNameAsString();
+         }
+      }
+   }
+   os << ");\n\n";
+
+   
+   os << "// check conditions" << "\n";
+   
+   const NameValueNode* outputTree = contentElement->getChild("output");
+   const auto& outputChildren = outputTree->getChildren();
+   
+   for (const auto& child : outputChildren ) {
+      if (child.first == "retval") {
+//          writeStructureComparison(os, child.second, "", indent);
+      } else {
+//          writeStructureComparison(os, child.second, "input.", indent);
+      }
+   }
+}

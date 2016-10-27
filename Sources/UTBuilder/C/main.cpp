@@ -70,7 +70,7 @@ int main(int argc, const char *argv[])
       reader.parse( FunctionTestDataFile::get(), OptionParser::get().getJsonFileName() );
       
       std::string outputFileName = FunctionTestDataFile::get().getProjectDescription().getOutputFileName();
-      Writer writer( outputFileName, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
+      Writer writer( unitTestData, outputFileName, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
       writer.createFiles();
 
    } catch (std::exception &e){

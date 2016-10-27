@@ -231,7 +231,7 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
    std::ostringstream    code;
 
   
-   for (const std::pair< std::string, FunctionTestContent>& iter : funcData->dataFromJson() ) {
+   for (const std::pair< std::string, FunctionTestContent>&& iter : funcData->dataFromJson() ) {
 
       const FunctionTestContent& funcParams = iter.second;
 
@@ -251,6 +251,32 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
          context->add("functionToUnitTest", FunctionToUnitTest);
       }
    }
+
+   /*
+   const NameValueNode* funcsToTest = _data.getFuncsData();
+   const std::map< std::string, std::unique_ptr<NameValueNode> >& funcs = funcsToTest->getChildren();
+   for (const auto& arrayIndex : funcs) {
+      
+      const NameValueNode* childObj = arrayIndex.second.get();
+      auto funcName = static_cast<const TypeNameValueNode<const clang::FunctionDecl*>*>(childObj->getChild("_name"));
+      const std::string& name = funcName->getValue();
+      const clang::FunctionDecl* funcDecl = *static_cast<const clang::FunctionDecl**>(funcName->getType());
+      
+      const NameValueNode* funcContent = childObj->getChild("content");
+      
+      int counter = 0;
+      const std::map< std::string, std::unique_ptr<NameValueNode> >& children = funcContent->getChildren();
+      for ( const auto& iter : children ) {
+         
+         FunctionToUnitTest["functionName"] = name + "_" + std::to_string(counter);;
+         ++counter;
+         code.str("");
+         UnitTestDataUtils::writeGoogleTest(code, funcDecl, iter.second.get() );         
+         FunctionToUnitTest["CODE"] = code.str();
+         context->add("functionToUnitTest", FunctionToUnitTest);
+      }
+   }
+   */
 
    // create a C++ class name from the fileName
    std::string TestFilename = boost::filesystem::path(_fileName).filename().string();
@@ -421,6 +447,7 @@ Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includ
    context->add("filename", _fileName);
    context->add("newline", "\n");
 
+   /*
    std::vector<FunctionTestContent> funcParamsStructures;
 
    for (const std::pair<const clang::FunctionDecl *, FunctionDeclSet >& iter : funcDeclsMap) {
@@ -437,7 +464,7 @@ Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includ
       paramsStructsObject["paramTypesAndNames"] = out.str();
       context->add("functionParamsStructs", paramsStructsObject);
    }
-
+   */
 
    for (const std::pair<const clang::FunctionDecl *, FunctionDeclSet >& iter : funcDeclsMap) {
       
