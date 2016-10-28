@@ -4,6 +4,7 @@
 
 
 #include "FunctionTestDataFile.h"
+#include "UnitTestData.h"
 
 #include <string>
 
@@ -11,7 +12,7 @@
 class JsonReader {
 
 public:
-   JsonReader();
+   JsonReader(UnitTestData& unitTestData);
    ~JsonReader() {}
 
    bool parse(FunctionTestDataFile &data, const std::string &fileName);
@@ -24,6 +25,8 @@ private:
    Json::Value _funcsRoot;
    Json::Value _mocksRoot;
    Json::Value _descRoot;
+   
+   UnitTestData& _unitTestData;
 
 };
 

@@ -219,7 +219,7 @@ void  FunctionTestContent::writeAsStructure(std::ostringstream &os, const Functi
    os << "\n";
 
    if (obj.getNumParams() > 0) {
-      for (auto field : obj.getFunctionDecl()->params()) {
+      for (const auto& field : obj.getFunctionDecl()->params()) {
          clang::QualType qualType = field->getType();
          const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
 
@@ -229,7 +229,7 @@ void  FunctionTestContent::writeAsStructure(std::ostringstream &os, const Functi
 }
 
 
-static const char *writeStructureValue(std::ostringstream &os,
+static void writeStructureValue(std::ostringstream &os,
                                        const std::shared_ptr<NameValueTypeNode<clang::QualType> > tree,
                                        const std::string &name,
                                        const std::string &indent)
@@ -258,7 +258,7 @@ static const char *writeStructureValue(std::ostringstream &os,
       if ( !tree->isArray() )
          structName += ".";
       
-      for (auto child : tree->getChildren()) {
+      for (const auto& child : tree->getChildren()) {
          writeStructureValue(os, child.second, structName, indent);
       }
    } else {
@@ -267,10 +267,10 @@ static const char *writeStructureValue(std::ostringstream &os,
       }
    }
 
-   return "";
+   return;
 }
 
-static const char *writeStructureComparison(std::ostringstream &os,
+static void writeStructureComparison(std::ostringstream &os,
                                             const std::shared_ptr<NameValueTypeNode<clang::QualType> > tree,
                                             const std::string &name,
                                             const std::string &indent)
@@ -282,7 +282,7 @@ static const char *writeStructureComparison(std::ostringstream &os,
       if ( !tree->isArray() )
          structName += ".";
 
-      for (auto child : tree->getChildren()) {
+      for (const auto& child : tree->getChildren()) {
          writeStructureComparison(os, child.second, structName, indent);
       }
    } else {
@@ -291,7 +291,6 @@ static const char *writeStructureComparison(std::ostringstream &os,
       }
    }
 
-   return "";
 }
 
 void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const FunctionTestContent &obj, const unsigned int i)
@@ -310,16 +309,16 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
    
    os << "// fill the input struct with json file values" << "\n";
    if (obj.getNumParams() > 0) {
-      os << writeStructureValue(os, obj.getTests()[i]->getInputTree(), "", indent) << "\n";
+      writeStructureValue(os, obj.getTests()[i]->getInputTree(), "", indent);
    }
    
    os << "\n";
       
    //    mocks No recursion in mock tree
-   auto children = obj.getTest(i)->getMockTree()->getChildren();
+   const auto& children = obj.getTest(i)->getMockTree()->getChildren();
    if ( children.size() > 0)
       os << "// initialize mock functions\n";
-   for (auto iter : children) {
+   for (const auto& iter : children) {
       const std::string &value = iter.second->getValue();
       if (value != "") {
          os << indent << iter.first << "_fake.custom_fake = " << value << ";\n";
@@ -360,7 +359,7 @@ void FunctionTestContent::writeGoogleTest(std::ostringstream &os, const Function
    os << ");\n\n";
 
    os << "// check conditions" << "\n";
-   for (auto child : obj.getTests()[i]->getOutputTree()->getChildren()) {
+   for (const auto& child : obj.getTests()[i]->getOutputTree()->getChildren()) {
       if (child.first == "retval") {
          writeStructureComparison(os, child.second, "", indent);
       } else {

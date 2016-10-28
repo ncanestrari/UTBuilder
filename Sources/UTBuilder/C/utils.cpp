@@ -16,7 +16,17 @@ using std::vector;
 string utils::extractCommercialCodePath(const string &fileNamePath)
 {
    size_t lastdot = fileNamePath.find("/CommercialCode/");
-   return fileNamePath.substr(0, lastdot) + "/CommercialCode/";
+   if ( lastdot != string::npos ) {
+      return fileNamePath.substr(0, lastdot) + "/CommercialCode/";
+   }
+   
+   // try lower case letters
+   lastdot = fileNamePath.find("/commercialcode/");
+   if ( lastdot != string::npos ) {
+      return fileNamePath.substr(0, lastdot) + "/commercialcode/";
+   }
+   
+   return boost::filesystem::current_path().string();
 }
 
 
@@ -24,9 +34,23 @@ string utils::extractPackagePath(const string &fileNamePath)
 {
    string cc("/CommercialCode/");
    size_t lastdot = fileNamePath.find(cc);
-   string rest = fileNamePath.substr(lastdot + cc.length(), fileNamePath.length() - 1);
-   lastdot = rest.find("/");
-   return rest.substr(0, lastdot);
+   
+   if (  lastdot != string::npos ) {
+      string rest = fileNamePath.substr(lastdot + cc.length(), fileNamePath.length() - 1);
+      lastdot = rest.find("/");
+      return rest.substr(0, lastdot);
+   }
+   
+   cc = "/commercialcode/";
+   lastdot = fileNamePath.find(cc);
+   
+   if (  lastdot != string::npos ) {
+      string rest = fileNamePath.substr(lastdot + cc.length(), fileNamePath.length() - 1);
+      lastdot = rest.find("/");
+      return rest.substr(0, lastdot);
+   }
+   
+   return boost::filesystem::current_path().string();
 }
 
 

@@ -11,26 +11,92 @@
 #define DECIMAL_BASE (10)
 
 
+
 class NameValueNode {
 
    const std::string _name;
    const std::string _value;
    std::map< std::string, std::unique_ptr<NameValueNode> > _children;
    
-public:
-   explicit NameValueNode(const char *name, const char *value = "\0")
+   
+protected:
+   
+      NameValueNode(const char *name, const char *value)
       : _name(name)
       , _value(value)
    {}
+   
+   
+   bool _isNameInteger(void) const {
+      if(_name.empty()) { return false; }
+      char* p;
+      strtol(_name.c_str(), &p, DECIMAL_BASE);
+      return (*p == '\0');
+   }
+   
+public:
+
+   static const char* _arrayIndex[];
+   static const unsigned int _arrayIndexSize; 
+
+   static const char* _arrayElementObject;
+   
+   static NameValueNode* createValue(const char *name, const char *value = "") {
+      return new NameValueNode(name, value);
+   }
+   
+   static NameValueNode* createObject(const char *name) {
+      return new NameValueNode(name, "object");
+   }
+   
+   static NameValueNode* createArray(const char *name) {
+      return new NameValueNode(name, "array");
+   }
+   
+   static NameValueNode* createArrayElement(unsigned int index, const char* val = "") {
+
+      if ( val == "") {
+         val = NameValueNode::_arrayElementObject;
+      }
+      return new NameValueNode( std::to_string(index).c_str(), val );
+   }
+   
 
    ~NameValueNode() {}
 
+   
    const std::string &getName(void) const { return _name; }
    const std::string &getValue(void) const { return _value; }
    
+
+   virtual void* getType() const { return nullptr; }
    
-   unsigned int getNumChildern(void) { return _children.size(); }
-   const std::map< std::string, std::unique_ptr<NameValueNode> >  &getChildren(void) const { return _children; }
+   
+   bool isArray() const { return (_value == "array" ); }
+   bool isObject() const { return (_value == "object" );}
+   
+   const bool isArrayElement(void) const { return (_value == NameValueNode::_arrayElementObject || _isNameInteger() ); }
+   const bool isArrayElementObject(void) const { return (_value == NameValueNode::_arrayElementObject ); }
+   const bool isArrayElementValue(void) const { return ( _isNameInteger() ); }
+   
+   
+   
+   int getIndex(void) const
+   {
+      if ( isArrayElement() ) {
+         if(_isNameInteger()){
+            return stoi(_name);
+         } else {
+            throw std::logic_error(std::string("Error getIndexAsString: name is not an index\n"));
+         }
+      }
+      else {
+         return -1;
+      }
+   }
+   
+   unsigned int getNumChildern(void) const { return _children.size(); }
+   const std::map< std::string, std::unique_ptr<NameValueNode> >& getChildren(void) const { return _children; }
    void addChild(NameValueNode* child) { _children[child->_name] = std::unique_ptr<NameValueNode>(child); }
    const NameValueNode* getChild(const char *name) const
    {
@@ -43,7 +109,7 @@ public:
    }
 
 
-   const NameValueNode* addChild(const char *name, const char *value )
+   virtual const NameValueNode* addChild(const char *name, const char *value )
    {
       _children[name] = std::unique_ptr<NameValueNode>(new NameValueNode(name, value) );
       return getChild(name);
@@ -54,18 +120,28 @@ public:
 template <typename T>
 class TypeNameValueNode : public NameValueNode {
    
-   T _type;
+   // mutable to avoid  a const_cast<>() in function void* getType() const; 
+   mutable T _type;
+   
+   
+protected:
+   
+   explicit TypeNameValueNode(const char *name, T type = T(), const char *value = "\0")
+      : NameValueNode(name, value)
+      , _type(type)
+   {}
    
 public:
-   T getType(void) const { _type; }
-};
-
-
-
-class NameValueFunctionDeclNode : public NameValueNode {
    
-   clang::FunctionDecl* _type;
+   static NameValueNode* create(const char *name, T type = T(), const char *value = "\0") 
+   {
+      return new TypeNameValueNode<T>(name, type, value);
+   }
+   
+   virtual void* getType() const override final { return &_type; }
+   
 };
+
 
 
 template <typename T>

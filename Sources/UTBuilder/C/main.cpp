@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "Results.h"
 #include "writer.h"
+#include "UnitTestData.h"
 
 #include <iostream>
 #include <fstream>
@@ -53,18 +54,23 @@ int main(int argc, const char *argv[])
       
       FunctionTestDataFile::get().computeAST();
       
+      // test UnitTestData
+      UnitTestData unitTestData( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
+      unitTestData.buildCollectionTree();
+
+      
       if( OptionParser::get().isExampleEnabled() ) {
-         JsonWriter jsonWriter( FunctionTestDataFile::get() );
+         JsonWriter jsonWriter( FunctionTestDataFile::get(), unitTestData );
          // do we have to check if OptionParser::get().getOutputName() is empty ?
          jsonWriter.templateFile(OptionParser::get().getOutputName());
          return EXIT_SUCCESS;
       }
 
-      JsonReader reader;
+      JsonReader reader(unitTestData);
       reader.parse( FunctionTestDataFile::get(), OptionParser::get().getJsonFileName() );
       
       std::string outputFileName = FunctionTestDataFile::get().getProjectDescription().getOutputFileName();
-      Writer writer( outputFileName, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
+      Writer writer( unitTestData, outputFileName, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
       writer.createFiles();
 
    } catch (std::exception &e){

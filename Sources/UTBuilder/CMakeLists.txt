@@ -25,6 +25,8 @@ set ( HEADER_FILES
    Include/TypedefVisitor.h
    Include/globber.h
    Include/optionparser.h
+   Include/UnitTestData.h
+   Include/UnitTestDataUtils.h
    Include/utils.h
    Include/writer.h
    )
@@ -47,6 +49,8 @@ set ( SOURCE_FILES
    C/TypedefVisitor.cpp
    C/globber.cpp
    C/optionparser.cpp
+   C/UnitTestData.cpp
+   C/UnitTestDataUtils.cpp
    C/utils.cpp 
    C/writer.cpp
    )

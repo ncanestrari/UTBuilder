@@ -10,6 +10,7 @@
 
 #include "Results.h"
 #include "FunctionTestDataFile.h"
+#include "UnitTestData.h"
 
 namespace clang {
 class FunctionDecl;
@@ -23,7 +24,8 @@ class Context;
 class Writer {
 
 public:
-   Writer(const std::string            &fileName,
+   Writer(const UnitTestData& data,
+          const std::string            &fileName,
           const clang::SourceManager   &sourceMgr);
    ~Writer() {}
 
@@ -58,6 +60,12 @@ private:
                                const std::shared_ptr<NameValueTypeNode<clang::QualType>>   outTree,
                                std::ostringstream                                         &out);
 
+   void FakeFunctionDefinition(const std::string&                           name,
+                               const clang::FunctionDecl*                   funcDecl,
+                               const TypeNameValueNode<clang::QualType>*    outTree,
+                               std::ostringstream&                          out);
+   
+   const UnitTestData&          _data;
    const std::string             _fileName;
    const clang::SourceManager   &_sourceMgr;
 };

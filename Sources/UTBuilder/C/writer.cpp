@@ -14,7 +14,7 @@
 
 #include "FunctionTestDataFile.h"
 #include "utils.h"
-
+#include "UnitTestDataUtils.h"
 
 using std::cout;
 using std::string;
@@ -26,9 +26,11 @@ using Plustache::Context;
 using Plustache::template_t;
 
 
-Writer::Writer(const std::string            &fileName,
+Writer::Writer(const UnitTestData& data,
+               const std::string            &fileName,
                const clang::SourceManager   &sourceMgr)
-   : _fileName(fileName)
+   : _data(data)
+   , _fileName(fileName)
    , _sourceMgr(sourceMgr)
 {}
 
@@ -47,7 +49,9 @@ void Writer::CreateMockFile(void)
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for (const auto& funcToMock : FunctionsToMock::get().declKeySetMap) {
+//    for (const auto& funcToMock : FunctionsToMock::get().declKeySetMap) {
+   for (const auto& funcToMock : _data.getFunctionToMock() ) {
+      
       const clang::FunctionDecl *funcDecl = funcToMock.first;
       // get declaration source location
       const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
@@ -55,7 +59,7 @@ void Writer::CreateMockFile(void)
       includePaths.insert(boost::filesystem::path(declSrcFile).filename().string());
    }
 
-   WriteTemplate(CreateMockContext(includePaths, FunctionsToMock::get().declKeySetMap),
+   WriteTemplate(CreateMockContext(includePaths, _data.getFunctionToMock() ), /*FunctionsToMock::get().declKeySetMap),*/
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/mock.template"),
                  utils::changeFilePathToInclude(_fileName) + "-mocks.h");
 
@@ -70,7 +74,7 @@ void Writer::createUnitTestFile(void)
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for (const auto& funcToUnitTest : FunctionsToUnitTest::get().declKeySetMap) {
+   for (const auto& funcToUnitTest : _data.getFunctionToTest() ) { /*FunctionsToUnitTest::get().declKeySetMap) {*/
       const clang::FunctionDecl *funcDecl = funcToUnitTest.first;
       // get declaration source location
       const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
@@ -115,7 +119,7 @@ void Writer::CreateSerializationFile(void)
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/serialization.template"),
                  _fileName + "-serialization.h");
 
-   WriteTemplate(CreateStructuresToSerializeContext(includePaths, FunctionsToUnitTest::get().declKeySetMap),
+   WriteTemplate(CreateStructuresToSerializeContext(includePaths, _data.getFunctionToTest() ), /* FunctionsToUnitTest::get().declKeySetMap),*/
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/serialization-struct.template"),
                  utils::changeFilePathToInclude(_fileName) + "-serialization-struct.h");
 }
@@ -151,6 +155,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
 
    out.str("");
 
+   /*
    const FunctionTestCollection * mockFuncTestCollection = FunctionTestDataFile::get().getMockTestCollection();
 
    for ( const std::pair< std::string, FunctionTestContent>& func : mockFuncTestCollection->dataFromJson() ) {
@@ -171,7 +176,35 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
          out.str("");
       }
    }
+   */
 
+   const NameValueNode* mocksdata = _data.getMocksData();
+   const std::map< std::string, std::unique_ptr<NameValueNode> >& mockFuncs = mocksdata->getChildren();
+   for (const auto& arrayIndex : mockFuncs) {
+      
+      const NameValueNode* childObj = arrayIndex.second.get();
+      auto funcName = static_cast<const TypeNameValueNode<const clang::FunctionDecl*>*>(childObj->getChild("_name"));
+      const std::string& name = funcName->getValue();
+      const clang::FunctionDecl* funcDecl = *static_cast<const clang::FunctionDecl**>(funcName->getType());
+      
+      const NameValueNode* funcContent = childObj->getChild("content");
+      
+
+      int counter = 0;
+      const std::map< std::string, std::unique_ptr<NameValueNode> >& children = funcContent->getChildren();
+      for ( const auto& iter : children ) {
+
+         const std::string namewithcounter = name + "_" + std::to_string(counter);
+         
+         auto outputTree = static_cast<const TypeNameValueNode<clang::QualType>*>(iter.second->getChild("output"));
+         FakeFunctionDefinition(namewithcounter, funcDecl, outputTree, out);
+         FakeFunc["definition"] = out.str();
+         context->add("fakefuncs", FakeFunc);
+         counter++;
+         out.str("");
+      }      
+   }
+   
    return context;
 }
 
@@ -197,8 +230,8 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
 
    std::ostringstream    code;
 
-  
-   for (const std::pair< std::string, FunctionTestContent>& iter : funcData->dataFromJson() ) {
+  /*
+   for (const std::pair< std::string, FunctionTestContent>&& iter : funcData->dataFromJson() ) {
 
       const FunctionTestContent& funcParams = iter.second;
 
@@ -218,6 +251,32 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
          context->add("functionToUnitTest", FunctionToUnitTest);
       }
    }
+   */
+   
+   const NameValueNode* funcsToTest = _data.getFuncsData();
+   const std::map< std::string, std::unique_ptr<NameValueNode> >& funcs = funcsToTest->getChildren();
+   for (const auto& arrayIndex : funcs) {
+      
+      const NameValueNode* childObj = arrayIndex.second.get();
+      auto funcName = static_cast<const TypeNameValueNode<const clang::FunctionDecl*>*>(childObj->getChild("_name"));
+      const std::string& name = funcName->getValue();
+      const clang::FunctionDecl* funcDecl = *static_cast<const clang::FunctionDecl**>(funcName->getType());
+      
+      const NameValueNode* funcContent = childObj->getChild("content");
+      
+      int counter = 0;
+      const std::map< std::string, std::unique_ptr<NameValueNode> >& children = funcContent->getChildren();
+      for ( const auto& iter : children ) {
+         
+         FunctionToUnitTest["functionName"] = name + "_" + std::to_string(counter);;
+         ++counter;
+         code.str("");
+         UnitTestDataUtils::writeGoogleTest(code, funcDecl, iter.second.get() );         
+         FunctionToUnitTest["CODE"] = code.str();
+         context->add("functionToUnitTest", FunctionToUnitTest);
+      }
+   }
+   
 
    // create a C++ class name from the fileName
    std::string TestFilename = boost::filesystem::path(_fileName).filename().string();
@@ -388,6 +447,7 @@ Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includ
    context->add("filename", _fileName);
    context->add("newline", "\n");
 
+   /*
    std::vector<FunctionTestContent> funcParamsStructures;
 
    for (const std::pair<const clang::FunctionDecl *, FunctionDeclSet >& iter : funcDeclsMap) {
@@ -404,7 +464,20 @@ Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includ
       paramsStructsObject["paramTypesAndNames"] = out.str();
       context->add("functionParamsStructs", paramsStructsObject);
    }
+   */
 
+   for (const std::pair<const clang::FunctionDecl *, FunctionDeclSet >& iter : funcDeclsMap) {
+      
+      out.str("");
+      
+      const clang::FunctionDecl *funcDecl = iter.first;
+      UnitTestDataUtils::writeFunctionDeclAsStructure( out, funcDecl);
+    
+      paramsStructsObject["functionName"] = funcDecl->getNameAsString();
+      paramsStructsObject["paramTypesAndNames"] = out.str();
+      context->add("functionParamsStructs", paramsStructsObject);
+   }
+   
    return context;
 }
 
@@ -487,6 +560,7 @@ static void writeMockValue(std::ostringstream &os,
 }
 
 
+
 void Writer::FakeFunctionDefinition(const std::string                                          &name,
                                     const clang::FunctionDecl                                  *funcDecl,
                                     const std::shared_ptr<NameValueTypeNode<clang::QualType> >  outTree,
@@ -528,6 +602,111 @@ void Writer::FakeFunctionDefinition(const std::string                           
          }
       }
       writeMockValue(out, child.second, "");
+   }
+
+   if (returnType != "void") {
+      out << "   return retval;\n";
+   }
+
+   out << "}";
+}
+
+
+static void writeMockValue(std::ostringstream &os,
+                           const NameValueNode*  tree,
+                           const std::string &name)
+{
+   
+   std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
+
+   if ( tree->isArray() ) {
+//    this is a pointer to allocate: write the memory allocation line
+      if (tree->getNumChildern() > 0) {
+         // move in utils::
+         size_t pos = 0;
+         const clang::QualType qualType = *static_cast<clang::QualType*>(tree->getType());
+         std::string typestr = qualType.getUnqualifiedType().getAsString();
+         pos = typestr.find("*", pos);
+         while (pos != std::string::npos) {
+            typestr = typestr.erase(pos, 1);
+            pos = typestr.find("*", pos);
+         }
+
+         os << "   " << structName << " = static_cast<"<< qualType.getAsString() << ">(calloc(" << tree->getNumChildern() << ", sizeof(" << typestr << ")));\n";
+//          os << "   " << "memset(&" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
+      }
+   }
+   
+   if (tree->getNumChildern() > 0) {
+      
+      if ( !tree->isArray() )
+         structName += ".";
+      
+      for (const auto& child : tree->getChildren()) {
+         writeMockValue(os, child.second.get(), structName);
+      }
+   } else { //TODO manage pointer to structure if needed
+      if (tree->getValue() != "") {
+         if (tree->getName() == "retval") {
+            os << "   retval = " << tree->getValue() << ";\n";
+         } 
+         else if ( (*static_cast<clang::QualType*>(tree->getType()))->isAnyPointerType()) {
+            os << "   " << structName << " = " << tree->getValue() << ";\n";
+         } 
+         else {
+            os << "   " << structName << " = " << tree->getValue() << ";\n";
+         }
+      }
+   }
+}
+
+void Writer::FakeFunctionDefinition(const std::string&                           name,
+                                    const clang::FunctionDecl*                   funcDecl,
+                                    const TypeNameValueNode<clang::QualType>*    outTree,
+                                    std::ostringstream&                          out)
+{
+   std::string returnType = funcDecl->getReturnType().getAsString();
+   std::string isVariadic;
+
+   out << returnType << " ";
+   out << name << "(";
+
+   const int numParms = funcDecl->getNumParams();
+   if (numParms == 0) {
+      out << "void";
+   } else {
+      const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(0);
+      out << _currentParam->getType().getAsString() << " " << _currentParam->getNameAsString();
+      for (int i = 1; i < numParms; ++i) {
+         const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(i);
+         out << ", " << _currentParam->getType().getAsString() << " " << _currentParam->getNameAsString();
+      }
+
+      if (funcDecl->isVariadic()) {
+         out << ", ...";
+      }
+   }
+
+   out << " ){";
+
+   out << "// fill the input struct with json file values" << "\n";
+
+
+   for (const auto& child : outTree->getChildren()) {
+      
+      
+      if ( child.second->getType() == nullptr ) {
+//          std::throw();
+         continue;
+      }
+      const clang::QualType qualType = *static_cast<clang::QualType*>(child.second->getType());
+      if ( (child.first == "retval") &&  !(qualType.getAsString() == "void") ) {
+         out << "   " << qualType.getAsString() << " retval;\n";
+         if ( !qualType->isAnyPointerType() ) {
+            out << "   memset(&retval,0,sizeof(" << qualType.getAsString() << "));\n";
+         }
+      }
+      writeMockValue(out, child.second.get(), "");
    }
 
    if (returnType != "void") {

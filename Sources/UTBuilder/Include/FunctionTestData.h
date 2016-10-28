@@ -74,7 +74,7 @@ private:
    std::shared_ptr<NameValueTypeNode<clang::QualType> > _inputTree;
    std::shared_ptr<NameValueTypeNode<clang::QualType> >  _outputTree;
    std::shared_ptr<NameValueTypeNode<const clang::FunctionDecl *> > _mocksTree;
-
+   
 };
 
 
