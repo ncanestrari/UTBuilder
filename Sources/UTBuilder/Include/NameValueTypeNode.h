@@ -117,28 +117,31 @@ public:
 };
 
 
+
+
 template <typename T>
 class TypeNameValueNode : public NameValueNode {
    
    // mutable to avoid  a const_cast<>() in function void* getType() const; 
    mutable T _type;
    
-   
 protected:
    
-   explicit TypeNameValueNode(const char *name, T type = T(), const char *value = "\0")
+   explicit TypeNameValueNode(const char *name, const T& type, const char *value = "\0")
       : NameValueNode(name, value)
       , _type(type)
    {}
    
 public:
    
-   static NameValueNode* create(const char *name, T type = T(), const char *value = "\0") 
+   static NameValueNode* create(const char *name, const T& type = TypeNameValueNode<T>::_defaultType, const char *value = "\0") 
    {
       return new TypeNameValueNode<T>(name, type, value);
    }
    
    virtual void* getType() const override final { return &_type; }
+   
+   static const T _defaultType;
    
 };
 

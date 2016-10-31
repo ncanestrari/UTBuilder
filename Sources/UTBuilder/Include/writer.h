@@ -62,7 +62,7 @@ private:
 
    void FakeFunctionDefinition(const std::string&                           name,
                                const clang::FunctionDecl*                   funcDecl,
-                               const TypeNameValueNode<clang::QualType>*    outTree,
+                               const NameValueNode*			    outTree,
                                std::ostringstream&                          out);
    
    const UnitTestData&          _data;

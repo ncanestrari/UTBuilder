@@ -99,7 +99,9 @@ string utils::changeFilePathToInclude(const string &fileName)
    string filenameInclude = fileName;
    size_t pos = 0;
    pos = filenameInclude.find("/C/", pos);
-   filenameInclude.replace(pos, 3, "/Include/");
+   if ( pos != std::string::npos) {
+     filenameInclude.replace(pos, 3, "/Include/");
+   }
    return filenameInclude;
 }
 

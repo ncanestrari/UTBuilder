@@ -22,6 +22,7 @@ set ( HEADER_FILES
    Include/Results.h
    Include/Serializable.h
    Include/StructVisitor.h
+   Include/TreeNode.h
    Include/TypedefVisitor.h
    Include/globber.h
    Include/optionparser.h
@@ -46,6 +47,7 @@ set ( SOURCE_FILES
    C/ProjectDescription.cpp
    C/Results.cpp
    C/StructVisitor.cpp
+   C/TreeNode.cpp
    C/TypedefVisitor.cpp
    C/globber.cpp
    C/optionparser.cpp

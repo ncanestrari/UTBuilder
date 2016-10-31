@@ -7,11 +7,18 @@ const unsigned int NameValueNode::_arrayIndexSize = (sizeof((NameValueNode::_arr
 
 const char* NameValueNode::_arrayElementObject = "arrayElement";
 
+template <>
+const clang::QualType TypeNameValueNode<clang::QualType>::_defaultType = clang::QualType();
+
+template <>
+const clang::FunctionDecl* const TypeNameValueNode<const clang::FunctionDecl*>::_defaultType = nullptr;
+
+
 // template specialization for clang::QualType type
 // QualType can be a structure and addChild is called recursevly for each struct field
 template <>
 NameValueNode* TypeNameValueNode<clang::QualType>::create(const char* name,  
-                                                                 clang::QualType qualType, 
+                                                                 const clang::QualType& qualType, 
                                                                  const char* value ) 
 {
    TypeNameValueNode<clang::QualType>* node = nullptr; // = new TypeNameValueNode<clang::QualType>(name, qualType, value);

@@ -175,15 +175,19 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
          counter++;
          out.str("");
       }
-   }
-   */
+   }*/
+   
 
    const NameValueNode* mocksdata = _data.getMocksData();
    const std::map< std::string, std::unique_ptr<NameValueNode> >& mockFuncs = mocksdata->getChildren();
    for (const auto& arrayIndex : mockFuncs) {
       
       const NameValueNode* childObj = arrayIndex.second.get();
-      auto funcName = static_cast<const TypeNameValueNode<const clang::FunctionDecl*>*>(childObj->getChild("_name"));
+      const TypeNameValueNode<const clang::FunctionDecl*>* funcName = dynamic_cast<const TypeNameValueNode<const clang::FunctionDecl*>*>(childObj->getChild("_name"));
+      
+      if ( funcName == nullptr ){
+	
+      }
       const std::string& name = funcName->getValue();
       const clang::FunctionDecl* funcDecl = *static_cast<const clang::FunctionDecl**>(funcName->getType());
       
@@ -196,7 +200,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
 
          const std::string namewithcounter = name + "_" + std::to_string(counter);
          
-         auto outputTree = static_cast<const TypeNameValueNode<clang::QualType>*>(iter.second->getChild("output"));
+         const NameValueNode* outputTree = iter.second->getChild("output");
          FakeFunctionDefinition(namewithcounter, funcDecl, outputTree, out);
          FakeFunc["definition"] = out.str();
          context->add("fakefuncs", FakeFunc);
@@ -507,10 +511,16 @@ Writer::WriteTemplate(std::shared_ptr<const Plustache::Context>  context,
    std::ofstream outputFile;
    std::string outputFileName = outFileName;
    outputFile.open(outputFileName, std::fstream::out);
-   outputFile << result;
+   if ( outputFile.is_open() ){
+     outputFile << result;
+     std::cout << "file written: " << outputFileName << std::endl;
+   }
+   else {
+     std::cout << "ERROR: opening path to write: " << outputFileName << " doesn't exist" << std::endl;
+   }
    outputFile.close();
 
-   std::cout << "file written: " << outputFileName << std::endl;
+   
 }
 
 
@@ -662,7 +672,7 @@ static void writeMockValue(std::ostringstream &os,
 
 void Writer::FakeFunctionDefinition(const std::string&                           name,
                                     const clang::FunctionDecl*                   funcDecl,
-                                    const TypeNameValueNode<clang::QualType>*    outTree,
+                                    const NameValueNode*			 outTree,
                                     std::ostringstream&                          out)
 {
    std::string returnType = funcDecl->getReturnType().getAsString();
@@ -694,12 +704,12 @@ void Writer::FakeFunctionDefinition(const std::string&                          
 
    for (const auto& child : outTree->getChildren()) {
       
-      
-      if ( child.second->getType() == nullptr ) {
+      const TypeNameValueNode<clang::QualType>* qualTypeNode = dynamic_cast<const TypeNameValueNode<clang::QualType>*>(  child.second.get() );
+      if ( qualTypeNode == nullptr ) {
 //          std::throw();
          continue;
       }
-      const clang::QualType qualType = *static_cast<clang::QualType*>(child.second->getType());
+      const clang::QualType qualType = *static_cast<clang::QualType*>(qualTypeNode->getType());
       if ( (child.first == "retval") &&  !(qualType.getAsString() == "void") ) {
          out << "   " << qualType.getAsString() << " retval;\n";
          if ( !qualType->isAnyPointerType() ) {

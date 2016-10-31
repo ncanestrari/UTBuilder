@@ -59,7 +59,7 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr *funcCall)
    // TODO: fix this
    // temporary check
    // WEAK CHECK if declaration is in CommercialCode path
-   if (declSrcFile.find("CommercialCode") == std::string::npos) {
+   if (declSrcFile.find("CommercialCode") == std::string::npos && declSrcFile.find("commercialcode") == std::string::npos ) {
       // this is (probably) a system function
       return true;
    }
