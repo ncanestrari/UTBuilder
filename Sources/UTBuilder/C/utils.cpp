@@ -6,12 +6,17 @@
 #include <boost/filesystem/convenience.hpp>
 #include <clang/AST/Decl.h>
 #include <clang/AST/Stmt.h>
+#include <iostream>
+
+using boost::filesystem::current_path;
+using boost::filesystem::path;
 
 using std::set;
 using std::string;
 using std::toupper;
 using std::vector;
-
+using std::cout;
+using std::endl;
 
 string utils::extractCommercialCodePath(const string &fileNamePath)
 {
@@ -30,31 +35,43 @@ string utils::extractPackagePath(const string &fileNamePath)
 }
 
 
-void utils::getIncludePaths(const string   &package,
-                            vector<string> &include_folders)
+void utils::getIncludePaths(const set<path> &  packages,
+                            set<path> &        include_dir)
 {
-   string repo(package);
-   //now str is the Repository
-   const string matchers_[] = { "/Sources/*/Include/", "/Input_API/*/API/", "/Input_API/*/API/*/" };
+   path cwd = current_path();
+   const string matchers_[] = { "Sources/*/Include/", "Input_API/*/API/", "Input_API/*/API/*/" };
    const vector<string> matchers(matchers_, matchers_ + sizeof(matchers_) / sizeof(string));
-   for (const auto matcher : matchers) {
-      string path = repo + matcher;
-      vector<string> ret = glob(path);
-      include_folders.insert(include_folders.end(), ret.begin(), ret.end());
+
+   for (const path &package : packages){
+      current_path(package);
+      for (const string &matcher : matchers) {
+         set<path> local_matches;
+         glob(matcher, local_matches);
+         for (const path & match : local_matches){
+            include_dir.insert(package / match);
+         }
+      }
+      current_path(cwd);
    }
 }
 
-void utils::getSourcePaths(const string& package, vector< string >& source_folders)
+
+void utils::getSourcesPaths(const set<path> &  packages,
+                            set<path> &        sources_dir)
 {
-   string repo(package);
-   //now str is the Repository
-   const string matchers = "/Sources/*/C/";
-
-   string path = repo + matchers;
-   vector<string> ret = glob(path);
-   source_folders.insert(source_folders.end(), ret.begin(), ret.end());
+   path cwd = current_path();
+   const string matcher = "Sources/*/C/";
+   
+   for (const path &package : packages){
+      current_path(package);
+      set<path> local_matches;
+      glob(matcher, local_matches);
+      for (const path & match : local_matches){
+         sources_dir.insert(package / match);
+      }
+      current_path(cwd);
+   }
 }
-
 
 
 string utils::removeFileExtension(const string &fileNamePath)

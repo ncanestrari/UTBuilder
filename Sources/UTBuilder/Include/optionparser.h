@@ -58,8 +58,6 @@ public:
 //    const std::vector<std::string>& getFunctionsToTest(void) { return _vm["functions"].as<CommaSeparatedVector>().values; }
    const std::string & getOutputName(void) { return _vm["output"].as<std::string>(); }
    const std::string & getJsonFileName(void) { return _vm["json"].as<std::string>(); }
-   std::string getCommercialCode(void) { return utils::extractCommercialCodePath( getFirstAvailableFile() ); }
-   std::string getPackage(void) { return utils::extractPackagePath( getFirstAvailableFile() ); }
    void getFileNames(std::vector<std::string>&);
 //    void getFunctionsToTest(std::set<std::string>&);
    const std::set<std::string> getFunctionsToTest();
@@ -69,7 +67,6 @@ protected:
    boost::program_options::variables_map _vm;
    boost::program_options::options_description _all;
    boost::program_options::options_description _visible;
-   const std::string& getFirstAvailableFile(void); 
 
 };
 
