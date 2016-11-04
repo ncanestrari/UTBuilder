@@ -144,13 +144,11 @@ void FunctionTestDataFile::computeAST(void)
    HeaderSearchOptions &searchOpts = _compiler.getHeaderSearchOpts();
 
    for( const path &p : _projectDescription.getIncludePaths() ) {
-      cout << p.string() << endl;
-      searchOpts.AddPath(p.string().c_str(), Quoted, false, false);
+      searchOpts.AddPath((current_path() / p).string().c_str(), Quoted, false, false);
    }
    
    for( const path &p : _projectDescription.getSourcesPaths() ) {
-      cout << p.string() << endl;
-      searchOpts.AddPath(p.string().c_str(), Quoted, false, false);
+      searchOpts.AddPath((current_path() / p).string().c_str(), Quoted, false, false);
    }
    
 

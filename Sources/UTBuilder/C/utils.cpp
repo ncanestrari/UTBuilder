@@ -87,16 +87,6 @@ string utils::changeFileExtension(const string &fileName, const string &newExt)
 }
 
 
-string utils::changeFilePathToInclude(const string &fileName)
-{
-   string filenameInclude = fileName;
-   size_t pos = 0;
-   pos = filenameInclude.find("/C/", pos);
-   filenameInclude.replace(pos, 3, "/Include/");
-   return filenameInclude;
-}
-
-
 string utils::removeDashes(const string &fileNamePath)
 {
    string fileName = boost::filesystem::path(fileNamePath).filename().string();

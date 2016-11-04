@@ -86,7 +86,7 @@ Writer::CreateMockFile(void)
 
    WriteTemplate(CreateMockContext(includePaths, FunctionsToMock::get().declKeySetMap),
                  string(getenv("TEMPLATE_DIR")) + string("/mock.template"),
-                 utils::changeFilePathToInclude(_fileName) + "-mocks.h");
+                 _fileName + "-mocks.h");
 }
 
 
@@ -143,7 +143,7 @@ Writer::CreateSerializationFile(void)
 
    WriteTemplate(CreateStructuresToSerializeContext(includePaths, FunctionsToUnitTest::get().declKeySetMap),
                  string(getenv("TEMPLATE_DIR")) + string("/serialization-struct.template"),
-                 utils::changeFilePathToInclude(_fileName) + "-serialization-struct.h");
+                 _fileName + "-serialization-struct.h");
 }
 
 

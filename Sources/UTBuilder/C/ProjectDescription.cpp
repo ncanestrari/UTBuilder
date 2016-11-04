@@ -116,6 +116,9 @@ void ProjectDescription::createFakeSource(void)
 {
    ofstream inputFile;
    inputFile.open(_inputFileName);
+   if( ! inputFile.is_open() ){
+      throw logic_error("cannot create fakesource.c file\n");
+   }
    for(const path &source : _sources){
       inputFile << "#include " << source.filename() << endl;// path override the << operator, but writes using quotes.
    }
