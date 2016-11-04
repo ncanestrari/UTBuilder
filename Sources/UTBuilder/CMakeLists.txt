@@ -17,12 +17,17 @@ set ( HEADER_FILES
    Include/JsonWriter.h
    Include/MockVisitor.h
    Include/NameValueTypeNode.h
+   Include/NameValueTypeVisitor.h
+   Include/NameValueTypeActions.h
    Include/PrecompilerOptionAST.h
    Include/ProjectDescription.h
    Include/Results.h
    Include/Serializable.h
    Include/StructVisitor.h
    Include/TreeNode.h
+   Include/TreeNodeVisitor.h
+   Include/TreeNodeActions.h
+   Include/TestData.h
    Include/TypedefVisitor.h
    Include/globber.h
    Include/optionparser.h
@@ -44,10 +49,15 @@ set ( SOURCE_FILES
    C/JsonWriter.cpp
    C/MockVisitor.cpp
    C/NameValueTypeNode.cpp
+   C/NameValueTypeVisitor.cpp
+   C/NameValueTypeActions.cpp
    C/ProjectDescription.cpp
    C/Results.cpp
    C/StructVisitor.cpp
    C/TreeNode.cpp
+   C/TreeNodeVisitor.cpp
+   C/TreeNodeActions.cpp
+   C/TestData.cpp
    C/TypedefVisitor.cpp
    C/globber.cpp
    C/optionparser.cpp

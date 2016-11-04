@@ -40,9 +40,9 @@ void UnitTestDataUtils::addJsonObjectComment(Json::Value& jsonValue, const NameV
 {
    std::ostringstream comment;
    
-   if ( dynamic_cast<const TypeNameValueNode<clang::QualType>* >(node) ) {
+   if ( dynamic_cast<const QualTypeNode*>(node) ) {
    
-      const clang::QualType qualType = *static_cast<clang::QualType*>(node->getType());
+      const clang::QualType qualType = *static_cast<const clang::QualType*>(node->getType());
       if (qualType.isNull() == false) {
          comment << "// struct " << qualType.getAsString();
          jsonValue.setComment(comment.str().c_str(), comment.str().length(), Json::commentAfterOnSameLine);
@@ -52,10 +52,10 @@ void UnitTestDataUtils::addJsonObjectComment(Json::Value& jsonValue, const NameV
 
 void UnitTestDataUtils::addJsonValueComment(Json::Value& jsonValue, const NameValueNode* node)
 {
-   if ( dynamic_cast<const TypeNameValueNode<clang::QualType>* >(node) ) {
+   if ( dynamic_cast<const QualTypeNode*>(node) ) {
    
       std::string comment;
-      const clang::QualType qualType = *static_cast<clang::QualType*>(node->getType());
+      const clang::QualType qualType = *static_cast<const clang::QualType*>(node->getType());
       if (qualType.isNull() == false) {
          const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
          comment = "// type: " + qualType.getAsString() + " (" + canonicalQualType.getAsString() + ") ";
@@ -66,10 +66,10 @@ void UnitTestDataUtils::addJsonValueComment(Json::Value& jsonValue, const NameVa
 
 void UnitTestDataUtils::addJsonStructValueComment(Json::Value& jsonValue, const NameValueNode* node)
 {
-   if ( dynamic_cast<const TypeNameValueNode<clang::QualType>* >(node) ) {
+   if ( dynamic_cast<const QualTypeNode*>(node) ) {
    
       std::string comment;
-      const clang::QualType qualType = *static_cast<clang::QualType*>(node->getType());
+      const clang::QualType qualType = *static_cast<const clang::QualType*>(node->getType());
       if (qualType.isNull() == false) {
          const clang::QualType canonicalQualType = qualType->getCanonicalTypeInternal();
          comment = "// struct " + qualType.getAsString();
@@ -210,7 +210,7 @@ void UnitTestDataUtils::writeStructureValue( std::ostringstream &os,
       if (tree->getNumChildern() > 0) {
          // move in utils::
          size_t pos = 0;
-         clang::QualType type = *static_cast<clang::QualType*>(tree->getType());
+         clang::QualType type = *static_cast<const clang::QualType*>(tree->getType());
          std::string typestr = type.getUnqualifiedType().getAsString();
          pos = typestr.find("*", pos);
          while (pos != std::string::npos) {

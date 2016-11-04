@@ -6,6 +6,9 @@
 
 #include "UnitTestDataUtils.h"
 
+#include "NameValueTypeActions.h"
+#include "NameValueTypeVisitor.h"
+
 const unsigned int UnitTestData::_defaultExampleContentSize = 2;
 
 
@@ -54,10 +57,10 @@ NameValueNode* UnitTestData::buildCollectionTree()
    NameValueNode* descNode = buildDescTree();
    _treeFromAST->addChild(descNode);
    
-   NameValueNode* mocksNode = buildMocksTree();
+   NameValueNode* mocksNode = buildTree("mocks", _mockDeclsMap);
    _treeFromAST->addChild(mocksNode);
    
-   NameValueNode* funcsNode = buildFunctionsTree();
+   NameValueNode* funcsNode = buildTree("funcs", _funcDeclsMap);
    _treeFromAST->addChild(funcsNode); 
    
 }
@@ -82,12 +85,12 @@ NameValueNode* UnitTestData::buildDescTree()
    return descNode;
 }
 
-NameValueNode* UnitTestData::buildMocksTree()
+NameValueNode* UnitTestData::buildTree(const char* treeName, const FunctionDeclKeySetMap& declMap )
 {
-   NameValueNode* mocksArray = NameValueNode::createArray("mocks");
+  NameValueNode* arrayNode = NameValueNode::createArray(treeName);
    
    /**
-    *    "mocks" : // array
+    *    "mocks" : // array of "funcs"
     *   [
     *      { //object 0
     *         "_name" : "mock function name 1", // value
@@ -101,68 +104,30 @@ NameValueNode* UnitTestData::buildMocksTree()
     */
    
    size_t objectCounter = 0;
-   for (const auto& objIter : _mockDeclsMap) {
+   for (const auto& objIter : declMap) {
       
       NameValueNode* objectNode = NameValueNode::createArrayElement( objectCounter );
-      mocksArray->addChild(objectNode);
+      arrayNode->addChild(objectNode);
       objectCounter++;
       
       const clang::FunctionDecl *funcDecl = objIter.first;
       const std::string name = funcDecl->getNameAsString();   
       const std::set<const clang::FunctionDecl *> &mockDeclSet = objIter.second;
       
-      auto* nameNode = TypeNameValueNode<const clang::FunctionDecl*>::create("_name", funcDecl, name.c_str());
+      auto* nameNode = FunctionDeclNode::create("_name", funcDecl, name.c_str());
       objectNode->addChild(nameNode);
       
-      NameValueNode* contentObjNode = buildMockContentTree(funcDecl, mockDeclSet); //NameValueNode::createArrayNode("content");
+//       NameValueNode* contentObjNode = buildMockContentTree(funcDecl, mockDeclSet); //NameValueNode::createArrayNode("content");
+      NameValueNode* contentObjNode = buildContentTree(funcDecl, mockDeclSet);
       objectNode->addChild(contentObjNode);      
    }   
    
-   return mocksArray;
-}
-
-NameValueNode* UnitTestData::buildFunctionsTree()
-{
-   NameValueNode* funcsArray = NameValueNode::createArray("funcs");
-   
-   /**
-    * "funcs" : // array
-    * [
-    *      {    // object 0
-    *         "_name" : "function to test name 1",      // value
-    *         "content" : []                            // array
-    *      },
-    *     {     // object 1
-    *         "_name" : "function to test name 2",      // value
-    *         "content" : []                            // array
-    *      }
-    * ],
-    */
-   
-   size_t objectCounter = 0;
-   for (const auto& objIter : _funcDeclsMap) {
-      
-      NameValueNode* objectNode = NameValueNode::createArrayElement(objectCounter);
-      funcsArray->addChild(objectNode);
-      objectCounter++;
-      
-      const clang::FunctionDecl *funcDecl = objIter.first;
-      const std::string name = funcDecl->getNameAsString(); 
-      const std::set<const clang::FunctionDecl *> &mockDeclSet = objIter.second;
-
-      auto* nameNode = TypeNameValueNode<const clang::FunctionDecl*>::create("_name", funcDecl, name.c_str());
-      objectNode->addChild(nameNode);
-      
-      NameValueNode* contentObjNode = buildFunctionContentTree(funcDecl, mockDeclSet); //NameValueNode::createArrayNode("content");
-      objectNode->addChild(contentObjNode);      
-   }   
-   
-   return funcsArray;
+   return arrayNode;
 }
 
 
-NameValueNode* UnitTestData::buildMockContentTree( const clang::FunctionDecl *funcDecl,
-                                                   const std::set<const clang::FunctionDecl *> &mockFuncs)
+NameValueNode* UnitTestData::buildContentTree( const clang::FunctionDecl *funcDecl,
+                                                   const std::set<const clang::FunctionDecl *> &funcs)
 {
    NameValueNode* contentArray = NameValueNode::createArray("content");
    
@@ -194,7 +159,7 @@ NameValueNode* UnitTestData::buildMockContentTree( const clang::FunctionDecl *fu
          
          for (const auto& field : funcDecl->params()) {
             
-            auto* child = TypeNameValueNode<clang::QualType>::create(field->getNameAsString().c_str(), field->getType(), "");
+            auto* child = QualTypeNode::create(field->getNameAsString().c_str(), field->getType(), "");
             inputNode->addChild(child);
          }
          
@@ -208,12 +173,12 @@ NameValueNode* UnitTestData::buildMockContentTree( const clang::FunctionDecl *fu
       if (funcDecl->getNumParams() > 0) {
       
          for (const auto& field : funcDecl->params()) {
-            auto* child = TypeNameValueNode<clang::QualType>::create(field->getNameAsString().c_str(), field->getType(), "");
+            auto* child = QualTypeNode::create(field->getNameAsString().c_str(), field->getType(), "");
             outputNode->addChild(child);
          }
       }
       
-      auto* retvalNode = TypeNameValueNode<clang::QualType>::create("retval", funcDecl->getReturnType(), "");
+      auto* retvalNode = QualTypeNode::create("retval", funcDecl->getReturnType(), "");
       outputNode->addChild(retvalNode);
       
       
@@ -221,12 +186,12 @@ NameValueNode* UnitTestData::buildMockContentTree( const clang::FunctionDecl *fu
       NameValueNode* mocksNode = NameValueNode::createObject("mock-funcs-call");
       contentElemArray->addChild(mocksNode);
 	 
-      if ( mockFuncs.size() > 0 )
+      if ( funcs.size() > 0 )
       {         
          std::string value;
-         for (const clang::FunctionDecl* iter : mockFuncs) {
+         for (const clang::FunctionDecl* iter : funcs) {
             value = iter->getNameAsString() + "_" + NameValueNode::_arrayIndex[indexCounter];
-            auto* child = TypeNameValueNode<const clang::FunctionDecl*>::create(iter->getNameAsString().c_str(), iter, value.c_str());
+            auto* child = FunctionDeclNode::create(iter->getNameAsString().c_str(), iter, value.c_str());
             mocksNode->addChild(child);
          }
          
@@ -235,88 +200,6 @@ NameValueNode* UnitTestData::buildMockContentTree( const clang::FunctionDecl *fu
    }
    
    return contentArray;
-}
-
-NameValueNode* UnitTestData::buildFunctionContentTree( const clang::FunctionDecl *funcDecl,
-                                                       const std::set<const clang::FunctionDecl *> &mockFuncs)
-{
-   NameValueNode* contentArray = NameValueNode::createArray("content");
-   
-   /**
-    * "content" : // array
-    * [
-    *           {// elementArray 0 
-    *               "input" : {}, // object
-    *               "mock-funcs-call" : {}, // object
-    *               "output" :  // object
-    *               {
-    *                  "..." : {} // object
-    *                  "retval" : {} // object
-    *               }
-    *           }
-    * ]
-    */
-      
-   for (unsigned int  indexCounter=0; indexCounter<_defaultExampleContentSize; ++indexCounter) {
-      
-      NameValueNode* contentElemArray = NameValueNode::createArrayElement(indexCounter);
-      contentArray->addChild(contentElemArray);
-      
-//       input
-      if (funcDecl->getNumParams() > 0) {
-         
-         NameValueNode* inputNode = NameValueNode::createObject("input");
-         contentElemArray->addChild(inputNode);
-         
-         for (const auto& field : funcDecl->params()) {
-            
-            auto* child = TypeNameValueNode<clang::QualType>::create(field->getNameAsString().c_str(), field->getType(), "");
-            inputNode->addChild(child);
-         }
-         
-         
-      }
-      
-//       output
-      NameValueNode* outputNode = NameValueNode::createObject("output");
-      contentElemArray->addChild(outputNode);
-      
-      if (funcDecl->getNumParams() > 0) {
-      
-         for (const auto& field : funcDecl->params()) {
-            auto* child = TypeNameValueNode<clang::QualType>::create(field->getNameAsString().c_str(), field->getType(), "");
-            outputNode->addChild(child);
-         }
-      }
-      
-      auto* retvalNode = TypeNameValueNode<clang::QualType>::create("retval", funcDecl->getReturnType(), "");
-      outputNode->addChild(retvalNode);
-      
-//       mock-funcs-call
-      NameValueNode* mocksNode = NameValueNode::createObject("mock-funcs-call");
-      contentElemArray->addChild(mocksNode);
-      
-      if ( mockFuncs.size() > 0 )
-      {  
-         std::string value;
-         for (const clang::FunctionDecl* iter : mockFuncs) {
-            value = iter->getNameAsString() + "_" + NameValueNode::_arrayIndex[indexCounter];
-            auto* child = TypeNameValueNode<const clang::FunctionDecl*>::create(iter->getNameAsString().c_str(), iter, value.c_str());
-            mocksNode->addChild(child);
-         }
-         
-      }
-   
-   }
-   
-   return contentArray;
-}
-
-
-
-NameValueNode* UnitTestData::buildTreeFromAST( const clang::FunctionDecl *funcDecl,
-                                    const std::set<const clang::FunctionDecl *> &mockFuncs)
-{
 }
 
 
@@ -454,7 +337,7 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot )
                else {
                   
                   const char* value = jsonIter->asCString();
-                  std::cout << "key = " << name << "\tvalue = "  << value << std::endl;
+//                   std::cout << "key = " << name << "\tvalue = "  << value << std::endl;
                   NameValueNode* valueChildNode = NameValueNode::createValue(name.c_str(), value );
                   currentNode->addChild(valueChildNode); 
                }
@@ -467,7 +350,7 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot )
                 if ( jsonIter->isString() ) {
                    
                   const char* value = jsonIter->asCString();
-                  std::cout << "key = " << index << "\tvalue = "  << value << std::endl;
+//                   std::cout << "key = " << index << "\tvalue = "  << value << std::endl;
                   NameValueNode* arrayElemChildNode = NameValueNode::createArrayElement(index,  value );
                   currentNode->addChild(arrayElemChildNode);
                 }
@@ -488,27 +371,29 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot )
 
    } 
    
-   validiteData();
+   buildValidateData();
    
+   testActions();
 }
 
 
 NameValueNode* UnitTestData::createValidatedNode(const NameValueNode* refChildNode,const NameValueNode* jsonNode ) 
 {
    
+//    NameValueNode* newNode = refChildNode->clone(jsonNode->getValue().c_str());
    NameValueNode* newNode = nullptr;
-            
-   if ( auto refQualTypeNode = dynamic_cast<const TypeNameValueNode<clang::QualType>* >(refChildNode) ) {
    
-      newNode = TypeNameValueNode<clang::QualType>::create( refChildNode->getName().c_str(),
-                                                            *static_cast<clang::QualType*>(refQualTypeNode->getType()), 
+   if ( auto refQualTypeNode = dynamic_cast<const QualTypeNode* >(refChildNode) ) {
+   
+      newNode = QualTypeNode::create( refChildNode->getName().c_str(),
+                                                            *static_cast<const clang::QualType*>(refQualTypeNode->getType()), 
                                                             jsonNode->getValue().c_str() );           
    }
-   else if ( auto refFuncDeclNode = dynamic_cast<const TypeNameValueNode<const clang::FunctionDecl*>* >(refChildNode) ) {
+   else if ( auto refFuncDeclNode = dynamic_cast<const FunctionDeclNode*>(refChildNode) ) {
 
-      newNode = TypeNameValueNode<const clang::FunctionDecl*>::create( refChildNode->getName().c_str(),
-                                                                       *static_cast<const clang::FunctionDecl**>(refFuncDeclNode->getType()), 
-                                                                       jsonNode->getValue().c_str() );    
+      newNode = FunctionDeclNode::create( refChildNode->getName().c_str(),
+                                          static_cast<const clang::FunctionDecl*>(refFuncDeclNode->getType()), 
+                                          jsonNode->getValue().c_str() );    
    }
    else {
       if ( jsonNode->isArray() ) {
@@ -527,7 +412,7 @@ NameValueNode* UnitTestData::createValidatedNode(const NameValueNode* refChildNo
 }
 
 
-bool UnitTestData::validiteData(void) {
+bool UnitTestData::buildValidateData(void) {
    
    if (_treeFromJson.get() == nullptr || _treeFromAST.get() == nullptr )
       return false;
@@ -618,81 +503,11 @@ bool UnitTestData::validiteData(void) {
    }
 }
 
-void UnitTestData::serializeJsonData(Json::Value &jsonRoot) const
-{   
-   jsonRoot = Json::Value(Json::objectValue);
-   
-   
-//    UnitTestData::serializeJsonTree(jsonRoot, _treeDataFromAST.get() );
 
-   typedef std::pair<Json::Value&, const NameValueNode*> JsonTreeNodePair;
-   std::stack< JsonTreeNodePair > Stack;
+void UnitTestData::testActions() const
+{
+   PrintAction action;
+   NodeVisitor visitor( &action );
+   _treeFromAST->visit( &visitor);
    
-   Stack.push( JsonTreeNodePair(jsonRoot, _treeData.get()) );
-   
-   while ( !Stack.empty() ) {
-    
-//     check if it's safe get a const reference of the top of the stack and call pop()
-      const JsonTreeNodePair& topPair = Stack.top();
-      Stack.pop();
-      
-      Json::Value& currentJson= topPair.first;
-      const NameValueNode* currentNode = topPair.second;
-      
-      const std::map< std::string, std::unique_ptr<NameValueNode> >& children = currentNode->getChildren();
-   
-      for (const auto& child : children) {
-         
-         const std::string& name = child.first;
-         const NameValueNode* childNode = child.second.get();
-         
-         if (childNode->isObject() ) {
-            
-            currentJson[name] = Json::Value(Json::objectValue);
-            UnitTestDataUtils::addJsonObjectComment(currentJson[name], childNode);
-            
-            Stack.push( JsonTreeNodePair(currentJson[name], childNode) );         
-         }
-         else if (childNode->isArray() ) {
-            
-            currentJson[name] = Json::Value(Json::arrayValue);
-            UnitTestDataUtils::addJsonArrayComment(currentJson[name], childNode);
-            
-            Stack.push( JsonTreeNodePair(currentJson[name], childNode) ); 
-         }
-         else if (childNode->isArrayElement() ) {
-            
-            const int index = childNode->getIndex();
-   
-//             if ( childNode->getValue() == NameValueNode::_arrayElementObject ) {
-            if ( childNode->isArrayElementObject() ) {
-               currentJson[index] = Json::Value(Json::objectValue);
-               Stack.push( JsonTreeNodePair(currentJson[index], childNode) ); 
-            }
-            else {
-               currentJson[index] = childNode->getValue();         
-            }
-            UnitTestDataUtils::addJsonArrayElementComment(currentJson[index], childNode);
-            
-         }
-         else { 
-            
-            // if childNode is a struct {} keep recursing            
-            if ( childNode->getNumChildern() > 0 ) {
-               
-               currentJson[name] = Json::Value(Json::objectValue);
-               UnitTestDataUtils::addJsonStructValueComment(currentJson[name], childNode); 
-               
-               Stack.push( JsonTreeNodePair(currentJson[name], childNode) ); 
-            }
-            // childNode is not a struct {} stop recursing  
-            else {   
-               currentJson[name] = childNode->getValue();
-               UnitTestDataUtils::addJsonValueComment(currentJson[name], childNode);             
-            }
-            
-         }
-      }
-      
-   } 
 }

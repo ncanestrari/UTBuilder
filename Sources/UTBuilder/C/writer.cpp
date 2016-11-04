@@ -183,13 +183,13 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
    for (const auto& arrayIndex : mockFuncs) {
       
       const NameValueNode* childObj = arrayIndex.second.get();
-      const TypeNameValueNode<const clang::FunctionDecl*>* funcName = dynamic_cast<const TypeNameValueNode<const clang::FunctionDecl*>*>(childObj->getChild("_name"));
+      const FunctionDeclNode* funcName = dynamic_cast<const FunctionDeclNode*>(childObj->getChild("_name"));
       
       if ( funcName == nullptr ){
 	
       }
       const std::string& name = funcName->getValue();
-      const clang::FunctionDecl* funcDecl = *static_cast<const clang::FunctionDecl**>(funcName->getType());
+      const clang::FunctionDecl* funcDecl = static_cast<const clang::FunctionDecl*>(funcName->getType());
       
       const NameValueNode* funcContent = childObj->getChild("content");
       
@@ -262,9 +262,9 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
    for (const auto& arrayIndex : funcs) {
       
       const NameValueNode* childObj = arrayIndex.second.get();
-      auto funcName = static_cast<const TypeNameValueNode<const clang::FunctionDecl*>*>(childObj->getChild("_name"));
+      auto funcName = static_cast<const FunctionDeclNode*>(childObj->getChild("_name"));
       const std::string& name = funcName->getValue();
-      const clang::FunctionDecl* funcDecl = *static_cast<const clang::FunctionDecl**>(funcName->getType());
+      const clang::FunctionDecl* funcDecl = static_cast<const clang::FunctionDecl*>(funcName->getType());
       
       const NameValueNode* funcContent = childObj->getChild("content");
       
@@ -634,7 +634,7 @@ static void writeMockValue(std::ostringstream &os,
       if (tree->getNumChildern() > 0) {
          // move in utils::
          size_t pos = 0;
-         const clang::QualType qualType = *static_cast<clang::QualType*>(tree->getType());
+         const clang::QualType qualType = *static_cast<const clang::QualType*>(tree->getType());
          std::string typestr = qualType.getUnqualifiedType().getAsString();
          pos = typestr.find("*", pos);
          while (pos != std::string::npos) {
@@ -660,7 +660,7 @@ static void writeMockValue(std::ostringstream &os,
          if (tree->getName() == "retval") {
             os << "   retval = " << tree->getValue() << ";\n";
          } 
-         else if ( (*static_cast<clang::QualType*>(tree->getType()))->isAnyPointerType()) {
+         else if ( (*static_cast<const clang::QualType*>(tree->getType()))->isAnyPointerType()) {
             os << "   " << structName << " = " << tree->getValue() << ";\n";
          } 
          else {
@@ -704,12 +704,12 @@ void Writer::FakeFunctionDefinition(const std::string&                          
 
    for (const auto& child : outTree->getChildren()) {
       
-      const TypeNameValueNode<clang::QualType>* qualTypeNode = dynamic_cast<const TypeNameValueNode<clang::QualType>*>(  child.second.get() );
+      const QualTypeNode* qualTypeNode = dynamic_cast<const QualTypeNode*>(  child.second.get() );
       if ( qualTypeNode == nullptr ) {
 //          std::throw();
          continue;
       }
-      const clang::QualType qualType = *static_cast<clang::QualType*>(qualTypeNode->getType());
+      const clang::QualType qualType = *static_cast<const clang::QualType*>(qualTypeNode->getType());
       if ( (child.first == "retval") &&  !(qualType.getAsString() == "void") ) {
          out << "   " << qualType.getAsString() << " retval;\n";
          if ( !qualType->isAnyPointerType() ) {

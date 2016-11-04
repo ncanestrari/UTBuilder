@@ -13,6 +13,161 @@
 #define DECIMAL_BASE (10)
 
 
+
+class BaseNode {
+
+   const std::string _name;
+   const std::string _value;
+   std::map< std::string, std::unique_ptr<BaseNode> > _children;
+   
+   
+protected:
+   
+      BaseNode(const char *name, const char *value)
+      : _name(name)
+      , _value(value)
+   {}
+   
+public:
+
+   ~BaseNode() {}
+
+   void visit( Visitor& visitor) 
+   {
+        visitor.process( this );
+   }
+   
+   const std::string &getName(void) const { return _name; }
+   const std::string &getValue(void) const { return _value; }
+   
+   virtual const void* getType() const { return nullptr; }
+
+   
+   unsigned int getNumChildern(void) const { return _children.size(); }
+   const std::map< std::string, std::unique_ptr<BaseNode> >& getChildren(void) const { return _children; }
+   void addChild(BaseNode* child) { _children[child->_name] = std::unique_ptr<BaseNode>(child); }
+   
+   const BaseNode* getChild(const char *name) const
+   {
+      auto iter = _children.find(name);
+      if (iter == _children.end()) {
+         std::cout << "ERROR: node " << _name << " has no child named '" << name << "'" << std::endl; 
+         return nullptr;
+      }
+      return iter->second.get();
+   }
+
+};
+
+
+
+enum NodeType 
+{
+   _object_type,
+   _array_type,
+   _arrayElement_type,
+   _value_type,
+};
+
+
+class Node : public BaseNode 
+{
+   NodeType _type;
+  
+protected:
+  
+   explicit Node(const char *name, const NodeType& type = Node::_defaultType, const char *value = "\0")
+      : BaseNode(name, value)
+      , _type(type)
+   {}
+   
+public:
+  
+   static const NodeType _defaultType;   
+   
+   virtual const void* getType() const override final{ return &_type; }
+   
+   static Node* createValue(const char *name, const char *value = "\0") 
+   {
+      return new Node(name, _value_type, value);
+   }
+   
+   static Node* createObject(const char *name) 
+   {
+      return new Node(name, _object_type, "object");
+   }
+   
+   static Node* createArray(const char *name) 
+   {
+      return new Node(name, _array_type, "array");
+   }
+   
+   static Node* createArrayElement(unsigned int index) 
+   {
+      return new Node( std::to_string(index).c_str(), _arrayElement_type );
+   }
+   
+  
+   static const char* _arrayIndex[];
+   static const unsigned int _arrayIndexSize; 
+
+   static const char* _arrayElementObject;
+   
+};
+
+/*
+class QualTypeNode : public BaseNode
+{
+  
+   clang::QualType _type;
+   
+protected:
+  
+   explicit QualTypeNode(const char *name, clang::QualType type, const char *value = "\0")
+      : BaseNode(name, value)
+      , _type(type)
+   {}
+   
+public:
+  
+   static const clang::QualType _defaultType;
+  
+   virtual const void* getType() const override final{ return &_type; }
+   
+   static QualTypeNode* create(const char *name, clang::QualType qualType = QualTypeNode::_defaultType, const char *value = "\0");
+   
+};
+
+
+
+class FunctionDeclNode : public BaseNode
+{
+  
+   const clang::FunctionDecl* _type;
+   
+protected:
+  
+   explicit FunctionDeclNode(const char *name, const clang::FunctionDecl* type, const char *value = "\0")
+      : BaseNode(name, value )
+      , _type(type)
+   {}
+   
+public:
+  
+   static const clang::FunctionDecl* const _defaultType;
+  
+   virtual const void* getType() const override final{ return _type; }
+   
+   static FunctionDeclNode* create(const char *name, const clang::FunctionDecl* type = FunctionDeclNode::_defaultType, const char *value = "\0")
+   {
+     return new FunctionDeclNode(name, type, value);
+   }
+   
+};
+*/
+
+
+/*
 template<typename Derived, typename T>
 class BaseVisitor;
 
@@ -23,12 +178,12 @@ class BaseNode
    const std::string _name;
    const std::string _value;
    
-   std::map< std::string, std::unique_ptr<BaseNode> > _children;
+   std::map< std::string, std::unique_ptr<BaseNode > > _children;
   
 protected:
-   const T& _type;
+   const T _type;
    
-      
+   
    explicit BaseNode(const char *name, const T& type, const char *value = "\0" )
       : _name(name)
       , _type(type)
@@ -42,14 +197,26 @@ protected:
       return (*p == '\0');
    }
    
-    Derived& derived()
+    Derived& derivedRef()
     {
         return *static_cast<Derived*>(this);
     }
    
+    Derived* derivedPtr()
+    {
+        return static_cast<Derived*>(this);
+    }
+    
+    static Derived* derived(BaseNode<Derived,T>* node)
+    {
+        return static_cast<Derived*>(node);
+    }
+    
 public:
   
-   T& getType() const
+   BaseNode* getSuperClass() { return this; }
+   
+   const T& getType() const
    {
 //       return static_cast<Derived*>(this)->getNodeType();
       return _type;
@@ -58,38 +225,26 @@ public:
    const T& getDefaultType() const
    {
 //       return static_cast<Derived*>(this)->getNodeType();
-      derived()._defaultType;
+      derivedPtr()->_defaultType;
    }
    
-   void accept(BaseVisitor<Derived,T>& visitor) 
+//    void accept(BaseVisitor<Derived,T>& visitor) 
+//    {
+//         visitor.visit( derived() );
+//    }
+   
+   static void visit( BaseNode<Derived,T>* node,Visitor& visitor) 
    {
-        visitor.visit( derived() );
+        visitor.process( BaseNode<Derived,T>::derived(node) );
    }
-    
-   static const char* _arrayIndex[];
-   static const unsigned int _arrayIndexSize; 
+   
+   void visit( Visitor& visitor) 
+   {
+        visitor.process( derivedPtr() );
+   }
+   
 
-   static const char* _arrayElementObject;
    
-   static BaseNode* create(const char *name, const char *value = "") {
-      return new BaseNode(name, value);
-   }
-   
-   static BaseNode* createObject(const char *name) {
-      return new BaseNode(name, "object");
-   }
-   
-   static BaseNode* createArray(const char *name) {
-      return new BaseNode(name, "array");
-   }
-   
-   static BaseNode* createArrayElement(unsigned int index, const char* val = "") {
-
-      if ( val == "") {
-         val = BaseNode::_arrayElementObject;
-      }
-      return new BaseNode( std::to_string(index).c_str(), val );
-   }
    
 
    ~BaseNode() {}
@@ -125,50 +280,74 @@ public:
    unsigned int getNumChildern(void) const { return _children.size(); }
    const std::map< std::string, std::unique_ptr<BaseNode> >& getChildren(void) const { return _children; }
    void addChild(BaseNode* child) { _children[child->_name] = std::unique_ptr<BaseNode>(child); }
-   const BaseNode* getChild(const char *name) const
+   
+   const Derived* getChild(const char *name) const
    {
       auto iter = _children.find(name);
       if (iter == _children.end()) {
          std::cout << "ERROR: node " << _name << " has no child named '" << name << "'" << std::endl; 
          return nullptr;
       }
-      return iter->second.get();
+      return iter->second->derivedPtr();
    }
 
-
-   /*
-   virtual const BaseNode* addChild(const char *name, const char *value )
-   {
-      _children[name] = std::unique_ptr<BaseNode>(new BaseNode(name, T(), value) );
-      return getChild(name);
-   }
-   */
 };
 
 
+enum NodeType 
+{
+   _object_type,
+   _array_type,
+   _arrayElement_type,
+   _value_type,
+};
 
-class Node : public BaseNode<Node, int>
+
+class Node : public BaseNode<Node, NodeType>
 {
    
 protected:
   
-   explicit Node(const char *name, const char *value = "\0")
-      : BaseNode<Node, int>(name, Node::_default, value)
+   explicit Node(const char *name, const NodeType& type = Node::_defaultType, const char *value = "\0")
+      : BaseNode<Node, NodeType>(name, type, value)
    {}
    
 public:
   
-   static const int _default;
+   static const NodeType _defaultType;
+
+   static const char* _arrayIndex[];
+   static const unsigned int _arrayIndexSize; 
+
+   static const char* _arrayElementObject;
    
-   static Node* create(const char *name, const char *value = "\0") 
+   
+   static Node* createValue(const char *name, const char *value = "\0") 
    {
-      return new Node(name, value);
+      return new Node(name, _value_type, value);
    }
    
-   int getNodeType() const
-   {
-      return 0;
+   static Node* createObject(const char *name) {
+      return new Node(name, _object_type, "object");
    }
+   
+   static Node* createArray(const char *name) {
+      return new Node(name, _array_type, "array");
+   }
+   
+   static Node* createArrayElement(unsigned int index, const char* val = "") {
+
+      if ( val == "") {
+         val = Node::_arrayElementObject;
+      }
+      return new Node( std::to_string(index).c_str(), _arrayElement_type, val );
+   }
+   
+ 
+//    int getNodeType() const
+//    {
+//       return Node::_default;
+//    }
    
    
 };
@@ -178,20 +357,20 @@ class QualTypeNode : public BaseNode<QualTypeNode, clang::QualType>
 {
 protected:
   
-   explicit QualTypeNode(const char *name, clang::QualType type = clang::QualType(), const char *value = "\0")
+   explicit QualTypeNode(const char *name, clang::QualType type, const char *value = "\0")
       : BaseNode<QualTypeNode, clang::QualType>(name, type, value)
    {}
    
 public:
   
-   static const clang::QualType _default;
+   static const clang::QualType _defaultType;
   
-   static QualTypeNode* create(const char *name, clang::QualType qualType = QualTypeNode::_default, const char *value = "\0");
+   static QualTypeNode* create(const char *name, clang::QualType qualType = QualTypeNode::_defaultType, const char *value = "\0");
    
-   clang::QualType getNodeType() const
-   {
-      return _type;
-   }
+//    const clang::QualType getNodeType() const
+//    {
+//       return _type;
+//    }
 };
 
 class FunctionDeclNode : public BaseNode<FunctionDeclNode, const clang::FunctionDecl*>
@@ -205,21 +384,21 @@ protected:
    
 public:
   
-   static clang::FunctionDecl* const _default;
+   static clang::FunctionDecl* const _defaultType;
   
-   static FunctionDeclNode* create(const char *name, const clang::FunctionDecl* type = FunctionDeclNode::_default, const char *value = "\0")
+   static FunctionDeclNode* create(const char *name, const clang::FunctionDecl* type = FunctionDeclNode::_defaultType, const char *value = "\0")
    {
      return new FunctionDeclNode(name, type, value);
    }
    
-   const clang::FunctionDecl* getNodeType() const
-   {
-      return _type;
-   }
+//    const clang::FunctionDecl* getNodeType() const
+//    {
+//       return _type;
+//    }
 };
 
 
-
+*/
 
 
 #endif // _UTBuilder_TreeNode_h__

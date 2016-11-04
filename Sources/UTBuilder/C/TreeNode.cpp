@@ -1,25 +1,25 @@
 #include "TreeNode.h"
 
 
+
+
+const NodeType Node::_defaultType = _value_type;
+
 // the order of static vars initialization is always respected for each translation unit 
-template <typename Derived, typename T>
-const char* BaseNode<Derived,T>::_arrayIndex[] = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+const char* Node::_arrayIndex[] = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 
-template <typename Derived, typename T>
-const unsigned int BaseNode<Derived,T>::_arrayIndexSize = (sizeof((BaseNode::_arrayIndex))/sizeof(*(BaseNode::_arrayIndex)));
+const unsigned int Node::_arrayIndexSize = (sizeof((Node::_arrayIndex))/sizeof(*(Node::_arrayIndex)));
 
-template <typename Derived, typename T>
-const char* BaseNode<Derived,T>::_arrayElementObject = "arrayElement";
+const char* Node::_arrayElementObject = "arrayElement";
 
 
-const int Node::_default = 0;
-const clang::QualType QualTypeNode::_default = clang::QualType();
-clang::FunctionDecl* const FunctionDeclNode::_default = nullptr;
+// const clang::QualType QualTypeNode::_defaultType = clang::QualType();
+// const clang::FunctionDecl* const FunctionDeclNode::_defaultType = nullptr;
 
 
 // template specialization for clang::QualType type
 // QualType can be a structure and addChild is called recursevly for each struct field
-
+/*
 QualTypeNode* QualTypeNode::create(const char* name, clang::QualType qualType, const char* value ) 
 {
    QualTypeNode* node = nullptr;
@@ -45,4 +45,4 @@ QualTypeNode* QualTypeNode::create(const char* name, clang::QualType qualType, c
    
    return node;
 }
-
+*/

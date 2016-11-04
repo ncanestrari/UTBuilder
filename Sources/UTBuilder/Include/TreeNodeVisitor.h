@@ -2,11 +2,15 @@
 #define _UTBuilder_TreeNodeVisitor_h__
 
 
-#include "TreeNode.h"
+// #include "TreeNode.h"
 
-template<typename Derived, typename T>
+
+class Visitor;
+
+
 class BaseNode;
 
+class Action;
 class Node;
 class QualTypeNode;
 class FunctionDeclNode;
@@ -16,24 +20,33 @@ class Visitor
 {
 public:
   
-    void visit(Node* node);
+   Visitor(Action* action ) 
+   : _action( action)
+   {}
+   
+   void process(BaseNode*  node);
 
+    
 private:
     
-    void dispatch(Node* node)
-    {
-    }
-
-    void dispatch(QualTypeNode* node)
-    {
-    }
+//     void dispatch(Node* node)
+//     {
+//     }
+// 
+//     void dispatch(QualTypeNode* node)
+//     {
+//     }
+//     
+//     void dispatch(FunctionDeclNode* node)
+//     {
+//     }
     
-    void dispatch(FunctionDeclNode* node)
-    {
-    }
+    
+    Action* _action;
 };
 
 
+/*
 template<typename Derived, typename T>
 class BaseVisitor
 {
@@ -52,7 +65,7 @@ private:
     }
     
 };
-
+*/
 
 #endif // _UTBuilder_TreeNodeVisitor_h__
 

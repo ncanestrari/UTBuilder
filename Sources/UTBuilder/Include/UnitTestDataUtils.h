@@ -6,7 +6,9 @@
 
 
 class NameValueNode;
-template<typename T> class TypeNameValueNode;
+// template<typename T> class TypeNameValueNode;
+class QualTypeNode;
+class FunctionDeclNode;
 
 namespace clang {
    class FunctionDecl;

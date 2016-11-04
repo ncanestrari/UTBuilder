@@ -33,7 +33,6 @@ public:
    void serializeJson(Json::Value &jsonRoot, const NameValueNode* data = nullptr ) const;
    void deSerializeJson(const Json::Value &jsonRoot );
 
-   void serializeJsonData(Json::Value &jsonRoot) const;
    
    NameValueNode* buildCollectionTree();
 
@@ -50,29 +49,19 @@ private:
 
    void clear(void);
    
-
+   // temp
+   void testActions() const;
+   
    
    NameValueNode* buildDescTree();
-   NameValueNode* buildMocksTree();
-   NameValueNode* buildFunctionsTree();
+   NameValueNode* buildTree(const char* treeName, const FunctionDeclKeySetMap& declMap );
+   NameValueNode* buildContentTree( const clang::FunctionDecl *funcDecl,
+                                            const std::set<const clang::FunctionDecl *>& funcs );
 
-//    NameValueNode* buildMockContentTree();
-//    NameValueNode* buildFunctionContentTree();
-   
-   NameValueNode* buildMockContentTree(const clang::FunctionDecl *funcDecl,
-                            const std::set<const clang::FunctionDecl *> &mockFuncs);
-   
-   NameValueNode* buildFunctionContentTree(const clang::FunctionDecl *funcDecl,
-                            const std::set<const clang::FunctionDecl *> &mockFuncs);
-   
-   
-   
-   NameValueNode* buildTreeFromAST( const clang::FunctionDecl *funcDecl,
-                                    const std::set<const clang::FunctionDecl *> &mockFuncs);
    
    static void serializeJsonTree(Json::Value &jsonRoot, const NameValueNode* node);
    
-   bool validiteData(void);
+   bool buildValidateData(void);
    
    NameValueNode* createValidatedNode(const NameValueNode* refQualTypeNode,const NameValueNode* jsonNode );
    
