@@ -35,6 +35,7 @@ set ( HEADER_FILES
    Include/UnitTestDataUtils.h
    Include/utils.h
    Include/writer.h
+   Include/writers.h
    )
 
 set ( SOURCE_FILES
@@ -65,6 +66,7 @@ set ( SOURCE_FILES
    C/UnitTestDataUtils.cpp
    C/utils.cpp 
    C/writer.cpp
+   C/Writers.cpp
    )
 
 set( CMAKE_INCLUDE_CURRENT_DIR TRUE )

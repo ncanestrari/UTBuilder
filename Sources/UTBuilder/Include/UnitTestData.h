@@ -59,15 +59,13 @@ private:
                                             const std::set<const clang::FunctionDecl *>& funcs );
 
    
-   static void serializeJsonTree(Json::Value &jsonRoot, const NameValueNode* node);
    
-   bool buildValidateData(void);
+   bool buildValidateData(const NameValueNode* tempTreeFromJson);
    
    NameValueNode* createValidatedNode(const NameValueNode* refQualTypeNode,const NameValueNode* jsonNode );
    
    
    std::unique_ptr<NameValueNode> _treeFromAST;
-   std::unique_ptr<NameValueNode> _treeFromJson;
    std::unique_ptr<NameValueNode> _treeData;
    
    

@@ -25,69 +25,45 @@ protected:
    
    std::map< std::string, std::unique_ptr<NameValueNode> > _children;
    
-   NameValueNode(const char *name, const char *value)
-      : _name(name)
-      , _value(value)
-   {}
    
    NameValueNode() = delete;
    
-   NameValueNode(const NameValueNode& other) 
-   : _name(other._name)
-   , _value(other._value)
-   {      
-   }
+   NameValueNode(const NameValueNode& other);
    
-   bool _isNameInteger(void) const {
-      if(_name.empty()) { return false; }
-      char* p;
-      strtol(_name.c_str(), &p, DECIMAL_BASE);
-      return (*p == '\0');
-   }
+   explicit NameValueNode(const char *name, const char *value);
+   
+   
+   bool _isNameInteger(void) const;
    
 public:
 
   
    static const char* _arrayIndex[];
+   
    static const unsigned int _arrayIndexSize; 
 
    static const char* _arrayElementObject;
    
+   
    virtual ~NameValueNode() {}
    
-   static NameValueNode* createValue(const char *name, const char *value = "") {
-      return new NameValueNode(name, value);
-   }
    
-   static NameValueNode* createObject(const char *name) {
-      return new NameValueNode(name, "object");
-   }
+   static NameValueNode* createValue(const char *name, const char *value = "");
    
-   static NameValueNode* createArray(const char *name) {
-      return new NameValueNode(name, "array");
-   }
+   static NameValueNode* createObject(const char *name);
    
-   static NameValueNode* createArrayElement(unsigned int index, const char* val = "") {
-
-      if ( val == "") {
-         val = NameValueNode::_arrayElementObject;
-      }
-      return new NameValueNode( std::to_string(index).c_str(), val );
-   }
+   static NameValueNode* createArray(const char *name);
+   
+   static NameValueNode* createArrayElement(unsigned int index, const char* val = "");
    
 
-   virtual NameValueNode* clone()
-   {
-      return new NameValueNode(*this);
-   }
+   virtual NameValueNode* clone(const char * value = "") const;
+   
    
    
    virtual void visit( NodeVisitor* visitor );
    
-//    virtual void visit( NodeVisitor* visitor, NameValueNode* other);
-   
    virtual bool execute( NodeAction* action );
-   
 
    virtual bool execute( OneNodeVisitor* action );
    
@@ -107,76 +83,16 @@ public:
    const bool isArrayElementValue(void) const { return ( _isNameInteger() ); }
    
    
-   
-   int getIndex(void) const
-   {
-      if ( isArrayElement() ) {
-         if(_isNameInteger()){
-            return stoi(_name);
-         } else {
-            throw std::logic_error(std::string("Error getIndexAsString: name is not an index\n"));
-         }
-      }
-      else {
-         return -1;
-      }
-   }
+   int getIndex(void) const;
    
    unsigned int getNumChildern(void) const { return _children.size(); }
    const std::map< std::string, std::unique_ptr<NameValueNode> >& getChildren(void) const { return _children; }
-   void addChild(NameValueNode* child) 
-   { 
-     _children[child->_name] = std::unique_ptr<NameValueNode>(child); 
-   }
    
-   const NameValueNode* getChild(const char *name) const
-   {
-      auto iter = _children.find(name);
-      if (iter == _children.end()) {
-         std::cout << "ERROR: node " << _name << " has no child named '" << name << "'" << std::endl; 
-         return nullptr;
-      }
-      return iter->second.get();
-   }
+   void addChild(NameValueNode* child);
+   const NameValueNode* getChild(const char *name) const;
 
-  /*
-   const NameValueNode* addChild(const char *name, const char *value )
-   {
-      _children[name] = std::unique_ptr<NameValueNode>(new NameValueNode(name, value) );
-      return getChild(name);
-   }
-   */
 };
 
-
-
-/*
-template <typename T>
-class TypeNameValueNode : public NameValueNode {
-   
-   // switch to mutable to avoid  a const_cast<>() in function void* getType() const and many other const in static_cast<> 
-//    mutable T _type;
-   T _type;
-   
-protected:
-   
-   explicit TypeNameValueNode(const char *name, const T& type, const char *value = "\0")
-      : NameValueNode(name, value)
-      , _type(type)
-   {}
-   
-public:
-   
-   static NameValueNode* create(const char *name, const T& type = TypeNameValueNode<T>::_defaultType, const char *value = "\0") 
-   {
-      return new TypeNameValueNode<T>(name, type, value);
-   }
-   
-   virtual const void* getType() const override final { return &_type; }
-   
-   static const T _defaultType;
-   
-};*/
 
 
 class QualTypeNode : public NameValueNode 
@@ -188,10 +104,7 @@ class QualTypeNode : public NameValueNode
    
 protected:
    
-   explicit QualTypeNode(const char *name, const clang::QualType& type, const char *value = "\0")
-      : NameValueNode(name, value)
-      , _type(type)
-   {}
+   explicit QualTypeNode(const char *name, const clang::QualType& type, const char *value = "\0");
    
    QualTypeNode() = delete;
    
@@ -202,15 +115,10 @@ public:
    
    virtual ~QualTypeNode() {}
   
-   static QualTypeNode* create(const char *name, const clang::QualType& type = QualTypeNode::_defaultType, const char *value = "\0") ;
-//    {
-//       return new QualTypeNode(name, type, value);
-//    }
+   static QualTypeNode* create(const char *name, const clang::QualType& type = QualTypeNode::_defaultType, const char *value = "\0");
+
    
-   virtual QualTypeNode* clone() override final
-   {
-      return new QualTypeNode(*this);
-   }
+   virtual QualTypeNode* clone(const char * value = "") const override final;
    
    virtual const void* getType() const override final { return &_type; }
    
@@ -232,14 +140,12 @@ class FunctionDeclNode : public NameValueNode
    
 protected:
   
-   explicit FunctionDeclNode(const char *name, const clang::FunctionDecl* type, const char *value = "\0")
-      : NameValueNode(name, value )
-      , _type(type)
-   {}
-   
    FunctionDeclNode() = delete;
    
    FunctionDeclNode(const FunctionDeclNode& other);
+   
+   explicit FunctionDeclNode(const char *name, const clang::FunctionDecl* type, const char *value = "\0");
+   
    
 public:
   
@@ -249,16 +155,11 @@ public:
    
    virtual const void* getType() const override final{ return _type; }
    
-   static FunctionDeclNode* create(const char *name, const clang::FunctionDecl* type = FunctionDeclNode::_defaultType, const char *value = "\0")
-   {
-      return new FunctionDeclNode(name, type, value);
-   }
    
-   virtual FunctionDeclNode* clone() override final
-   {
-      return new FunctionDeclNode(*this);
-   }
+   static FunctionDeclNode* create(const char *name, const clang::FunctionDecl* type = FunctionDeclNode::_defaultType, const char *value = "\0");
    
+   virtual FunctionDeclNode* clone(const char * value = "") const override final;
+ 
    
    virtual void visit( NodeVisitor* visitor ) override final;
    

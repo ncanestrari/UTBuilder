@@ -59,7 +59,7 @@ void Writer::CreateMockFile(void)
       includePaths.insert(boost::filesystem::path(declSrcFile).filename().string());
    }
 
-   WriteTemplate(CreateMockContext(includePaths, _data.getFunctionToMock() ), /*FunctionsToMock::get().declKeySetMap),*/
+   WriteTemplate(std::unique_ptr<const Plustache::Context>( CreateMockContext(includePaths, _data.getFunctionToMock() ) ).get(), /*FunctionsToMock::get().declKeySetMap),*/
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/mock.template"),
                  utils::changeFilePathToInclude(_fileName) + "-mocks.h");
 
@@ -83,7 +83,7 @@ void Writer::createUnitTestFile(void)
    }
 
 
-   WriteTemplate(CreateUnitTestContext(includePaths, FunctionTestDataFile::get().getUnitTestCollection()),
+   WriteTemplate(std::unique_ptr<const Plustache::Context>( CreateUnitTestContext(includePaths, FunctionTestDataFile::get().getUnitTestCollection()) ).get(),
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/UT.template"),
                  _fileName + "-ugtest.cpp");
 
@@ -115,21 +115,26 @@ void Writer::CreateSerializationFile(void)
       }
    }
 
-   WriteTemplate(CreateSerializationContext(includePaths, results::get().typedefNameDecls),
+   auto serializationContext = std::unique_ptr<const Plustache::Context>( CreateSerializationContext(includePaths, results::get().typedefNameDecls) );
+   
+   WriteTemplate(serializationContext.get(),
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/serialization.template"),
                  _fileName + "-serialization.h");
 
-   WriteTemplate(CreateStructuresToSerializeContext(includePaths, _data.getFunctionToTest() ), /* FunctionsToUnitTest::get().declKeySetMap),*/
+   auto structToSerializeContext = std::unique_ptr<const Plustache::Context>(CreateStructuresToSerializeContext(includePaths, _data.getFunctionToTest() ) );
+   
+   WriteTemplate(structToSerializeContext.get(), /* FunctionsToUnitTest::get().declKeySetMap),*/
                  std::string(std::getenv("TEMPLATE_DIR")) + std::string("/serialization-struct.template"),
                  utils::changeFilePathToInclude(_fileName) + "-serialization-struct.h");
 }
 
 
-std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::set<std::string>   &includePaths,
+const Plustache::Context* Writer::CreateMockContext(const std::set<std::string>   &includePaths,
                                                                     const FunctionDeclKeySetMap   &funcDeclsMap)
 {
-   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
-
+//    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
+   Plustache::Context* context = new Plustache::Context();
+   
    ObjectType            Include;
    ObjectType            Mock;
    ObjectType            FakeFunc;
@@ -143,7 +148,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
    for (const auto& iter : funcDeclsMap) {
 
       const clang::FunctionDecl *funcDecl = iter.first;
-      MockFunctionFFF(funcDecl, out);
+      UnitTestDataUtils::writeMockFunctionFFF(funcDecl, &_sourceMgr, out);
       Mock["definition"] = out.str();
       Mock["mockname"] = funcDecl->getNameInfo().getName().getAsString();
       context->add("mocks", Mock);
@@ -201,7 +206,7 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
          const std::string namewithcounter = name + "_" + std::to_string(counter);
          
          const NameValueNode* outputTree = iter.second->getChild("output");
-         FakeFunctionDefinition(namewithcounter, funcDecl, outputTree, out);
+         UnitTestDataUtils::writeFunctionDefinition(namewithcounter, funcDecl, outputTree, out);
          FakeFunc["definition"] = out.str();
          context->add("fakefuncs", FakeFunc);
          counter++;
@@ -213,12 +218,13 @@ std::shared_ptr<const Plustache::Context> Writer::CreateMockContext(const std::s
 }
 
 
-std::shared_ptr<const Plustache::Context>
+const Plustache::Context*
 Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
                               const FunctionTestCollection *   funcData)
 {
-   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
-
+//    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
+   Plustache::Context* context = new Plustache::Context();
+   
    ObjectType   Include;
    ObjectType   FunctionToUnitTest;
 
@@ -295,13 +301,14 @@ Writer::CreateUnitTestContext(const std::set<std::string>   &includePaths,
 }
 
 
-std::shared_ptr<const Plustache::Context>
+const Plustache::Context*
 Writer::CreateSerializationContext(const std::set<std::string>                   &includePaths,
                                    const std::set<const clang::TypedefNameDecl *> &typedefNameDecls)
 {
 
-   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
-
+//    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
+   Plustache::Context* context = new Plustache::Context();
+   
    PlustacheTypes::ObjectType            Include;
    PlustacheTypes::ObjectType            objectToSerialize;
 
@@ -383,11 +390,13 @@ Writer::CreateSerializationContext(const std::set<std::string>                  
 
 
 
-std::shared_ptr<const Plustache::Context>
+const Plustache::Context*
 Writer::CreateSerializationStructuresContext(const std::set<std::string> &includePaths,
                                              const FunctionDeclKeySetMap &funcDeclsMap)
 {
-   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
+//    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
+   Plustache::Context* context = new Plustache::Context();
+   
    ObjectType            Include;
    ObjectType            paramsStructsObject;
    std::ostringstream    out;
@@ -430,12 +439,13 @@ Writer::CreateSerializationStructuresContext(const std::set<std::string> &includ
 }
 
 
-std::shared_ptr<const Plustache::Context>
+const Plustache::Context*
 Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includePaths,
                                            const FunctionDeclKeySetMap   &funcDeclsMap)
 {
-   std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
-
+//    std::shared_ptr<Plustache::Context> context = std::make_shared<Plustache::Context>();
+   Plustache::Context* context = new Plustache::Context();
+   
    ObjectType            Include;
    ObjectType            paramsStructsObject;
    std::ostringstream    out;
@@ -487,7 +497,7 @@ Writer::CreateStructuresToSerializeContext(const std::set<std::string>   &includ
 
 
 void
-Writer::WriteTemplate(std::shared_ptr<const Plustache::Context>  context,
+Writer::WriteTemplate(const Plustache::Context*  context,
                       const std::string                         &templateFileName,
                       const std::string                         &outFileName)
 {
@@ -523,247 +533,4 @@ Writer::WriteTemplate(std::shared_ptr<const Plustache::Context>  context,
    
 }
 
-
-static void writeMockValue(std::ostringstream &os,
-                           const std::shared_ptr<NameValueTypeNode<clang::QualType> > tree,
-                           const std::string &name)
-{
-   
-   std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
-
-   if ( tree->isArray() ) {
-//    this is a pointer to allocate: write the memory allocation line
-      if (tree->getNumChildern() > 0) {
-         // move in utils::
-         size_t pos = 0;
-         std::string typestr = tree->getType().getUnqualifiedType().getAsString();
-         pos = typestr.find("*", pos);
-         while (pos != std::string::npos) {
-            typestr = typestr.erase(pos, 1);
-            pos = typestr.find("*", pos);
-         }
-
-//          os << "   " << structName << " = static_cast<"<< tree->getType().getAsString() << ">(calloc(" << tree->getNumChildern() << ", sizeof(" << typestr << ")));\n";
-//          os << "   " << "memset(&" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
-      }
-   }
-   
-   if (tree->getNumChildern() > 0) {
-      
-      if ( !tree->isArray() )
-         structName += ".";
-      
-      for (const auto& child : tree->getChildren()) {
-         writeMockValue(os, child.second, structName);
-      }
-   } else { //TODO manage pointer to structure if needed
-      if (tree->getValue() != "") {
-         if (tree->getName() == "retval") {
-            os << "   retval = " << tree->getValue() << ";\n";
-         } else if (tree->getType()->isAnyPointerType()) {
-            os << "   " << structName << " = " << tree->getValue() << ";\n";
-         } else {
-            os << "   " << structName << " = " << tree->getValue() << ";\n";
-         }
-      }
-   }
-}
-
-
-
-void Writer::FakeFunctionDefinition(const std::string                                          &name,
-                                    const clang::FunctionDecl                                  *funcDecl,
-                                    const std::shared_ptr<NameValueTypeNode<clang::QualType> >  outTree,
-                                    std::ostringstream                                         &out)
-{
-   std::string returnType = funcDecl->getReturnType().getAsString();
-   std::string isVariadic;
-
-   out << returnType << " ";
-   out << name << "(";
-
-   const int numParms = funcDecl->getNumParams();
-   if (numParms == 0) {
-      out << "void";
-   } else {
-      const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(0);
-      out << _currentParam->getType().getAsString() << " " << _currentParam->getNameAsString();
-      for (int i = 1; i < numParms; ++i) {
-         const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(i);
-         out << ", " << _currentParam->getType().getAsString() << " " << _currentParam->getNameAsString();
-      }
-
-      if (funcDecl->isVariadic()) {
-         out << ", ...";
-      }
-   }
-
-   out << " ){";
-
-   out << "// fill the input struct with json file values" << "\n";
-
-
-   for (const auto& child : outTree->getChildren()) {
-      if ( (child.first == "retval") && 
-           ! (child.second->getType().getAsString() == "void") ) {
-         out << "   " << child.second->getType().getAsString() << " retval;\n";
-         if ( !child.second->getType()->isAnyPointerType() ) {
-            out << "   memset(&retval,0,sizeof(" << child.second->getType().getAsString() << "));\n";
-         }
-      }
-      writeMockValue(out, child.second, "");
-   }
-
-   if (returnType != "void") {
-      out << "   return retval;\n";
-   }
-
-   out << "}";
-}
-
-
-static void writeMockValue(std::ostringstream &os,
-                           const NameValueNode*  tree,
-                           const std::string &name)
-{
-   
-   std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
-
-   if ( tree->isArray() ) {
-//    this is a pointer to allocate: write the memory allocation line
-      if (tree->getNumChildern() > 0) {
-         // move in utils::
-         size_t pos = 0;
-         const clang::QualType qualType = *static_cast<const clang::QualType*>(tree->getType());
-         std::string typestr = qualType.getUnqualifiedType().getAsString();
-         pos = typestr.find("*", pos);
-         while (pos != std::string::npos) {
-            typestr = typestr.erase(pos, 1);
-            pos = typestr.find("*", pos);
-         }
-
-         os << "   " << structName << " = static_cast<"<< qualType.getAsString() << ">(calloc(" << tree->getNumChildern() << ", sizeof(" << typestr << ")));\n";
-//          os << "   " << "memset(&" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
-      }
-   }
-   
-   if (tree->getNumChildern() > 0) {
-      
-      if ( !tree->isArray() )
-         structName += ".";
-      
-      for (const auto& child : tree->getChildren()) {
-         writeMockValue(os, child.second.get(), structName);
-      }
-   } else { //TODO manage pointer to structure if needed
-      if (tree->getValue() != "") {
-         if (tree->getName() == "retval") {
-            os << "   retval = " << tree->getValue() << ";\n";
-         } 
-         else if ( (*static_cast<const clang::QualType*>(tree->getType()))->isAnyPointerType()) {
-            os << "   " << structName << " = " << tree->getValue() << ";\n";
-         } 
-         else {
-            os << "   " << structName << " = " << tree->getValue() << ";\n";
-         }
-      }
-   }
-}
-
-void Writer::FakeFunctionDefinition(const std::string&                           name,
-                                    const clang::FunctionDecl*                   funcDecl,
-                                    const NameValueNode*			 outTree,
-                                    std::ostringstream&                          out)
-{
-   std::string returnType = funcDecl->getReturnType().getAsString();
-   std::string isVariadic;
-
-   out << returnType << " ";
-   out << name << "(";
-
-   const int numParms = funcDecl->getNumParams();
-   if (numParms == 0) {
-      out << "void";
-   } else {
-      const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(0);
-      out << _currentParam->getType().getAsString() << " " << _currentParam->getNameAsString();
-      for (int i = 1; i < numParms; ++i) {
-         const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(i);
-         out << ", " << _currentParam->getType().getAsString() << " " << _currentParam->getNameAsString();
-      }
-
-      if (funcDecl->isVariadic()) {
-         out << ", ...";
-      }
-   }
-
-   out << " ){";
-
-   out << "// fill the input struct with json file values" << "\n";
-
-
-   for (const auto& child : outTree->getChildren()) {
-      
-      const QualTypeNode* qualTypeNode = dynamic_cast<const QualTypeNode*>(  child.second.get() );
-      if ( qualTypeNode == nullptr ) {
-//          std::throw();
-         continue;
-      }
-      const clang::QualType qualType = *static_cast<const clang::QualType*>(qualTypeNode->getType());
-      if ( (child.first == "retval") &&  !(qualType.getAsString() == "void") ) {
-         out << "   " << qualType.getAsString() << " retval;\n";
-         if ( !qualType->isAnyPointerType() ) {
-            out << "   memset(&retval,0,sizeof(" << qualType.getAsString() << "));\n";
-         }
-      }
-      writeMockValue(out, child.second.get(), "");
-   }
-
-   if (returnType != "void") {
-      out << "   return retval;\n";
-   }
-
-   out << "}";
-}
-
-
-void Writer::MockFunctionFFF(const clang::FunctionDecl   *funcDecl,
-                             std::ostringstream          &out)
-{
-   const std::string declSrcFile = utils::getDeclSourceFileLine(funcDecl, _sourceMgr);
-
-   out << "/**" << std::endl;
-   out << " * name: " << funcDecl->getNameInfo().getName().getAsString() << std::endl;
-   out << " * file: " << declSrcFile << std::endl;
-   out << " */" << std::endl;
-
-   std::string returnType = funcDecl->getReturnType().getAsString();
-   std::string isVariadic;
-
-   if (funcDecl->isVariadic()) {
-      isVariadic = "_VARARG";
-   }
-
-   if (returnType == "void") {
-      out << "FAKE_VOID_FUNC" << isVariadic << "( ";
-   } else {
-      out << "FAKE_VALUE_FUNC" << isVariadic << "( " << returnType << ", ";
-   }
-
-   out << funcDecl->getNameInfo().getName().getAsString();
-
-   const int numParms = funcDecl->getNumParams();
-   for (int i = 0; i < numParms; ++i) {
-      const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(i);
-      out << ", " << _currentParam->getType().getAsString();
-   }
-
-   if (funcDecl->isVariadic()) {
-      out << ", ...";
-   }
-
-   out << " );";
-
-   out << std::endl;
-}
 

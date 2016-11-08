@@ -20,18 +20,6 @@ UnitTestData::UnitTestData(const FunctionDeclKeySetMap& funcDeclsMap,
 {
 }
 
-// UnitTestData::UnitTestData( const clang::FunctionDecl *funcDecl, const std::set<const clang::FunctionDecl *> &mockFuncs)
-// {
-//    if ( funcDecl != nullptr )
-//    {
-//       _tree = std::unique_ptr<NameValueNode>(buildTree(funcDecl, mockFuncs));
-//    }
-//    else {
-//       // error management! 
-//    }
-//    
-// }
-
 
 UnitTestData::~UnitTestData()
 {}
@@ -40,6 +28,7 @@ UnitTestData::~UnitTestData()
 void UnitTestData::clear()
 {
 }
+
 
 NameValueNode* UnitTestData::buildCollectionTree()
 {
@@ -85,10 +74,13 @@ NameValueNode* UnitTestData::buildDescTree()
    return descNode;
 }
 
+
 NameValueNode* UnitTestData::buildTree(const char* treeName, const FunctionDeclKeySetMap& declMap )
 {
   NameValueNode* arrayNode = NameValueNode::createArray(treeName);
    
+//   "mocks" and "funcs" have the same structure and this function is used to create both
+  
    /**
     *    "mocks" : // array of "funcs"
     *   [
@@ -207,9 +199,6 @@ NameValueNode* UnitTestData::buildContentTree( const clang::FunctionDecl *funcDe
 void UnitTestData::serializeJson(Json::Value &jsonRoot, const NameValueNode* data) const
 {   
    jsonRoot = Json::Value(Json::objectValue);
-   
-   
-//    UnitTestData::serializeJsonTree(jsonRoot, _treeDataFromAST.get() );
 
    if ( data == nullptr ) {
       data =  _treeFromAST.get();
@@ -281,23 +270,27 @@ void UnitTestData::serializeJson(Json::Value &jsonRoot, const NameValueNode* dat
 }
 
 
+
 void UnitTestData::deSerializeJson(const Json::Value &jsonRoot ) 
 {   
       
-
    typedef std::pair<const Json::Value&, NameValueNode*> JsonTreeNodePair;
    std::stack< JsonTreeNodePair > Stack;
    
+   // temp tree node created while parsng the json file
+   // it  contains only NameValueNode and no specialized Node (QualTypeNode,FunctionDeclNode)
+   std::unique_ptr<NameValueNode> tempTreeFromJson;
+   
    if ( jsonRoot.isObject() == true ) {
       
-      _treeFromJson = std::unique_ptr<NameValueNode>( NameValueNode::createObject("dataJson") );
+      tempTreeFromJson = std::unique_ptr<NameValueNode>( NameValueNode::createObject("dataJson") );
    }
    else {
       std::cout << "ERROR: json root value is not an object\n";
       return;
    }
 
-   Stack.push( JsonTreeNodePair(jsonRoot, _treeFromJson.get()) );
+   Stack.push( JsonTreeNodePair(jsonRoot, tempTreeFromJson.get()) );
    
    while ( !Stack.empty() ) {
     
@@ -371,17 +364,30 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot )
 
    } 
    
-   buildValidateData();
+   // create the data tree adding specialized node (QualTypeNode,FunctionDeclNode)
+   if ( tempTreeFromJson ) {
+      buildValidateData( tempTreeFromJson.get() );
+   }
    
-   testActions();
+//    testActions();
 }
 
 
 NameValueNode* UnitTestData::createValidatedNode(const NameValueNode* refChildNode,const NameValueNode* jsonNode ) 
 {
-   
-//    NameValueNode* newNode = refChildNode->clone(jsonNode->getValue().c_str());
    NameValueNode* newNode = nullptr;
+   
+   if ( refChildNode != nullptr) {
+//       clone the refChildNode name and type but with the jsonNode value
+      newNode = refChildNode->clone(jsonNode->getValue().c_str());
+   }
+   else {
+//       is it a value ?
+      newNode = jsonNode->clone();
+   }
+   
+   
+   /*
    
    if ( auto refQualTypeNode = dynamic_cast<const QualTypeNode* >(refChildNode) ) {
    
@@ -407,22 +413,21 @@ NameValueNode* UnitTestData::createValidatedNode(const NameValueNode* refChildNo
          newNode = NameValueNode::createValue(jsonNode->getName().c_str(), jsonNode->getValue().c_str() );
       }
    }
+   */
    
    return newNode;
 }
 
 
-bool UnitTestData::buildValidateData(void) {
-   
-   if (_treeFromJson.get() == nullptr || _treeFromAST.get() == nullptr )
-      return false;
+bool UnitTestData::buildValidateData( const NameValueNode* tempTreeFromJson)
+{
    
    typedef std::tuple<const NameValueNode*, const NameValueNode*, NameValueNode* > treeNodeTuple;
    std::stack< treeNodeTuple > Stack;
    
    _treeData = std::unique_ptr<NameValueNode>( NameValueNode::createObject("data") );
    
-   Stack.push( treeNodeTuple(_treeFromAST.get(), _treeFromJson.get(), _treeData.get()) );
+   Stack.push( treeNodeTuple(_treeFromAST.get(), tempTreeFromJson, _treeData.get()) );
    
    while ( !Stack.empty() ) {
       
@@ -448,6 +453,7 @@ bool UnitTestData::buildValidateData(void) {
             refChildNode = currentRefNode->getChild(childJsonName.c_str());
             if ( refChildNode == nullptr ) {
                std::cout << "ERROR: " << childJsonName << " is NOT a valid object\n";
+// 	       continue;
             }
          }
          
@@ -455,8 +461,6 @@ bool UnitTestData::buildValidateData(void) {
          
          if ( childJsonNode->isObject() ) {
             
-//             NameValueNode* newObjectNode = NameValueNode::createObject(childJsonName.c_str());
-//             currentDataNode->addChild(newObjectNode);
             NameValueNode* newObjectNode = createValidatedNode(refChildNode, childJsonNode );         
             currentDataNode->addChild(newObjectNode);
             Stack.push( treeNodeTuple( refChildNode, childJsonNode, newObjectNode) );    

@@ -1,9 +1,9 @@
 #include "UnitTestDataUtils.h"
 
 #include "NameValueTypeNode.h"
+#include "utils.h"
 
 #include <clang/AST/Decl.h>
-
 
 
 NameValueNode* UnitTestDataUtils::findContentFromAST(const std::string &key, const NameValueNode* dataAST)
@@ -195,6 +195,202 @@ void UnitTestDataUtils::writeGoogleTest(std::ostringstream &os, const clang::Fun
          writeStructureComparison(os, child.second.get(), "input.", indent);
       }
    }
+}
+
+
+static void writeMockValue(std::ostringstream &os,
+                           const std::shared_ptr<NameValueTypeNode<clang::QualType> > tree,
+                           const std::string &name)
+{
+   
+   std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
+
+   if ( tree->isArray() ) {
+//    this is a pointer to allocate: write the memory allocation line
+      if (tree->getNumChildern() > 0) {
+         // move in utils::
+         size_t pos = 0;
+         std::string typestr = tree->getType().getUnqualifiedType().getAsString();
+         pos = typestr.find("*", pos);
+         while (pos != std::string::npos) {
+            typestr = typestr.erase(pos, 1);
+            pos = typestr.find("*", pos);
+         }
+
+//          os << "   " << structName << " = static_cast<"<< tree->getType().getAsString() << ">(calloc(" << tree->getNumChildern() << ", sizeof(" << typestr << ")));\n";
+//          os << "   " << "memset(&" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
+      }
+   }
+   
+   if (tree->getNumChildern() > 0) {
+      
+      if ( !tree->isArray() )
+         structName += ".";
+      
+      for (const auto& child : tree->getChildren()) {
+         writeMockValue(os, child.second, structName);
+      }
+   } else { //TODO manage pointer to structure if needed
+      if (tree->getValue() != "") {
+         if (tree->getName() == "retval") {
+            os << "   retval = " << tree->getValue() << ";\n";
+         } else if (tree->getType()->isAnyPointerType()) {
+            os << "   " << structName << " = " << tree->getValue() << ";\n";
+         } else {
+            os << "   " << structName << " = " << tree->getValue() << ";\n";
+         }
+      }
+   }
+}
+
+
+
+void UnitTestDataUtils::writeMockValue(	std::ostringstream &os,
+					const NameValueNode*  tree,
+					const std::string &name)
+{
+   
+   std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
+
+   if ( tree->isArray() ) {
+//    this is a pointer to allocate: write the memory allocation line
+      if (tree->getNumChildern() > 0) {
+         // move in utils::
+         size_t pos = 0;
+         const clang::QualType qualType = *static_cast<const clang::QualType*>(tree->getType());
+         std::string typestr = qualType.getUnqualifiedType().getAsString();
+         pos = typestr.find("*", pos);
+         while (pos != std::string::npos) {
+            typestr = typestr.erase(pos, 1);
+            pos = typestr.find("*", pos);
+         }
+
+         os << "   " << structName << " = static_cast<"<< qualType.getAsString() << ">(calloc(" << tree->getNumChildern() << ", sizeof(" << typestr << ")));\n";
+//          os << "   " << "memset(&" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
+      }
+   }
+   
+   if (tree->getNumChildern() > 0) {
+      
+      if ( !tree->isArray() )
+         structName += ".";
+      
+      for (const auto& child : tree->getChildren()) {
+         writeMockValue(os, child.second.get(), structName);
+      }
+   } else { //TODO manage pointer to structure if needed
+      if (tree->getValue() != "") {
+         if (tree->getName() == "retval") {
+            os << "   retval = " << tree->getValue() << ";\n";
+         } 
+         else if ( (*static_cast<const clang::QualType*>(tree->getType()))->isAnyPointerType()) {
+            os << "   " << structName << " = " << tree->getValue() << ";\n";
+         } 
+         else {
+            os << "   " << structName << " = " << tree->getValue() << ";\n";
+         }
+      }
+   }
+}
+
+
+void UnitTestDataUtils::writeFunctionDefinition( const std::string&    		 name,
+						const clang::FunctionDecl* 	 funcDecl,
+						const NameValueNode*		 outTree,
+						std::ostringstream& 		out)
+{
+   std::string returnType = funcDecl->getReturnType().getAsString();
+   std::string isVariadic;
+
+   out << returnType << " ";
+   out << name << "(";
+
+   const int numParms = funcDecl->getNumParams();
+   if (numParms == 0) {
+      out << "void";
+   } else {
+      const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(0);
+      out << _currentParam->getType().getAsString() << " " << _currentParam->getNameAsString();
+      for (int i = 1; i < numParms; ++i) {
+         const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(i);
+         out << ", " << _currentParam->getType().getAsString() << " " << _currentParam->getNameAsString();
+      }
+
+      if (funcDecl->isVariadic()) {
+         out << ", ...";
+      }
+   }
+
+   out << " ){";
+
+   out << "// fill the input struct with json file values" << "\n";
+
+
+   for (const auto& child : outTree->getChildren()) {
+      
+      const QualTypeNode* qualTypeNode = dynamic_cast<const QualTypeNode*>(  child.second.get() );
+      if ( qualTypeNode == nullptr ) {
+//          std::throw();
+         continue;
+      }
+      const clang::QualType qualType = *static_cast<const clang::QualType*>(qualTypeNode->getType());
+      if ( (child.first == "retval") &&  !(qualType.getAsString() == "void") ) {
+         out << "   " << qualType.getAsString() << " retval;\n";
+         if ( !qualType->isAnyPointerType() ) {
+            out << "   memset(&retval,0,sizeof(" << qualType.getAsString() << "));\n";
+         }
+      }
+      writeMockValue(out, child.second.get(), "");
+   }
+
+   if (returnType != "void") {
+      out << "   return retval;\n";
+   }
+
+   out << "}";
+}
+
+
+
+void UnitTestDataUtils::writeMockFunctionFFF(const clang::FunctionDecl*  funcDecl,
+					     const clang::SourceManager*  _sourceMgr,
+					     std::ostringstream&	  out)
+{
+   const std::string declSrcFile = utils::getDeclSourceFileLine(funcDecl, *_sourceMgr);
+
+   out << "/**" << std::endl;
+   out << " * name: " << funcDecl->getNameInfo().getName().getAsString() << std::endl;
+   out << " * file: " << declSrcFile << std::endl;
+   out << " */" << std::endl;
+
+   std::string returnType = funcDecl->getReturnType().getAsString();
+   std::string isVariadic;
+
+   if (funcDecl->isVariadic()) {
+      isVariadic = "_VARARG";
+   }
+
+   if (returnType == "void") {
+      out << "FAKE_VOID_FUNC" << isVariadic << "( ";
+   } else {
+      out << "FAKE_VALUE_FUNC" << isVariadic << "( " << returnType << ", ";
+   }
+
+   out << funcDecl->getNameInfo().getName().getAsString();
+
+   const int numParms = funcDecl->getNumParams();
+   for (int i = 0; i < numParms; ++i) {
+      const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(i);
+      out << ", " << _currentParam->getType().getAsString();
+   }
+
+   if (funcDecl->isVariadic()) {
+      out << ", ...";
+   }
+
+   out << " );";
+
+   out << std::endl;
 }
 
 

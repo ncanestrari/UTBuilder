@@ -13,6 +13,7 @@ class FunctionDeclNode;
 namespace clang {
    class FunctionDecl;
    class QualType;
+   class SourceManager;
 }
 
 class UnitTestDataUtils 
@@ -31,6 +32,16 @@ public:
    static void writeFunctionDeclAsStructure(std::ostringstream &os, const clang::FunctionDecl* funcDecl );
    static void writeGoogleTest(std::ostringstream &os,  const clang::FunctionDecl* funcDecl, const NameValueNode* contentElement );
    
+  
+   static void writeFunctionDefinition( const std::string&           name,
+				        const clang::FunctionDecl*   funcDecl,
+				        const NameValueNode*	     outTree,
+				        std::ostringstream&          out);
+   
+   
+   static void writeMockFunctionFFF(const clang::FunctionDecl*  funcDecl,
+				    const clang::SourceManager* _sourceMgr,
+				    std::ostringstream&	out);
    
 private:
    
@@ -43,6 +54,11 @@ private:
                                          const NameValueNode* tree,
                                          const std::string &name,
                                          const std::string &indent );
+   
+   static void writeMockValue(	std::ostringstream &os,
+				const NameValueNode*  tree,
+				const std::string &name);
+   
    
 };
 
