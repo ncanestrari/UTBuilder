@@ -1,41 +1,71 @@
 
 #include "FunctionTestDataFile.h"
 
-#include <clang/Parse/ParseAST.h>
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Basic/TargetOptions.h>
+#include <boost/filesystem.hpp>
+using boost::filesystem::current_path;
+using boost::filesystem::path;
+
 #include <clang/Basic/TargetInfo.h>
-#include <clang/Lex/Preprocessor.h>
+#include <clang/Basic/TargetOptions.h>
+#include <clang/Frontend/CompilerInstance.h>
 #include <clang/Lex/HeaderSearch.h>
+#include <clang/Lex/Preprocessor.h>
+#include <clang/Parse/ParseAST.h>
+using clang::DiagnosticOptions;
+using clang::FileEntry;
+using clang::FileManager;
+using clang::frontend::CSystem;
+using clang::frontend::Quoted;
+using clang::HeaderSearchOptions;
+using clang::ParseAST;
+using clang::Preprocessor;
+using clang::SourceLocation;
+using clang::SourceManager;
+using clang::SrcMgr::C_User;
+using clang::TargetInfo;
+using clang::TargetOptions;
+using clang::TU_Module;
+
 #include <json/json.h>
+using Json::Value;
+using Json::arrayValue;
+using Json::objectValue;
+
 #include <llvm/Support/Host.h>
+
+#include <set>
 #include <string>
 #include <vector>
+using std::cout;
+using std::endl;
+using std::ostringstream;
+using std::set;
+using std::string;
+using std::vector;
 
 #include "Consumer.h"
 #include "optionparser.h"
 #include "PrecompilerOptionAST.h"
+using PrecompilerOptionAST::additionalIncludePaths;
+using PrecompilerOptionAST::additionalPredefinedMacros;
+
 #include "utils.h"
 
-using std::cout;
-using std::endl;
-using std::string;
-using std::vector;
-using Json::Value;
-using Json::arrayValue;
-using Json::objectValue;
 
 
 void FunctionTestDataFile::clearCollections() 
 {
    _projectDescription.clear();
    
-   if ( _unitFunctionTestCollection.get() != nullptr)
+   if ( _unitFunctionTestCollection.get() != nullptr){
       _unitFunctionTestCollection->clear();
+   }
    
-   if ( _mockFunctionTestCollection.get() != nullptr)
+   if ( _mockFunctionTestCollection.get() != nullptr){
       _mockFunctionTestCollection->clear();
+   }
 }
+
 
 void FunctionTestDataFile::initCollections(const FunctionDeclKeySetMap   &funcDeclsMap,
                                const FunctionDeclKeySetMap   &mockDeclsMap)
@@ -49,33 +79,9 @@ void FunctionTestDataFile::initCollections(const FunctionDeclKeySetMap   &funcDe
    _mockFunctionTestCollection->init(mockDeclsMap);
 }
 
+
 void FunctionTestDataFile::deSerializeJson(const Json::Value &jsonRoot, const void* )
 {
-   //clear every members
-//    clearCollections();
-// 
-//    //init projectDescription up to the OptionParser level
-//    _projectDescription.init();
-//    
-//    //this function is only called by the real case (not the example)
-//    //so read the desc from json to know what are the files to be loaded
-//    const Value& descRoot = jsonRoot["desc"];
-//    if( descRoot.empty() ){
-//       cout << "project description not found in input json file: " << endl;
-//    }
-//    _projectDescription.deSerializeJson(descRoot);
-//    
-//    //create the fare source to allow more than one source file
-//    _projectDescription.createFakeSource();
-   
-   //compute the AST for the fake file, create the maps needed to init the collection
-//    computeAST();
-
-   //collections init
-//    initCollections( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
-//    _mockFunctionTestCollection.init(FunctionsToMock::get().declKeySetMap);
-//    _unitFunctionTestCollection.init(FunctionsToUnitTest::get().declKeySetMap);
-   
    //load json defined mocks
    const Value& mocksRoot = jsonRoot["mocks"];
    if( mocksRoot.empty() ){
@@ -92,19 +98,9 @@ void FunctionTestDataFile::deSerializeJson(const Json::Value &jsonRoot, const vo
    
 }
 
+
 void FunctionTestDataFile::serializeJson(Value &jsonRoot) const
-{
-   //clear every members
-//    _projectDescription.clear();
-//    clearCollections();
-//    _mockFunctionTestCollection.clear();
-//    _unitFunctionTestCollection.clear();
-
-
-   
-   //compute the AST for the fake file, create the maps needed to init the collection
-//    computeAST();
-   
+{ 
    jsonRoot["desc"] = Value(objectValue);
    _projectDescription.serializeJson(jsonRoot["desc"]);
    
@@ -116,10 +112,9 @@ void FunctionTestDataFile::serializeJson(Value &jsonRoot) const
    _mockFunctionTestCollection->serializeJson(jsonRoot["mocks"]);
 }
 
+
 void FunctionTestDataFile::computeAST(void)
 {
-   _projectDescription.init();
-   
    //get the files from command line args or from the json file "desc" : {"files"}
    _projectDescription.getFromOptionParser();
 
@@ -130,52 +125,57 @@ void FunctionTestDataFile::computeAST(void)
    // create DiagnosticOptions (not used ?)
    // creare DiagnosticEngine
    // Set default target triple (standard common block)
-   clang::DiagnosticOptions diagnosticOptions;
+   DiagnosticOptions diagnosticOptions;
    _compiler.createDiagnostics();
-   std::shared_ptr<clang::TargetOptions> targetOptions =  std::make_shared<clang::TargetOptions>();
+   std::shared_ptr<TargetOptions> targetOptions =  std::make_shared<TargetOptions>();
    targetOptions->Triple = llvm::sys::getDefaultTargetTriple();
-   clang::TargetInfo *targetInfo = clang::TargetInfo::CreateTargetInfo(_compiler.getDiagnostics(), targetOptions);
+   TargetInfo *targetInfo = TargetInfo::CreateTargetInfo(_compiler.getDiagnostics(), targetOptions);
    _compiler.setTarget(targetInfo);
 
    // create FileManager
    _compiler.createFileManager();
-   clang::FileManager &fileMgr = _compiler.getFileManager();
+   FileManager &fileMgr = _compiler.getFileManager();
 
    // create SourceManager
    _compiler.createSourceManager(fileMgr);
-   clang::SourceManager &SourceMgr = _compiler.getSourceManager();
+   SourceManager &SourceMgr = _compiler.getSourceManager();
 
    // get a reference to HeaderSearchOptions and add the include paths
-   clang::HeaderSearchOptions &searchOpts = _compiler.getHeaderSearchOpts();
+   HeaderSearchOptions &searchOpts = _compiler.getHeaderSearchOpts();
 
-   for( const auto &path : _projectDescription.getIncludePaths() ) {
-      searchOpts.AddPath(path, clang::frontend::Quoted, false, false);
+   for( const path &p : _projectDescription.getIncludePaths() ) {
+      searchOpts.AddPath((current_path() / p).string().c_str(), Quoted, false, false);
    }
+   
+   for( const path &p : _projectDescription.getSourcesPaths() ) {
+      searchOpts.AddPath((current_path() / p).string().c_str(), Quoted, false, false);
+   }
+   
 
    // additional include search paths
-   for (int i = 0; i < LIST_SIZE(PrecompilerOptionAST::additionalIncludePaths); ++i) {
-      searchOpts.AddPath(PrecompilerOptionAST::additionalIncludePaths[i], clang::frontend::CSystem, false, false);
+   for (int i = 0; i < LIST_SIZE(additionalIncludePaths); ++i) {
+      searchOpts.AddPath(additionalIncludePaths[i], CSystem, false, false);
    }
 
    // create Preprocessor (Preprocessor is initialized with all the CompilerInstance include paths)
-   _compiler.createPreprocessor(clang::TU_Module);
-   clang::Preprocessor &preProcessor = _compiler.getPreprocessor();
+   _compiler.createPreprocessor(TU_Module);
+   Preprocessor &preProcessor = _compiler.getPreprocessor();
 
    // additional predefined macros needed for Compiling
-   std::ostringstream additonalPredefMacrosStream;
+   ostringstream additonalPredefMacrosStream;
 
    // get default clang 3.5 preprocessor predefined
    additonalPredefMacrosStream << preProcessor.getPredefines() << "\n";
 
-   for (int i = 0; i < LIST_SIZE(PrecompilerOptionAST::additionalPredefinedMacros); ++i) {
-      additonalPredefMacrosStream << "#define " << PrecompilerOptionAST::additionalPredefinedMacros[i] << "\n";
+   for (int i = 0; i < LIST_SIZE(additionalPredefinedMacros); ++i) {
+      additonalPredefMacrosStream << "#define " << additionalPredefinedMacros[i] << "\n";
    }
 
    preProcessor.setPredefines(additonalPredefMacrosStream.str());
 
    // Set the main file handled by the source manager to the input file.
-   const clang::FileEntry *pFile = fileMgr.getFile(_projectDescription.getInputFileName());
-   SourceMgr.setMainFileID(SourceMgr.createFileID(pFile, clang::SourceLocation(), clang::SrcMgr::C_User));
+   const FileEntry *pFile = fileMgr.getFile(_projectDescription.getInputFileName());
+   SourceMgr.setMainFileID(SourceMgr.createFileID(pFile, SourceLocation(), C_User));
 
    _compiler.createASTContext();
 
@@ -186,7 +186,7 @@ void FunctionTestDataFile::computeAST(void)
    results::get().clear();
 
    // Parse the AST and execute all the visitors
-   clang::ParseAST(_compiler.getPreprocessor(), &astConsumer, _compiler.getASTContext());
+   ParseAST(_compiler.getPreprocessor(), &astConsumer, _compiler.getASTContext());
    
    //collections init
    initCollections( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);

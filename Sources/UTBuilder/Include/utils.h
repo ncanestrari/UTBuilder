@@ -2,6 +2,7 @@
 #ifndef _UTBuilder_utils_h__
 #define _UTBuilder_utils_h__
 
+#include <boost/filesystem.hpp>
 #include <clang/Basic/SourceManager.h>
 #include <set>
 #include <string>
@@ -36,12 +37,19 @@ public:
    // append the row and column to the file name name string
    static std::string getStmtSourceFileLine(const clang::Stmt          *stmt,
                                             const clang::SourceManager &srcMgr);
+   //old implem to be rmd
+   static void getIncludePaths(const std::string &          package,
+                               std::vector<std::string> &   include_folders);
+   static void getSourcePaths(const std::string &            package,
+                              std::vector<std::string> &     source_folders);
    
-   static void getIncludePaths(const std::string        &package,
-                               std::vector<std::string> &include_folders);
-   static void getSourcePaths(const std::string        &package,
-                              std::vector<std::string> &source_folders);
+   //new implem
+   static void getIncludePaths(const std::set<boost::filesystem::path> &  packages,
+                               std::set<boost::filesystem::path> &        include_dir);
+   static void getSourcesPaths(const std::set<boost::filesystem::path> &   packages,
+                               std::set<boost::filesystem::path> &         sources_dir);
 
+   
 };
 
 

@@ -51,11 +51,6 @@ static const char* templateFilesName[] = {
 
 int main(int argc, const char *argv[])
 {
-
-//    struct rlimit limit;
-//    getrlimit (RLIMIT_STACK, &limit);
-//    printf ("\nStack Limit = %ld and %ld max\n", limit.rlim_cur, limit.rlim_max);
-
    try {
       OptionParser::get().createOptionMap(argc, argv);
       
@@ -89,22 +84,21 @@ int main(int argc, const char *argv[])
       reader.parse( FunctionTestDataFile::get(), OptionParser::get().getJsonFileName() );
       
       std::string outputFileName = FunctionTestDataFile::get().getProjectDescription().getOutputFileName();
-      Writer writer( unitTestData, outputFileName, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
-      writer.createFiles();
+//       Writer writer( unitTestData, outputFileName, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
+//       writer.createFiles();
       
-//       FilesWriter fileWriter(outputFileName, unitTestData, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
-//       fileWriter.add( new MockWriter() );
-//       fileWriter.add( new UnitTestFileWriter() );
-//       fileWriter.add( new SerializationWriter() );
-//       fileWriter.add( new StructuresToSerializeWriter() );
-//       fileWriter.write();
+      FilesWriter fileWriter(outputFileName, unitTestData, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
+      fileWriter.add( new MockWriter() );
+      fileWriter.add( new UnitTestFileWriter() );
+      fileWriter.add( new SerializationWriter() );
+      fileWriter.add( new StructuresToSerializeWriter() );
+      fileWriter.write();
       
 
    } catch (std::exception &e){
       std::cout << e.what() << std::endl;
       OptionParser::get().printAll();
       return EXIT_FAILURE;
-      //std::cout << e.what() << std::endl;
    }
    //check if temporary files are still there, close them and rm them
    //rm the fakesource.c 

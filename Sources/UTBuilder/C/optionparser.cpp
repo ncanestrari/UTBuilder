@@ -1,6 +1,7 @@
 
 #include "optionparser.h"
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -12,6 +13,9 @@ using boost::any;
 using boost::any_cast;
 using boost::char_separator;
 using boost::tokenizer;
+using boost::filesystem::current_path;
+using boost::filesystem::exists;
+using boost::filesystem::path;
 using boost::program_options::notify;
 using boost::program_options::options_description;
 using boost::program_options::parse_command_line;
@@ -36,6 +40,8 @@ using std::vector;
 
 #include "globber.h"
 #include "utils.h"
+
+
 
 void tokenize(const string& str, vector<string>& tokens, const string& delimiters = ",")
 {
@@ -78,19 +84,20 @@ static void conflicting_options(const variables_map &vm, const string &opt1, con
 }
 
 
-/* Auxillary Function */
-
-
 
 /* OptionParser class method definition */
 void OptionParser::createOptionMap(int ac, const char* av[])
 {   
    //setup general options
    options_description general("General options");
-
    general.add_options()
       ("help", "print help message")
       ("version", "print version")
+      ;
+   
+   options_description ci("Set the CI path");
+   ci.add_options()
+      ("ci", value<string>(), "will set the current directory to arg")
       ;
    
    //setup json options
@@ -108,8 +115,8 @@ void OptionParser::createOptionMap(int ac, const char* av[])
       ("example", value<bool>(), "will create an example.json for developer to play with")
       ;
    
-   _visible.add(example).add(json);
-   _all.add(general).add(json).add(example);
+   _visible.add(ci).add(json).add(example);
+   _all.add(general).add(ci).add(json).add(example);
    
    store(parse_command_line(ac, av, _all), _vm);
    
@@ -119,19 +126,31 @@ void OptionParser::createOptionMap(int ac, const char* av[])
    conflicting_options(_vm, "json", "functions");
    conflicting_options(_vm, "json", "output");
    conflicting_options(_vm, "json", "example");
+   
+   // change the current path to the arg or --ci is exists, otherwise raise excpetion
+   if( _vm.count("ci") ){
+      path p = path(_vm["ci"].as<string>());
+      if( !exists(p) ){
+         throw logic_error("argument of --ci:\n\n\t" + p.string() + "\n\ndoes not exists\n");
+      }
+      current_path(p);
+   }
+   
 }
+
 
 void OptionParser::getFileNames(vector<string> &files)
 {
    //if dirs get the files
+   set<string> sources;
    if( _vm.count("dirs") ){
       for( auto dir : _vm["dirs"].as<CommaSeparatedVector>().values ){
-         vector<string> globs = glob(dir+"/*.c");
-         files.insert(files.end(), globs.begin(), globs.end());
-         globs = glob(dir+"/*.cpp");
-         files.insert(files.end(), globs.begin(), globs.end());
+         glob(dir+"/*.c", sources);
+         glob(dir+"/*.cpp", sources);
       }
+      files.insert(files.end(), sources.begin(), sources.end());
    }
+   
    //if files 
    if( _vm.count("files") ){
       files.insert( files.end(), _vm["files"].as<CommaSeparatedVector>().values.begin(), _vm["files"].as<CommaSeparatedVector>().values.end() );
@@ -142,33 +161,12 @@ void OptionParser::getFileNames(vector<string> &files)
    }
 }
 
+
 const set<string> OptionParser::getFunctionsToTest() {
    const vector<string>& functionsStr = _vm["functions"].as<CommaSeparatedVector>().values;
    return set<string>(functionsStr.begin(),functionsStr.end());
 }
-// void OptionParser::getFunctionsToTest(std::set<std::string>& functions)
-// {
-//    const std::vector<std::string>& functionsStr = _vm["functions"].as<CommaSeparatedVector>().values;
-//    functions.insert(functionsStr.begin(),functionsStr.end()); 
-// }
 
-const string& OptionParser::getFirstAvailableFile(void)
-{
-   if( isExampleEnabled() ){
-      //grab the ci from the first file | the first dir
-      if( _vm.count("files") && _vm["files"].as<CommaSeparatedVector>().values.size() >= 1 ){
-         return _vm["files"].as<CommaSeparatedVector>().values[0];
-      }
-      if( _vm.count("dirs") && _vm["dirs"].as<CommaSeparatedVector>().values.size() >= 1 ){
-         return _vm["dirs"].as<CommaSeparatedVector>().values[0];
-      }
-   } else {
-      //grab the ci from the json file
-      if( _vm.count("json") ){
-         return _vm["json"].as<string>();
-      }
-   }
-   throw logic_error(string("not able to find any information!"));
-}
+
 
 
