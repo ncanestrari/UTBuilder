@@ -4,6 +4,7 @@
 
 #include <stack>
 
+#include "NameValueTypeNode.h"
 #include "UnitTestDataUtils.h"
 
 #include "NameValueTypeActions.h"
@@ -21,8 +22,7 @@ UnitTestData::UnitTestData(const FunctionDeclKeySetMap& funcDeclsMap,
 }
 
 
-UnitTestData::~UnitTestData()
-{}
+UnitTestData::~UnitTestData() = default;
 
 
 void UnitTestData::clear()

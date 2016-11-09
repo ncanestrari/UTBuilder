@@ -12,6 +12,8 @@
 #include "FunctionTestDataFile.h"
 #include "UnitTestData.h"
 
+#include "Writers.h"
+
 namespace clang {
 class FunctionDecl;
 class TypedefNameDecl;
@@ -20,6 +22,43 @@ class TypedefNameDecl;
 namespace Plustache {
 class Context;
 }
+
+class BaseWriter;
+
+
+class TemplateInfo {
+public:
+   std::string _name;
+   std::string _outputSuffix;   
+};
+
+
+class FilesWriter {
+   
+public:
+   
+   FilesWriter() = delete;
+   
+   FilesWriter(const std::string&         fileName,
+	       const UnitTestData&           data,
+	       const clang::SourceManager&   sourceMgr);
+   
+   ~FilesWriter();
+   
+   void add(BaseWriter* writer);
+   
+   void write();
+   
+private:
+   
+   const std::string            _fileName;
+   const UnitTestData&          _data;
+   const clang::SourceManager&	_sourceMgr;
+   
+   std::set< std::unique_ptr<BaseWriter> > _writers;
+   
+};
+
 
 class Writer {
 

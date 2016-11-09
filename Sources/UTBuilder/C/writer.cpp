@@ -26,6 +26,37 @@ using Plustache::Context;
 using Plustache::template_t;
 
 
+
+FilesWriter::FilesWriter(const std::string&         fileName,
+	    const UnitTestData&           data,
+	    const clang::SourceManager&   sourceMgr)
+: _fileName(fileName)
+, _data(data)
+, _sourceMgr(sourceMgr)
+{
+}
+
+FilesWriter::~FilesWriter() = default;
+
+void FilesWriter::add(BaseWriter* writer) 
+{
+   if ( writer == nullptr )
+      return;
+   
+   writer->init(_fileName, _data, _sourceMgr);
+   _writers.insert( std::unique_ptr<BaseWriter>(writer) );
+}
+
+void FilesWriter::write()
+{
+   for (const auto& writer : _writers )
+   {
+      writer->writeTemplate( writer->getTeamplateName(), writer->getTeamplateSuffix() );
+   }
+}
+   
+   
+   
 Writer::Writer(const UnitTestData& data,
                const std::string            &fileName,
                const clang::SourceManager   &sourceMgr)

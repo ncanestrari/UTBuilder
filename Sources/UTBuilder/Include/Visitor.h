@@ -14,6 +14,8 @@ public:
    explicit Visitor(clang::ASTContext*              context,
                     const std::vector<std::string>& fileNames) :  _context(context), _fileNames(fileNames) {};
 
+   virtual ~Visitor() = default;
+   
 protected:
    clang::ASTContext*              _context;
    const std::vector<std::string>& _fileNames;

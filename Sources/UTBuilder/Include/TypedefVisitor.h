@@ -13,6 +13,8 @@ public:
    explicit TypedefVisitor(clang::ASTContext*               context,
                            const std::vector<std::string>&  fileNames);
    
+   virtual ~TypedefVisitor() {}
+   
    bool VisitDecl(clang::Decl *decl);
 
 };

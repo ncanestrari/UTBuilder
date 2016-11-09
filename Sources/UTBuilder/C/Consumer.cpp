@@ -19,13 +19,14 @@ Consumer::Consumer(clang::ASTContext*              context,
    , _typedefVisitor(nullptr)
    , _structVisitor(nullptr)
 {
-   _mockVisitor = std::make_shared<MockVisitor>(context, fileNames);
-   _defVisitor = std::make_shared<FuncUTDefVisitor>(context, fileNames);
-   _declVisitor = std::make_shared<FuncUTDeclVisitor>(context, fileNames);
-   _typedefVisitor = std::make_shared<TypedefVisitor>(context, fileNames);
-   _structVisitor = std::make_shared<StructVisitor>(context, fileNames);
+   _mockVisitor = std::unique_ptr<MockVisitor>( new MockVisitor(context, fileNames) );
+   _defVisitor = std::unique_ptr<FuncUTDefVisitor>( new FuncUTDefVisitor(context, fileNames) );
+   _declVisitor = std::unique_ptr<FuncUTDeclVisitor>(new FuncUTDeclVisitor(context, fileNames) );
+   _typedefVisitor = std::unique_ptr<TypedefVisitor>( new TypedefVisitor(context, fileNames) );
+   _structVisitor = std::unique_ptr<StructVisitor>( new StructVisitor(context, fileNames) );
 }
 
+Consumer::~Consumer() = default;
 
 void Consumer::HandleTranslationUnit(clang::ASTContext &ctx)
 {

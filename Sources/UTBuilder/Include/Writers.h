@@ -12,23 +12,29 @@ class BaseWriter {
    
 public:
   
-   BaseWriter( const std::string&         fileName,
-	       const UnitTestData&           data,
-	       const clang::SourceManager&   sourceMgr );
+   BaseWriter();
    
    virtual ~BaseWriter() {}
    
-   void WriteTemplate(const std::string& templateFileName, const char* outputNameSuffix);
+   virtual void init( const std::string&         fileName,
+		      const UnitTestData&           data,
+		      const clang::SourceManager&   sourceMgr );
+      
+   void writeTemplate(const std::string& templateFileName, const std::string& outputNameSuffix);
   
+   
+   virtual const std::string& getTeamplateName() const = 0;
+   virtual const std::string& getTeamplateSuffix() const = 0;
    
 protected:
    
    virtual const Plustache::Context* createContext() = 0;
    
-   const std::string            _fileName;
-   const UnitTestData&          _data;
-   const clang::SourceManager&	_sourceMgr;
+   std::string            _fileName;
+   const UnitTestData*          _data;
+   const clang::SourceManager*	_sourceMgr;
   
+   static const std::string _templateDir;
 };
 
 
@@ -37,14 +43,18 @@ class MockWriter : public BaseWriter
 {
    public:
   
-   MockWriter( const std::string&         fileName,
-	       const UnitTestData&           data,
-	       const clang::SourceManager&   sourceMgr );
+   MockWriter();
+   
+   virtual const std::string& getTeamplateName() const { return _templateName; }
+   virtual const std::string& getTeamplateSuffix() const { return _templateSuffix; }
    
 protected:
    
    virtual const Plustache::Context* createContext() override final;
    
+    static const std::string _templateName;
+    static const std::string _templateSuffix;
+    
 };
 
 
@@ -52,42 +62,53 @@ class SerializationWriter : public BaseWriter
 {
    public:
   
-   SerializationWriter( const std::string&         fileName,
-	       const UnitTestData&           data,
-	       const clang::SourceManager&   sourceMgr );
+   SerializationWriter();
+   
+    virtual const std::string& getTeamplateName() const { return _templateName; }
+   virtual const std::string& getTeamplateSuffix() const { return _templateSuffix; }
    
 protected:
    
    virtual const Plustache::Context* createContext() override final;
    
+   static const std::string _templateName;
+   static const std::string _templateSuffix;
 };
 
 class StructuresToSerializeWriter : public BaseWriter 
 {
    public:
   
-   StructuresToSerializeWriter( const std::string&         fileName,
-	       const UnitTestData&           data,
-	       const clang::SourceManager&   sourceMgr );
+   StructuresToSerializeWriter();
+   
+   virtual const std::string& getTeamplateName() const { return _templateName; }
+   virtual const std::string& getTeamplateSuffix() const { return _templateSuffix; }
    
 protected:
    
    virtual const Plustache::Context* createContext() override final;
    
+   static const std::string _templateName;
+   static const std::string _templateSuffix;
 };
 
 
-class UnitTestFile : public BaseWriter 
+class UnitTestFileWriter : public BaseWriter 
 {
    public:
   
-   UnitTestFile( const std::string&         fileName,
-	       const UnitTestData&           data,
-	       const clang::SourceManager&   sourceMgr );
+   UnitTestFileWriter();
+   
+   
+   virtual const std::string& getTeamplateName() const { return _templateName; }
+   virtual const std::string& getTeamplateSuffix() const { return _templateSuffix; }
    
 protected:
    
    virtual const Plustache::Context* createContext() override final;
+   
+   static const std::string _templateName;
+   static const std::string _templateSuffix;
    
 };
 

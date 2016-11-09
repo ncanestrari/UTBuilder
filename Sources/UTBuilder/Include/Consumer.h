@@ -18,18 +18,19 @@ class Consumer : public clang::ASTConsumer {
 public:
    Consumer(clang::ASTContext*               context,
             const std::vector<std::string>&  fileNames);
-   ~Consumer() {}
+   
+   ~Consumer();
 
    virtual void HandleTranslationUnit(clang::ASTContext &ctx) override;
 
 private:
 
    // could be these visitors just classes and not pinters ?
-   std::shared_ptr<FuncUTDefVisitor>    _defVisitor;
-   std::shared_ptr<FuncUTDeclVisitor>   _declVisitor;
-   std::shared_ptr<StructVisitor>       _structVisitor;
-   std::shared_ptr<MockVisitor>         _mockVisitor;
-   std::shared_ptr<TypedefVisitor>	_typedefVisitor;
+   std::unique_ptr<FuncUTDefVisitor>    _defVisitor;
+   std::unique_ptr<FuncUTDeclVisitor>   _declVisitor;
+   std::unique_ptr<StructVisitor>       _structVisitor;
+   std::unique_ptr<MockVisitor>         _mockVisitor;
+   std::unique_ptr<TypedefVisitor>	_typedefVisitor;
 
 };
 

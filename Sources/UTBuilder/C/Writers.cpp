@@ -21,16 +21,35 @@ using Plustache::Context;
 using Plustache::template_t;
 
 
-BaseWriter::BaseWriter( const std::string&         fileName,
-	    const UnitTestData&           data,
-	    const clang::SourceManager&   sourceMgr )
-: _fileName(fileName)
-, _data(data)
-, _sourceMgr(sourceMgr)
-{}
+const std::string BaseWriter::_templateDir =  std::getenv("TEMPLATE_DIR");
+
+const std::string MockWriter::_templateName = _templateDir + std::string("/mock.template");
+const std::string MockWriter::_templateSuffix = std::string("-mocks.h");
+    
+const std::string SerializationWriter::_templateName = _templateDir + std::string("/serialization.template");
+const std::string SerializationWriter::_templateSuffix = std::string("-serialization.h");
+
+const std::string StructuresToSerializeWriter::_templateName = _templateDir + std::string("/serialization-struct.template");
+const std::string StructuresToSerializeWriter::_templateSuffix = std::string("-serialization-struct.h");
+
+const std::string UnitTestFileWriter::_templateName = _templateDir + std::string("/UT.template");
+const std::string UnitTestFileWriter::_templateSuffix = std::string("-ugtest.cpp");
+    
 
 
-void BaseWriter::WriteTemplate( const std::string& templateFileName, const char* outputNameSuffix )
+BaseWriter::BaseWriter() = default;
+
+void BaseWriter::init(  const std::string&         fileName,
+			const UnitTestData&           data,
+			const clang::SourceManager&   sourceMgr )
+{
+   _fileName = fileName;
+   _data = &data;
+   _sourceMgr = &sourceMgr;
+}
+
+
+void BaseWriter::writeTemplate(const std::string& templateFileName, const std::string& outputNameSuffix)
 {
    
    auto context = std::unique_ptr<const Plustache::Context>( createContext() );
@@ -74,11 +93,7 @@ void BaseWriter::WriteTemplate( const std::string& templateFileName, const char*
 }
 
 
-MockWriter::MockWriter( const std::string&         fileName,
-	    const UnitTestData&           data,
-	    const clang::SourceManager&   sourceMgr )
-: BaseWriter(fileName, data, sourceMgr)
-{}
+MockWriter::MockWriter() = default;
    
 
 const Plustache::Context* MockWriter::createContext() 
@@ -86,11 +101,12 @@ const Plustache::Context* MockWriter::createContext()
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for (const auto& funcToMock : _data.getFunctionToMock() ) {
+   const FunctionDeclKeySetMap& funcsToMock = _data->getFunctionToMock();
+   for (const auto& funcToMock : funcsToMock ) {
       
       const clang::FunctionDecl *funcDecl = funcToMock.first;
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
+      const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, *_sourceMgr);
 
       includePaths.insert(boost::filesystem::path(declSrcFile).filename().string());
    }
@@ -110,11 +126,11 @@ const Plustache::Context* MockWriter::createContext()
       context->add("includes", Include);
    }
 
-   const FunctionDeclKeySetMap& funcDeclsMap = _data.getFunctionToMock();
-   for (const auto& iter : funcDeclsMap) {
+//    const FunctionDeclKeySetMap& funcsToMock = _data->getFunctionToMock();
+   for (const auto& iter : funcsToMock) {
 
       const clang::FunctionDecl *funcDecl = iter.first;
-      UnitTestDataUtils::writeMockFunctionFFF(funcDecl, &_sourceMgr, out);
+      UnitTestDataUtils::writeMockFunctionFFF(funcDecl, _sourceMgr, out);
       Mock["definition"] = out.str();
       Mock["mockname"] = funcDecl->getNameInfo().getName().getAsString();
       context->add("mocks", Mock);
@@ -127,7 +143,7 @@ const Plustache::Context* MockWriter::createContext()
    out.str("");
 
 
-   const NameValueNode* mocksdata = _data.getMocksData();
+   const NameValueNode* mocksdata = _data->getMocksData();
    const std::map< std::string, std::unique_ptr<NameValueNode> >& mockFuncs = mocksdata->getChildren();
    for (const auto& arrayIndex : mockFuncs) {
       
@@ -162,11 +178,8 @@ const Plustache::Context* MockWriter::createContext()
 }
 
 
-SerializationWriter::SerializationWriter( const std::string&         fileName,
-	 const UnitTestData&           data,
-	 const clang::SourceManager&   sourceMgr )
-: BaseWriter(fileName, data, sourceMgr)
-{}
+SerializationWriter::SerializationWriter() = default;
+
    
 const Plustache::Context* SerializationWriter::createContext() 
 {
@@ -176,7 +189,7 @@ const Plustache::Context* SerializationWriter::createContext()
 
    for (const auto& typedefDecl : results::get().typedefNameDecls) {
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(typedefDecl, _sourceMgr);
+      const std::string declSrcFile = utils::getDeclSourceFile(typedefDecl, *_sourceMgr);
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
       if (!includeFile.empty()) {
          includePaths.insert(includeFile);
@@ -185,7 +198,7 @@ const Plustache::Context* SerializationWriter::createContext()
 
    for (const auto& structDecl : results::get().structDecls) {
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(structDecl, _sourceMgr);
+      const std::string declSrcFile = utils::getDeclSourceFile(structDecl, *_sourceMgr);
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
       if (!includeFile.empty()) {
          includePaths.insert(includeFile);
@@ -217,7 +230,7 @@ const Plustache::Context* SerializationWriter::createContext()
 
       const clang::QualType typedefQualType = typedefDecl->getUnderlyingType(); // ->getCanonicalTypeInternal();
       // appends the row and column to the name string
-      const std::string declSrcFile = utils::getDeclSourceFileLine(typedefDecl, _sourceMgr);
+      const std::string declSrcFile = utils::getDeclSourceFileLine(typedefDecl, *_sourceMgr);
 
       objectToSerialize["name"] = typedefDecl->getNameAsString();
       objectToSerialize["file"] = declSrcFile;
@@ -276,11 +289,7 @@ const Plustache::Context* SerializationWriter::createContext()
 }
 
 
-StructuresToSerializeWriter::StructuresToSerializeWriter( const std::string&         fileName,
-	 const UnitTestData&           data,
-	 const clang::SourceManager&   sourceMgr )
-: BaseWriter(fileName, data, sourceMgr)
-{}
+StructuresToSerializeWriter::StructuresToSerializeWriter() = default;
    
 const Plustache::Context* StructuresToSerializeWriter::createContext() 
 {
@@ -290,7 +299,7 @@ const Plustache::Context* StructuresToSerializeWriter::createContext()
 
    for (const auto& typedefDecl : results::get().typedefNameDecls) {
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(typedefDecl, _sourceMgr);
+      const std::string declSrcFile = utils::getDeclSourceFile(typedefDecl, *_sourceMgr);
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
       if (!includeFile.empty()) {
          includePaths.insert(includeFile);
@@ -299,7 +308,7 @@ const Plustache::Context* StructuresToSerializeWriter::createContext()
 
    for (const auto& structDecl : results::get().structDecls) {
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(structDecl, _sourceMgr);
+      const std::string declSrcFile = utils::getDeclSourceFile(structDecl, *_sourceMgr);
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
       if (!includeFile.empty()) {
          includePaths.insert(includeFile);
@@ -326,7 +335,7 @@ const Plustache::Context* StructuresToSerializeWriter::createContext()
    context->add("newline", "\n");
 
    
-   const FunctionDeclKeySetMap&  funcDeclsMap = _data.getFunctionToTest();
+   const FunctionDeclKeySetMap&  funcDeclsMap = _data->getFunctionToTest();
    for (const std::pair<const clang::FunctionDecl *, FunctionDeclSet >& iter : funcDeclsMap) {
       
       out.str("");
@@ -343,23 +352,20 @@ const Plustache::Context* StructuresToSerializeWriter::createContext()
 }
    
    
-UnitTestFile::UnitTestFile( const std::string&         fileName,
-	 const UnitTestData&           data,
-	 const clang::SourceManager&   sourceMgr )
-: BaseWriter(fileName, data, sourceMgr)
-{}
+UnitTestFileWriter::UnitTestFileWriter() = default;
    
-const Plustache::Context* UnitTestFile::createContext() 
+   
+const Plustache::Context* UnitTestFileWriter::createContext() 
 {
    std::string fnameUT = boost::filesystem::path(_fileName).filename().string();
 
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for (const auto& funcToUnitTest : _data.getFunctionToTest() ) { /*FunctionsToUnitTest::get().declKeySetMap) {*/
+   for (const auto& funcToUnitTest : _data->getFunctionToTest() ) { /*FunctionsToUnitTest::get().declKeySetMap) {*/
       const clang::FunctionDecl *funcDecl = funcToUnitTest.first;
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, _sourceMgr);
+      const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, *_sourceMgr);
       boost::filesystem::path p(declSrcFile);
       includePaths.insert(utils::changeFileExtension(p.filename().string(), "h"));
    }
@@ -383,7 +389,7 @@ const Plustache::Context* UnitTestFile::createContext()
 
    std::ostringstream    code;
    
-   const NameValueNode* funcsToTest = _data.getFuncsData();
+   const NameValueNode* funcsToTest = _data->getFuncsData();
    const std::map< std::string, std::unique_ptr<NameValueNode> >& funcs = funcsToTest->getChildren();
    for (const auto& arrayIndex : funcs) {
       

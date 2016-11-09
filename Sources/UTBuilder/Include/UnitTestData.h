@@ -3,7 +3,7 @@
 
 // #include "Serializable.h"
 // #include "singleton.h"
-#include "NameValueTypeNode.h"
+// #include "NameValueTypeNode.h"
 #include "Results.h"
 
 #include <set>
@@ -11,6 +11,8 @@
 namespace clang{
    class FunctionDecl;
 }
+
+class NameValueNode;
 
 
 class UnitTestData //:  public Serializable //, public Singleton<UnitTestData>
