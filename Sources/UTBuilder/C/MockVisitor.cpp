@@ -6,7 +6,7 @@
 #include <clang/AST/ASTContext.h>
 
 #include "Results.h"
-#include "utils.h"
+#include "Utils.h"
 
 #include <vector>
 
@@ -41,10 +41,10 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr *funcCall)
    const clang::SourceManager &srcMgr = _context->getSourceManager();
 
    // function call source location
-   const std::string srcFile = utils::getStmtSourceFile(funcCall, srcMgr);
+   const std::string srcFile = Utils::getStmtSourceFile(funcCall, srcMgr);
 
    // get function declaration source location
-   const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, srcMgr);
+   const std::string declSrcFile = Utils::getDeclSourceFile(funcDecl, srcMgr);
 
    // check if the statement is in the input argument file
 

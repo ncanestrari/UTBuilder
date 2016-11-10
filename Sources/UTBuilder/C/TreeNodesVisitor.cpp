@@ -1,7 +1,7 @@
-#include "NameValueTypeVisitor.h"
+#include "TreeNodesVisitor.h"
 
-#include "NameValueTypeNode.h"
-#include "NameValueTypeActions.h"
+#include "TreeNodes.h"
+#include "TreeNodesActions.h"
 
 
 void NodeVisitor::process(NameValueNode*  node)

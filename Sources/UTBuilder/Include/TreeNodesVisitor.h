@@ -1,8 +1,8 @@
 
-#ifndef _UTBuilder_NameValueTypeVisitor_h__
-#define _UTBuilder_NameValueTypeVisitor_h__
+#ifndef _UTBuilder_TreeNodesVisitor_h__
+#define _UTBuilder_TreeNodesVisitor_h__
 
-#include <clang/AST/Decl.h>
+// #include <clang/AST/Decl.h>
 
 #include <json/json.h>
 
@@ -65,5 +65,5 @@ public:
 };
 
 
-#endif // _UTBuilder_NameValueTypeVisitor_h__
+#endif // _UTBuilder_TreeNodesVisitor_h__
 

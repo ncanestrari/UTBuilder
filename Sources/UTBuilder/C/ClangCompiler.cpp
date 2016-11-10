@@ -1,5 +1,5 @@
 
-#include "FunctionTestDataFile.h"
+#include "ClangCompiler.h"
 
 #include <boost/filesystem.hpp>
 using boost::filesystem::current_path;
@@ -49,71 +49,12 @@ using std::vector;
 using PrecompilerOptionAST::additionalIncludePaths;
 using PrecompilerOptionAST::additionalPredefinedMacros;
 
-#include "utils.h"
+#include "Utils.h"
+#include "Results.h"
 
 
 
-void FunctionTestDataFile::clearCollections() 
-{
-   _projectDescription.clear();
-   
-   if ( _unitFunctionTestCollection.get() != nullptr){
-      _unitFunctionTestCollection->clear();
-   }
-   
-   if ( _mockFunctionTestCollection.get() != nullptr){
-      _mockFunctionTestCollection->clear();
-   }
-}
-
-
-void FunctionTestDataFile::initCollections(const FunctionDeclKeySetMap   &funcDeclsMap,
-                               const FunctionDeclKeySetMap   &mockDeclsMap)
-{
-//    clearCollections();
-
-   _unitFunctionTestCollection = std::make_shared<UnitFunctionTestCollection>();
-   _unitFunctionTestCollection->init(funcDeclsMap);
-   
-   _mockFunctionTestCollection = std::make_shared<MockFunctionTestCollection>();
-   _mockFunctionTestCollection->init(mockDeclsMap);
-}
-
-
-void FunctionTestDataFile::deSerializeJson(const Json::Value &jsonRoot, const void* )
-{
-   //load json defined mocks
-   const Value& mocksRoot = jsonRoot["mocks"];
-   if( mocksRoot.empty() ){
-      cout << "functions to mock not found in input json file: " << endl;
-   }
-   _mockFunctionTestCollection->deSerializeJson(mocksRoot);
-   
-   //load json defined unit/module tests
-   const Value& funcsRoot = jsonRoot["funcs"];
-   if( funcsRoot.empty() ){
-      cout << "functions to test not found in input json file: " << endl;
-   }
-   _unitFunctionTestCollection->deSerializeJson(funcsRoot);
-   
-}
-
-
-void FunctionTestDataFile::serializeJson(Value &jsonRoot) const
-{ 
-   jsonRoot["desc"] = Value(objectValue);
-   _projectDescription.serializeJson(jsonRoot["desc"]);
-   
-   //init projectDescription up to the
-   jsonRoot["funcs"] = Value(arrayValue);
-   _unitFunctionTestCollection->serializeJson(jsonRoot["funcs"]);
-   
-   jsonRoot["mocks"] = Value(arrayValue);
-   _mockFunctionTestCollection->serializeJson(jsonRoot["mocks"]);
-}
-
-
-void FunctionTestDataFile::computeAST(void)
+void ClangCompiler::computeAST(void)
 {
    //get the files from command line args or from the json file "desc" : {"files"}
    _projectDescription.getFromOptionParser();
@@ -183,11 +124,10 @@ void FunctionTestDataFile::computeAST(void)
    Consumer astConsumer(&_compiler.getASTContext(), _projectDescription.getAllFileNames());//pass source files
 
    // clear the results before parsing the AST
-   results::get().clear();
+//    results::get().clear();
 
    // Parse the AST and execute all the visitors
    ParseAST(_compiler.getPreprocessor(), &astConsumer, _compiler.getASTContext());
    
-   //collections init
-   initCollections( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
+
 }

@@ -6,7 +6,7 @@
 #include <set>
 #include <map>
 
-#include "FunctionTestContent.h"
+
 #include "singleton.h"
 
 namespace clang {
@@ -71,22 +71,22 @@ public:
 
 
 
-class results {
-
-   results(void) {};
-   ~results(void) {};
-
-public:
-
-   static results &get(void);
-   void clear();
-
-   std::set<const clang::RecordDecl *>        structDecls;
-   std::set<const clang::TypedefNameDecl *>   typedefNameDecls;
-   std::set<std::string>                      includesForUnitTest;
-   std::set<const clang::Type *>              functionDeclTypes;
-
-};
+// class results {
+// 
+//    results(void) {};
+//    ~results(void) {};
+// 
+// public:
+// 
+//    static results &get(void);
+//    void clear();
+// 
+//    std::set<const clang::RecordDecl *>        structDecls;
+//    std::set<const clang::TypedefNameDecl *>   typedefNameDecls;
+//    std::set<std::string>                      includesForUnitTest;
+//    std::set<const clang::Type *>              functionDeclTypes;
+// 
+// };
 
 
 #endif // _UTBuilder_Results_h__

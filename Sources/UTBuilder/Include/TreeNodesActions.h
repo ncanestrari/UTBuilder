@@ -1,9 +1,9 @@
 
-#ifndef _UTBuilder_NameValueTypeActions_h__
-#define _UTBuilder_NameValueTypeActions_h__
+#ifndef _UTBuilder_TreeNodesActions_h__
+#define _UTBuilder_TreeNodesActions_h__
 
-#include "NameValueTypeNode.h"
-#include <clang/AST/Decl.h>
+#include "TreeNodes.h"
+// #include <clang/AST/Decl.h>
 
 #include <json/json.h>
 
@@ -54,5 +54,5 @@ private:
 };
 
 
-#endif // _UTBuilder_NameValueTypeActions_h__
+#endif // _UTBuilder_TreeNodesActions_h__
 

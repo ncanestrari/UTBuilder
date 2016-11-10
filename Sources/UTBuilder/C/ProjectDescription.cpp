@@ -24,7 +24,7 @@ using Json::Value;
 
 #include "globber.h"
 #include "optionparser.h"
-#include "utils.h"
+#include "Utils.h"
 
 
 
@@ -107,8 +107,8 @@ void ProjectDescription::init(void)
       _packages.insert(  *( source.begin() )  );
    }
 
-   utils::getIncludePaths(_packages, _include_dirs);
-   utils::getSourcesPaths(_packages, _sources_dirs);
+   Utils::getIncludePaths(_packages, _include_dirs);
+   Utils::getSourcesPaths(_packages, _sources_dirs);
 }
 
 

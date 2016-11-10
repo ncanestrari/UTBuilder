@@ -14,7 +14,7 @@
 #include <iostream>
 
 #include "singleton.h"
-#include "utils.h"
+#include "Utils.h"
 
 #define VERSION "0.1 beta"
 

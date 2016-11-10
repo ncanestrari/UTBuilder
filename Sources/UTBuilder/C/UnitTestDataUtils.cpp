@@ -1,7 +1,7 @@
 #include "UnitTestDataUtils.h"
 
-#include "NameValueTypeNode.h"
-#include "utils.h"
+#include "TreeNodes.h"
+#include "Utils.h"
 
 #include <clang/AST/Decl.h>
 
@@ -198,52 +198,6 @@ void UnitTestDataUtils::writeGoogleTest(std::ostringstream &os, const clang::Fun
 }
 
 
-static void writeMockValue(std::ostringstream &os,
-                           const std::shared_ptr<NameValueTypeNode<clang::QualType> > tree,
-                           const std::string &name)
-{
-   
-   std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
-
-   if ( tree->isArray() ) {
-//    this is a pointer to allocate: write the memory allocation line
-      if (tree->getNumChildern() > 0) {
-         // move in utils::
-         size_t pos = 0;
-         std::string typestr = tree->getType().getUnqualifiedType().getAsString();
-         pos = typestr.find("*", pos);
-         while (pos != std::string::npos) {
-            typestr = typestr.erase(pos, 1);
-            pos = typestr.find("*", pos);
-         }
-
-//          os << "   " << structName << " = static_cast<"<< tree->getType().getAsString() << ">(calloc(" << tree->getNumChildern() << ", sizeof(" << typestr << ")));\n";
-//          os << "   " << "memset(&" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
-      }
-   }
-   
-   if (tree->getNumChildern() > 0) {
-      
-      if ( !tree->isArray() )
-         structName += ".";
-      
-      for (const auto& child : tree->getChildren()) {
-         writeMockValue(os, child.second, structName);
-      }
-   } else { //TODO manage pointer to structure if needed
-      if (tree->getValue() != "") {
-         if (tree->getName() == "retval") {
-            os << "   retval = " << tree->getValue() << ";\n";
-         } else if (tree->getType()->isAnyPointerType()) {
-            os << "   " << structName << " = " << tree->getValue() << ";\n";
-         } else {
-            os << "   " << structName << " = " << tree->getValue() << ";\n";
-         }
-      }
-   }
-}
-
-
 
 void UnitTestDataUtils::writeMockValue(	std::ostringstream &os,
 					const NameValueNode*  tree,
@@ -356,7 +310,7 @@ void UnitTestDataUtils::writeMockFunctionFFF(const clang::FunctionDecl*  funcDec
 					     const clang::SourceManager*  _sourceMgr,
 					     std::ostringstream&	  out)
 {
-   const std::string declSrcFile = utils::getDeclSourceFileLine(funcDecl, *_sourceMgr);
+   const std::string declSrcFile = Utils::getDeclSourceFileLine(funcDecl, *_sourceMgr);
 
    out << "/**" << std::endl;
    out << " * name: " << funcDecl->getNameInfo().getName().getAsString() << std::endl;

@@ -16,18 +16,18 @@ void FunctionsToMock::clear()
 }
 
 
-results &results::get(void)
-{
-   static results instance;
-   return instance;
-};
-
-
-void results::clear()
-{
-   structDecls.clear();
-   typedefNameDecls.clear();
-   includesForUnitTest.clear();
-   functionDeclTypes.clear();
-}
+// results &results::get(void)
+// {
+//    static results instance;
+//    return instance;
+// };
+// 
+// 
+// void results::clear()
+// {
+//    structDecls.clear();
+//    typedefNameDecls.clear();
+//    includesForUnitTest.clear();
+//    functionDeclTypes.clear();
+// }
 

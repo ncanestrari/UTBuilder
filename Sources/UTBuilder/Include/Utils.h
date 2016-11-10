@@ -1,6 +1,6 @@
 
-#ifndef _UTBuilder_utils_h__
-#define _UTBuilder_utils_h__
+#ifndef _UTBuilder_Utils_h__
+#define _UTBuilder_Utils_h__
 
 #include <boost/filesystem.hpp>
 #include <clang/Basic/SourceManager.h>
@@ -14,7 +14,7 @@ class Stmt;
 }
 
 
-class utils {
+class Utils {
 
 public:
 
@@ -53,5 +53,5 @@ public:
 };
 
 
-#endif // _UTBuilder_utils_h__
+#endif // _UTBuilder_Utils_h__
 

@@ -4,11 +4,11 @@
 
 #include <stack>
 
-#include "NameValueTypeNode.h"
+#include "TreeNodes.h"
 #include "UnitTestDataUtils.h"
 
-#include "NameValueTypeActions.h"
-#include "NameValueTypeVisitor.h"
+// #include "NameValueTypeActions.h"
+// #include "NameValueTypeVisitor.h"
 
 const unsigned int UnitTestData::_defaultExampleContentSize = 2;
 
@@ -510,8 +510,8 @@ bool UnitTestData::buildValidateData( const NameValueNode* tempTreeFromJson)
 
 void UnitTestData::testActions() const
 {
-   PrintAction action;
-   NodeVisitor visitor( &action );
-   _treeFromAST->visit( &visitor);
+//    PrintAction action;
+//    NodeVisitor visitor( &action );
+//    _treeFromAST->visit( &visitor);
    
 }

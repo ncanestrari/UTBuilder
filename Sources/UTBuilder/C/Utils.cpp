@@ -1,5 +1,5 @@
 
-#include "utils.h"
+#include "Utils.h"
 #include "globber.h"
 #include "Results.h"
 
@@ -18,7 +18,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-string utils::extractCommercialCodePath(const string &fileNamePath)
+string Utils::extractCommercialCodePath(const string &fileNamePath)
 {
    size_t lastdot = fileNamePath.find("/CommercialCode/");
    if ( lastdot != string::npos ) {
@@ -35,7 +35,7 @@ string utils::extractCommercialCodePath(const string &fileNamePath)
 }
 
 
-string utils::extractPackagePath(const string &fileNamePath)
+string Utils::extractPackagePath(const string &fileNamePath)
 {
    string cc("/CommercialCode/");
    size_t lastdot = fileNamePath.find(cc);
@@ -59,7 +59,7 @@ string utils::extractPackagePath(const string &fileNamePath)
 }
 
 
-void utils::getIncludePaths(const set<path> &  packages,
+void Utils::getIncludePaths(const set<path> &  packages,
                             set<path> &        include_dir)
 {
    path cwd = current_path();
@@ -80,7 +80,7 @@ void utils::getIncludePaths(const set<path> &  packages,
 }
 
 
-void utils::getSourcesPaths(const set<path> &  packages,
+void Utils::getSourcesPaths(const set<path> &  packages,
                             set<path> &        sources_dir)
 {
    path cwd = current_path();
@@ -98,20 +98,20 @@ void utils::getSourcesPaths(const set<path> &  packages,
 }
 
 
-string utils::removeFileExtension(const string &fileNamePath)
+string Utils::removeFileExtension(const string &fileNamePath)
 {
    size_t lastdot = fileNamePath.find_last_of(".");
    return (lastdot == string::npos) ? fileNamePath : fileNamePath.substr(0, lastdot);
 }
 
 
-string utils::changeFileExtension(const string &fileName, const string &newExt)
+string Utils::changeFileExtension(const string &fileName, const string &newExt)
 {
    return boost::filesystem::change_extension(fileName, newExt).string();
 }
 
 
-string utils::removeDashes(const string &fileNamePath)
+string Utils::removeDashes(const string &fileNamePath)
 {
    string fileName = boost::filesystem::path(fileNamePath).filename().string();
 
@@ -133,7 +133,7 @@ string utils::removeDashes(const string &fileNamePath)
 }
 
 
-void utils::fillFunctionQualTypes(void)
+void Utils::fillFunctionQualTypes(void)
 {
    results::get().functionDeclTypes.clear();
 
@@ -168,7 +168,7 @@ void utils::fillFunctionQualTypes(void)
 }
 
 
-std::string utils::getDeclSourceFile(const clang::Decl *decl, const clang::SourceManager &srcMgr)
+std::string Utils::getDeclSourceFile(const clang::Decl *decl, const clang::SourceManager &srcMgr)
 {
    // source location
    const clang::SourceLocation srcLoc = decl->getSourceRange().getBegin();
@@ -176,7 +176,7 @@ std::string utils::getDeclSourceFile(const clang::Decl *decl, const clang::Sourc
 }
 
 
-std::string utils::getDeclSourceFileLine(const clang::Decl *decl, const clang::SourceManager &srcMgr)
+std::string Utils::getDeclSourceFileLine(const clang::Decl *decl, const clang::SourceManager &srcMgr)
 {
    // source location
    const clang::SourceLocation srcLoc = decl->getSourceRange().getBegin();
@@ -184,7 +184,7 @@ std::string utils::getDeclSourceFileLine(const clang::Decl *decl, const clang::S
 }
 
 
-std::string utils::getStmtSourceFile(const clang::Stmt *stmt, const clang::SourceManager &srcMgr)
+std::string Utils::getStmtSourceFile(const clang::Stmt *stmt, const clang::SourceManager &srcMgr)
 {
    // source location
    const clang::SourceLocation srcLoc = stmt->getSourceRange().getBegin();
@@ -192,7 +192,7 @@ std::string utils::getStmtSourceFile(const clang::Stmt *stmt, const clang::Sourc
 }
 
 
-std::string utils::getStmtSourceFileLine(const clang::Stmt *stmt, const clang::SourceManager &srcMgr)
+std::string Utils::getStmtSourceFileLine(const clang::Stmt *stmt, const clang::SourceManager &srcMgr)
 {
    // source location
    const clang::SourceLocation srcLoc = stmt->getSourceRange().getBegin();

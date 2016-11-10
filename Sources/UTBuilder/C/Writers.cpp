@@ -1,6 +1,5 @@
 #include "Writers.h"
 
-#include <boost/filesystem/convenience.hpp>
 
 #include <plustache_types.hpp>
 #include <sstream>
@@ -8,7 +7,7 @@
 #include <template.hpp>
 
 #include "UnitTestDataUtils.h"
-#include "utils.h"
+#include "Utils.h"
 
 
 using std::cout;
@@ -23,16 +22,16 @@ using Plustache::template_t;
 
 const std::string BaseWriter::_templateDir =  std::getenv("TEMPLATE_DIR");
 
-const std::string MockWriter::_templateName = _templateDir + std::string("/mock.template");
+const std::string MockWriter::_templateName = BaseWriter::_templateDir + std::string("/mock.template");
 const std::string MockWriter::_templateSuffix = std::string("-mocks.h");
     
-const std::string SerializationWriter::_templateName = _templateDir + std::string("/serialization.template");
+const std::string SerializationWriter::_templateName = BaseWriter::_templateDir + std::string("/serialization.template");
 const std::string SerializationWriter::_templateSuffix = std::string("-serialization.h");
 
-const std::string StructuresToSerializeWriter::_templateName = _templateDir + std::string("/serialization-struct.template");
+const std::string StructuresToSerializeWriter::_templateName = BaseWriter::_templateDir + std::string("/serialization-struct.template");
 const std::string StructuresToSerializeWriter::_templateSuffix = std::string("-serialization-struct.h");
 
-const std::string UnitTestFileWriter::_templateName = _templateDir + std::string("/UT.template");
+const std::string UnitTestFileWriter::_templateName = BaseWriter::_templateDir + std::string("/UT.template");
 const std::string UnitTestFileWriter::_templateSuffix = std::string("-ugtest.cpp");
     
 
@@ -106,7 +105,7 @@ const Plustache::Context* MockWriter::createContext()
       
       const clang::FunctionDecl *funcDecl = funcToMock.first;
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, *_sourceMgr);
+      const std::string declSrcFile = Utils::getDeclSourceFile(funcDecl, *_sourceMgr);
 
       includePaths.insert(boost::filesystem::path(declSrcFile).filename().string());
    }
@@ -189,7 +188,7 @@ const Plustache::Context* SerializationWriter::createContext()
 
    for (const auto& typedefDecl : results::get().typedefNameDecls) {
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(typedefDecl, *_sourceMgr);
+      const std::string declSrcFile = Utils::getDeclSourceFile(typedefDecl, *_sourceMgr);
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
       if (!includeFile.empty()) {
          includePaths.insert(includeFile);
@@ -198,7 +197,7 @@ const Plustache::Context* SerializationWriter::createContext()
 
    for (const auto& structDecl : results::get().structDecls) {
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(structDecl, *_sourceMgr);
+      const std::string declSrcFile = Utils::getDeclSourceFile(structDecl, *_sourceMgr);
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
       if (!includeFile.empty()) {
          includePaths.insert(includeFile);
@@ -230,7 +229,7 @@ const Plustache::Context* SerializationWriter::createContext()
 
       const clang::QualType typedefQualType = typedefDecl->getUnderlyingType(); // ->getCanonicalTypeInternal();
       // appends the row and column to the name string
-      const std::string declSrcFile = utils::getDeclSourceFileLine(typedefDecl, *_sourceMgr);
+      const std::string declSrcFile = Utils::getDeclSourceFileLine(typedefDecl, *_sourceMgr);
 
       objectToSerialize["name"] = typedefDecl->getNameAsString();
       objectToSerialize["file"] = declSrcFile;
@@ -299,7 +298,7 @@ const Plustache::Context* StructuresToSerializeWriter::createContext()
 
    for (const auto& typedefDecl : results::get().typedefNameDecls) {
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(typedefDecl, *_sourceMgr);
+      const std::string declSrcFile = Utils::getDeclSourceFile(typedefDecl, *_sourceMgr);
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
       if (!includeFile.empty()) {
          includePaths.insert(includeFile);
@@ -308,7 +307,7 @@ const Plustache::Context* StructuresToSerializeWriter::createContext()
 
    for (const auto& structDecl : results::get().structDecls) {
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(structDecl, *_sourceMgr);
+      const std::string declSrcFile = Utils::getDeclSourceFile(structDecl, *_sourceMgr);
       const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
       if (!includeFile.empty()) {
          includePaths.insert(includeFile);
@@ -365,9 +364,9 @@ const Plustache::Context* UnitTestFileWriter::createContext()
    for (const auto& funcToUnitTest : _data->getFunctionToTest() ) { /*FunctionsToUnitTest::get().declKeySetMap) {*/
       const clang::FunctionDecl *funcDecl = funcToUnitTest.first;
       // get declaration source location
-      const std::string declSrcFile = utils::getDeclSourceFile(funcDecl, *_sourceMgr);
+      const std::string declSrcFile = Utils::getDeclSourceFile(funcDecl, *_sourceMgr);
       boost::filesystem::path p(declSrcFile);
-      includePaths.insert(utils::changeFileExtension(p.filename().string(), "h"));
+      includePaths.insert(Utils::changeFileExtension(p.filename().string(), "h"));
    }
    
    
@@ -416,8 +415,8 @@ const Plustache::Context* UnitTestFileWriter::createContext()
 
    // create a C++ class name from the fileName
    std::string TestFilename = boost::filesystem::path(_fileName).filename().string();
-   TestFilename = utils::removeDashes(TestFilename);
-   TestFilename = utils::removeFileExtension(TestFilename);
+   TestFilename = Utils::removeDashes(TestFilename);
+   TestFilename = Utils::removeFileExtension(TestFilename);
 
    context->add("testFilename", TestFilename);
    context->add("filename", _fileName);

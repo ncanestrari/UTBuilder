@@ -2,7 +2,6 @@
 #define _UTBuilder_JsonWriter_h__
 
 
-#include "FunctionTestDataFile.h"
 #include "UnitTestData.h"
 
 #include <string>
@@ -11,7 +10,7 @@
 class JsonWriter {
 
 public:
-   JsonWriter(const FunctionTestDataFile& dataFile, const UnitTestData& unitTestData);
+   JsonWriter(const UnitTestData& unitTestData);
    ~JsonWriter() {}
 
    void templateFile(const std::string &fileName);
@@ -19,7 +18,6 @@ public:
 
 private:
 
-   const FunctionTestDataFile& _dataFile;
    const UnitTestData& _unitTestData;
 
 };

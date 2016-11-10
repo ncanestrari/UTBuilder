@@ -1,7 +1,6 @@
 
 #include "JsonReader.h"
 
-#include "FunctionTestDataFile.h"
 
 #include <json/json.h>
 
@@ -31,8 +30,7 @@ JsonReader::JsonReader(UnitTestData& unitTestData)
  * 
  * @return        true if process works, false otherwise 
  */
-bool JsonReader::parse(FunctionTestDataFile &data,
-                       const string  &fileName)
+bool JsonReader::parse( const string  &fileName)
 {
    ifstream jsonFile;
    _fileName = fileName;
@@ -47,7 +45,6 @@ bool JsonReader::parse(FunctionTestDataFile &data,
       Json::Value jsonRoot;
       jsonFile >> jsonRoot;
       
-      data.deSerializeJson(jsonRoot); 
       _unitTestData.deSerializeJson(jsonRoot);
    }
    

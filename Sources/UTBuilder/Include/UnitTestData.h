@@ -1,11 +1,11 @@
 #ifndef _UTBuilder_UnitTestData_h__
 #define _UTBuilder_UnitTestData_h__
 
-// #include "Serializable.h"
-// #include "singleton.h"
-// #include "NameValueTypeNode.h"
+
+#include "TreeNodes.h"
 #include "Results.h"
 
+#include <json/json.h>
 #include <set>
 
 namespace clang{
@@ -15,7 +15,7 @@ namespace clang{
 class NameValueNode;
 
 
-class UnitTestData //:  public Serializable //, public Singleton<UnitTestData>
+class UnitTestData
 {
 
 public:

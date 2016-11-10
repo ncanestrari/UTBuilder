@@ -1,7 +1,7 @@
-#include "NameValueTypeNode.h"
+#include "TreeNodes.h"
 
-#include "NameValueTypeVisitor.h"
-#include "NameValueTypeActions.h"
+// #include "NameValueTypeVisitor.h"
+// #include "NameValueTypeActions.h"
 
 // the order of static vars initialization is always respected for each translation unit 
 const char* NameValueNode::_arrayIndex[] = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
@@ -73,26 +73,25 @@ NameValueNode* NameValueNode::clone(const char * value) const
 }   
    
    
-void NameValueNode::visit( NodeVisitor* visitor) 
-{
-    visitor->process( this );
-}
-   
-   
-bool NameValueNode::execute( NodeAction* action)
-{
-   return action->run(this);
-}
-
-bool NameValueNode::execute( OneNodeVisitor* action )
-{
-   if ( action->run(this) ) {
-
-      for (const auto& child : _children ) {
-	  child.second.get()->execute(action);
-      }
-   }
-}
+// void NameValueNode::visit( NodeVisitor* visitor) 
+// {
+//     visitor->process( this );
+// }
+//    
+// bool NameValueNode::execute( NodeAction* action)
+// {
+//    return action->run(this);
+// }
+// 
+// bool NameValueNode::execute( OneNodeVisitor* action )
+// {
+//    if ( action->run(this) ) {
+// 
+//       for (const auto& child : _children ) {
+// 	  child.second.get()->execute(action);
+//       }
+//    }
+// }
 
 int NameValueNode::getIndex(void) const
 {
@@ -148,26 +147,25 @@ QualTypeNode* QualTypeNode::clone(const char * value) const
    }
 }
    
-void QualTypeNode::visit( NodeVisitor* visitor )
-{
-   visitor->process( this );
-}
-
-bool QualTypeNode::execute( NodeAction* action )
-{
-   return action->run(this);
-}
-   
-   
-bool QualTypeNode::execute( OneNodeVisitor* action )
-{
-   if ( action->run(this) ) {
-
-      for (const auto& child : _children ) {
-	  child.second.get()->execute(action);
-      }
-   }
-}
+// void QualTypeNode::visit( NodeVisitor* visitor )
+// {
+//    visitor->process( this );
+// }
+// 
+// bool QualTypeNode::execute( NodeAction* action )
+// {
+//    return action->run(this);
+// }
+//    
+// bool QualTypeNode::execute( OneNodeVisitor* action )
+// {
+//    if ( action->run(this) ) {
+// 
+//       for (const auto& child : _children ) {
+// 	  child.second.get()->execute(action);
+//       }
+//    }
+// }
 
 
 FunctionDeclNode::FunctionDeclNode(const FunctionDeclNode& other)
@@ -180,7 +178,7 @@ FunctionDeclNode::FunctionDeclNode(const char *name, const clang::FunctionDecl* 
 , _type(type)
 {}
    
-   
+
 FunctionDeclNode* FunctionDeclNode::create(const char *name, const clang::FunctionDecl* type, const char *value)
 {
    return new FunctionDeclNode(name, type, value);
@@ -196,65 +194,31 @@ FunctionDeclNode* FunctionDeclNode::clone(const char * value) const
    }
 }
    
-void FunctionDeclNode::visit( NodeVisitor* visitor )
-{
-   visitor->process( this );
-}
-
-bool FunctionDeclNode::execute( NodeAction* action )
-{
-   return action->run(this);
-}
-  
-  
-bool FunctionDeclNode::execute( OneNodeVisitor* action )
-{
+// void FunctionDeclNode::visit( NodeVisitor* visitor )
+// {
+//    visitor->process( this );
+// }
+// 
+// bool FunctionDeclNode::execute( NodeAction* action )
+// {
+//    return action->run(this);
+// }
+//   
+// bool FunctionDeclNode::execute( OneNodeVisitor* action )
+// {
+//    
+//    if ( action->run(this) ) {
+// 
+//       for (const auto& child : _children ) {
+// 	  child.second.get()->execute(action);
+//       }
+//    }
+// }
    
-   if ( action->run(this) ) {
-
-      for (const auto& child : _children ) {
-	  child.second.get()->execute(action);
-      }
-   }
-}
-   
-   
-/*   
-// template specialization for clang::QualType type
-// QualType can be a structure and addChild is called recursevly for each struct field
-template <>
-NameValueNode* TypeNameValueNode<clang::QualType>::create(const char* name,  
-                                                                 const clang::QualType& qualType, 
-                                                                 const char* value ) 
-{
-   TypeNameValueNode<clang::QualType>* node = nullptr; // = new TypeNameValueNode<clang::QualType>(name, qualType, value);
-   
-   const clang::RecordType *structType = qualType->getAsStructureType();
-   if (structType != nullptr) {
-      // not useful , value can be "" for struct 
-      const std::string structName = qualType.getAsString();
-      
-      node = new TypeNameValueNode<clang::QualType>(name, qualType, structName.c_str() );
-  
-      const clang::RecordDecl *structDecl = structType->getDecl();
-      for (const auto field : structDecl->fields()) {
-         auto* child = TypeNameValueNode<clang::QualType>::create(field->getNameAsString().c_str(), field->getType(), "");
-         node->addChild(child);
-      }
-   }
-   else {
-    
-      node = new TypeNameValueNode<clang::QualType>(name, qualType, value );
-   }
-   
-   
-   return node;
-}
-*/ 
 
 QualTypeNode* QualTypeNode::create(const char* name, const clang::QualType& qualType, const char* value ) 
 {
-   QualTypeNode* node = nullptr; // = new TypeNameValueNode<clang::QualType>(name, qualType, value);
+   QualTypeNode* node = nullptr;
    
    const clang::RecordType *structType = qualType->getAsStructureType();
    if (structType != nullptr) {
@@ -274,34 +238,5 @@ QualTypeNode* QualTypeNode::create(const char* name, const clang::QualType& qual
       node = new QualTypeNode(name, qualType, value );
    }
    
-   
    return node;
-}
-   
-// template specialization for clang::QualType type
-// QualType can be a structure and addChild is called recursevly for each struct field
-template <>
-std::shared_ptr<NameValueTypeNode<clang::QualType> > NameValueTypeNode<clang::QualType>::addChild(const char *name, clang::QualType qualType, const char *value)
-{
-   std::shared_ptr<NameValueTypeNode<clang::QualType> > child;
-   
-   const clang::RecordType *structType = qualType->getAsStructureType();
-   if (structType != nullptr) {
-      // not useful , value can be "" for struct 
-      const std::string structName = qualType.getAsString();
-      
-      child = std::make_shared<NameValueTypeNode<clang::QualType> >(name, qualType, structName.c_str() );
-  
-      const clang::RecordDecl *structDecl = structType->getDecl();
-      for (const auto field : structDecl->fields()) {
-         child->addChild(field->getNameAsString().c_str(), field->getType(), "");
-      }
-   }
-   else {
-    
-      child = std::make_shared<NameValueTypeNode<clang::QualType> >(name, qualType, value );
-   }
-   
-   _children[name] = child;
-   return child;
 }

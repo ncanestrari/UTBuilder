@@ -2,7 +2,7 @@
 #include "TypedefVisitor.h"
 
 #include "Results.h"
-#include "utils.h"
+#include "Utils.h"
 
 #include <boost/filesystem.hpp>
 #include <clang/AST/ASTContext.h>
@@ -32,7 +32,7 @@ bool TypedefVisitor::VisitDecl(clang::Decl *decl)
    }
 
    // get declaration source location
-   const std::string declSrcFile = utils::getDeclSourceFile(type_def, _context->getSourceManager());
+   const std::string declSrcFile = Utils::getDeclSourceFile(type_def, _context->getSourceManager());
 
    // TODO: fix this
    // temporary check

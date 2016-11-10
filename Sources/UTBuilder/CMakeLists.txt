@@ -8,33 +8,23 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set ( HEADER_FILES
    Include/Consumer.h
-   Include/DataFile.h
    Include/FuncUTDefVisitor.h
-   Include/FunctionTestCollection.h
-   Include/FunctionTestContent.h
-   Include/FunctionTestData.h
+   Include/ClangCompiler.h
    Include/JsonReader.h
    Include/JsonWriter.h
    Include/MockVisitor.h
-   Include/NameValueTypeNode.h
-   Include/NameValueTypeVisitor.h
-   Include/NameValueTypeActions.h
+   Include/TreeNodes.h
    Include/PrecompilerOptionAST.h
    Include/ProjectDescription.h
    Include/Results.h
-   Include/Serializable.h
    Include/StructVisitor.h
-   Include/TreeNode.h
-   Include/TreeNodeVisitor.h
-   Include/TreeNodeActions.h
-   Include/TestData.h
    Include/TypedefVisitor.h
    Include/globber.h
    Include/optionparser.h
    Include/UnitTestData.h
    Include/UnitTestDataUtils.h
-   Include/utils.h
-   Include/writer.h
+   Include/Utils.h
+   Include/WritersManager.h
    Include/writers.h
    )
 
@@ -42,30 +32,21 @@ set ( SOURCE_FILES
    C/main.cpp
    C/Consumer.cpp
    C/FuncUTDefVisitor.cpp
-   C/FunctionTestCollection.cpp
-   C/FunctionTestContent.cpp
-   C/FunctionTestData.cpp
-   C/FunctionTestDataFile.cpp
+   C/ClangCompiler.cpp
    C/JsonReader.cpp
    C/JsonWriter.cpp
    C/MockVisitor.cpp
-   C/NameValueTypeNode.cpp
-   C/NameValueTypeVisitor.cpp
-   C/NameValueTypeActions.cpp
+   C/TreeNodes.cpp
    C/ProjectDescription.cpp
    C/Results.cpp
    C/StructVisitor.cpp
-   C/TreeNode.cpp
-   C/TreeNodeVisitor.cpp
-   C/TreeNodeActions.cpp
-   C/TestData.cpp
    C/TypedefVisitor.cpp
    C/globber.cpp
    C/optionparser.cpp
    C/UnitTestData.cpp
    C/UnitTestDataUtils.cpp
-   C/utils.cpp 
-   C/writer.cpp
+   C/Utils.cpp 
+   C/WritersManager.cpp
    C/Writers.cpp
    )
 
