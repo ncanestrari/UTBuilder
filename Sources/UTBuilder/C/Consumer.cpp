@@ -11,7 +11,8 @@
 
 
 Consumer::Consumer(clang::ASTContext*              context,
-                   const std::vector<std::string>& fileNames)
+                   const std::vector<std::string>& fileNames,
+		   ASTinfo& info )
    : ASTConsumer()
    , _mockVisitor(nullptr)
    , _defVisitor(nullptr)

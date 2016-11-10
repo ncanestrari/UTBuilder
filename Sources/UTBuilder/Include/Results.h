@@ -19,7 +19,7 @@ class Type;
 
 typedef std::set<const clang::FunctionDecl *> FunctionDeclSet;
 typedef std::map<const clang::FunctionDecl *, FunctionDeclSet > FunctionDeclKeySetMap;
-typedef std::map< std::string, const clang::FunctionDecl * > FunctionNameDeclMap;
+typedef std::map< std::string, const clang::FunctionDecl * > NameFunctionDeclMap;
 
 
 class FunctionsToUnitTest : public Singleton<FunctionsToUnitTest> {
@@ -43,7 +43,7 @@ public:
    FunctionDeclKeySetMap declKeySetMap; //functionsToUnitTestMap;
 
    // only for C: no overloaded and overriden functions
-   FunctionNameDeclMap   nameDeclMap; //functionsToUnitTestName;
+   NameFunctionDeclMap   nameDeclMap; //functionsToUnitTestName;
 
 };
 
@@ -65,28 +65,74 @@ public:
    FunctionDeclKeySetMap  declKeySetMap;
 
    // only for C: no overloaded and overriden functions
-   FunctionNameDeclMap    nameDeclMap;
+   NameFunctionDeclMap    nameDeclMap;
 
 };
 
 
 
-// class results {
-// 
-//    results(void) {};
-//    ~results(void) {};
-// 
-// public:
-// 
-//    static results &get(void);
-//    void clear();
-// 
-//    std::set<const clang::RecordDecl *>        structDecls;
-//    std::set<const clang::TypedefNameDecl *>   typedefNameDecls;
-//    std::set<std::string>                      includesForUnitTest;
-//    std::set<const clang::Type *>              functionDeclTypes;
-// 
-// };
+class results {
 
+   results(void) {};
+   ~results(void) {};
+
+public:
+
+   static results &get(void);
+   void clear();
+
+   std::set<const clang::RecordDecl *>        structDecls;
+   std::set<const clang::TypedefNameDecl *>   typedefNameDecls;
+   std::set<std::string>                      includesForUnitTest;
+   std::set<const clang::Type *>              functionDeclTypes;
+
+};
+
+
+
+
+class ASTinfo
+{
+public:
+   
+   ASTinfo() = default;
+   ~ASTinfo() = default;
+   
+   void clear();
+
+   void addStructureDecl(const clang::RecordDecl * decl) { _structureDecls.insert(decl); }
+   void addTypedefNameDecl(const clang::TypedefNameDecl * decl) { _typedefNameDecls.insert(decl); }
+   void addIncludeFile(const std::string& incl) { _includeFilesForUnitTest.insert(incl); }
+   void addFunctionDeclType(const clang::Type * funcDeclType) { _functionDeclTypes.insert(funcDeclType); }
+   
+   
+   void addFunctionToUnitTest(const clang::FunctionDecl* funcDecl);
+   
+   void addFunctionToMock(const clang::FunctionDecl* mockFuncDecl, const clang::FunctionDecl* callerFuncDecl);
+   
+   
+   const std::set<const clang::RecordDecl *>& getStructureDecls() const { return _structureDecls; }
+   const std::set<const clang::TypedefNameDecl *>& getTypedefNameDecls() const { return _typedefNameDecls; }
+   const std::set<std::string>& getIncludeFiles() const { return _includeFilesForUnitTest; }
+   const std::set<const clang::Type *>& getFunctionDeclTypes() const { return _functionDeclTypes; }
+   
+   const FunctionDeclKeySetMap& getFunctionsToUnitTestMap() const { return _functionsToUnitTest.declKeySetMap; }
+   const NameFunctionDeclMap& getFunctionsToUnitTest() const { return _functionsToUnitTest.nameDeclMap; }
+   
+   const FunctionDeclKeySetMap& getFunctionsToMockMap() const { return _functionsToMock.declKeySetMap; }
+   const NameFunctionDeclMap& getFunctionsMock() const { return _functionsToMock.nameDeclMap; }
+   
+   
+private:
+   
+   FunctionsToUnitTest _functionsToUnitTest;
+   FunctionsToMock	_functionsToMock;
+   
+   std::set<const clang::RecordDecl *>        _structureDecls;
+   std::set<const clang::TypedefNameDecl *>   _typedefNameDecls;
+   std::set<std::string>                      _includeFilesForUnitTest;
+   std::set<const clang::Type *>              _functionDeclTypes;
+   
+};
 
 #endif // _UTBuilder_Results_h__

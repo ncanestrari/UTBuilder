@@ -7,7 +7,7 @@
 #include <json/json.h>
 
 #include "ProjectDescription.h"
-
+#include "Results.h"
 
 
 class ClangCompiler
@@ -27,11 +27,15 @@ public:
    const ProjectDescription & getProjectDescription(void){ return _projectDescription; }
    const ProjectDescription & getProjectDescription(void) const { return _projectDescription; }
    
+   const ASTinfo& getASTinfo() { return _info; }
+   
 private:
 
     
    clang::CompilerInstance _compiler;
    ProjectDescription _projectDescription;
+   
+   ASTinfo _info;
 };
 
 

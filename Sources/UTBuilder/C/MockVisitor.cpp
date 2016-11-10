@@ -67,7 +67,7 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr *funcCall)
 
    // check if the caller (_lastFuncDecl) needs to be tested
    const std::string callerFuncName = _lastFuncDecl->getNameAsString();
-   FunctionNameDeclMap::iterator funcToTestIter = FunctionsToUnitTest::get().nameDeclMap.find(callerFuncName);
+   NameFunctionDeclMap::iterator funcToTestIter = FunctionsToUnitTest::get().nameDeclMap.find(callerFuncName);
    if ( FunctionsToUnitTest::get().nameDeclMap.find(callerFuncName) == FunctionsToUnitTest::get().nameDeclMap.end() ) {
       return true;
    }

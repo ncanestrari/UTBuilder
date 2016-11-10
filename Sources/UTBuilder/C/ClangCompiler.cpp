@@ -50,7 +50,7 @@ using PrecompilerOptionAST::additionalIncludePaths;
 using PrecompilerOptionAST::additionalPredefinedMacros;
 
 #include "Utils.h"
-#include "Results.h"
+
 
 
 
@@ -121,10 +121,10 @@ void ClangCompiler::computeAST(void)
    _compiler.createASTContext();
 
    // create UTBuilder consumer
-   Consumer astConsumer(&_compiler.getASTContext(), _projectDescription.getAllFileNames());//pass source files
+   Consumer astConsumer(&_compiler.getASTContext(), _projectDescription.getAllFileNames(), _info);//pass source files
 
    // clear the results before parsing the AST
-//    results::get().clear();
+   results::get().clear();
 
    // Parse the AST and execute all the visitors
    ParseAST(_compiler.getPreprocessor(), &astConsumer, _compiler.getASTContext());

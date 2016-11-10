@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "Results.h"
+
 class FuncUTDefVisitor;
 class FuncUTDeclVisitor;
 class StructVisitor;
@@ -17,7 +19,9 @@ class Consumer : public clang::ASTConsumer {
 
 public:
    Consumer(clang::ASTContext*               context,
-            const std::vector<std::string>&  fileNames);
+            const std::vector<std::string>&  fileNames,
+	    ASTinfo& info
+  	 );
    
    ~Consumer();
 

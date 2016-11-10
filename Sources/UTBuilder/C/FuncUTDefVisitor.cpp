@@ -82,7 +82,7 @@ bool FuncUTDeclVisitor::VisitDecl(clang::Decl *decl)
          // check if the funcDecl is in the input argument file
          if (funcDecl->getNameInfo().getName().getAsString() == func->getNameInfo().getName().getAsString()) {
             boost::filesystem::path p(declSrcFile);
-//             results::get().includesForUnitTest.insert(p.filename().string());
+            results::get().includesForUnitTest.insert(p.filename().string());
             break;
          }
       }
