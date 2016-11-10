@@ -37,7 +37,8 @@ bool TypedefVisitor::VisitDecl(clang::Decl *decl)
    // TODO: fix this
    // temporary check
    // WEAK CHECK if declaration is in CommercialCode path
-   if (declSrcFile.find("CommercialCode") == std::string::npos) {
+//    if (declSrcFile.find("CommercialCode") == std::string::npos) {
+   if (declSrcFile.find(boost::filesystem::current_path().string()) == std::string::npos) {
       return true;
    }
 

@@ -33,17 +33,17 @@ public:
 };
 
 
-class FilesWriter {
+class FileWriterManager {
    
 public:
    
-   FilesWriter() = delete;
+   FileWriterManager() = delete;
    
-   FilesWriter(const std::string&         fileName,
+   FileWriterManager(const std::string&         fileName,
 	       const UnitTestData&           data,
 	       const clang::SourceManager&   sourceMgr);
    
-   ~FilesWriter();
+   ~FileWriterManager();
    
    void add(BaseWriter* writer);
    

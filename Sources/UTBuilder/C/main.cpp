@@ -34,12 +34,12 @@ static const char *funcsFileNameSuffix = "-unitTest.json";
 
 
 
-static TemplateInfo outputFilesSuffix[] = { 
-   { std::string(std::getenv("TEMPLATE_DIR")) + std::string("/mock.template"), "-mocks.h" },
-   { std::string(std::getenv("TEMPLATE_DIR")) + std::string("/UT.template"), "-ugtest.cpp" },
-   { std::string(std::getenv("TEMPLATE_DIR")) + std::string("/serialization.template"), "-serialization.h" },
-   { std::string(std::getenv("TEMPLATE_DIR")) + std::string("/serialization-struct.template"), "-serialization-struct.h"}
-};
+// static TemplateInfo outputFilesSuffix[] = { 
+//    { std::string(std::getenv("TEMPLATE_DIR")) + std::string("/mock.template"), "-mocks.h" },
+//    { std::string(std::getenv("TEMPLATE_DIR")) + std::string("/UT.template"), "-ugtest.cpp" },
+//    { std::string(std::getenv("TEMPLATE_DIR")) + std::string("/serialization.template"), "-serialization.h" },
+//    { std::string(std::getenv("TEMPLATE_DIR")) + std::string("/serialization-struct.template"), "-serialization-struct.h"}
+// };
 
 static const char* templateFilesName[] = { 
    "-mocks.h",
@@ -87,12 +87,12 @@ int main(int argc, const char *argv[])
 //       Writer writer( unitTestData, outputFileName, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
 //       writer.createFiles();
       
-      FilesWriter fileWriter(outputFileName, unitTestData, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
-      fileWriter.add( new MockWriter() );
-      fileWriter.add( new UnitTestFileWriter() );
-      fileWriter.add( new SerializationWriter() );
-      fileWriter.add( new StructuresToSerializeWriter() );
-      fileWriter.write();
+      FileWriterManager filesWriterMgr(outputFileName, unitTestData, FunctionTestDataFile::get().getCompilerInstance().getSourceManager());
+      filesWriterMgr.add( new MockWriter() );
+      filesWriterMgr.add( new UnitTestFileWriter() );
+      filesWriterMgr.add( new SerializationWriter() );
+      filesWriterMgr.add( new StructuresToSerializeWriter() );
+      filesWriterMgr.write();
       
 
    } catch (std::exception &e){

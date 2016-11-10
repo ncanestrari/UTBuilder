@@ -61,7 +61,7 @@ using PlustacheTypes::ObjectType;
 
 
 
-FilesWriter::FilesWriter(const std::string&         fileName,
+FileWriterManager::FileWriterManager(const std::string&         fileName,
 	    const UnitTestData&           data,
 	    const clang::SourceManager&   sourceMgr)
 : _fileName(fileName)
@@ -70,9 +70,9 @@ FilesWriter::FilesWriter(const std::string&         fileName,
 {
 }
 
-FilesWriter::~FilesWriter() = default;
+FileWriterManager::~FileWriterManager() = default;
 
-void FilesWriter::add(BaseWriter* writer) 
+void FileWriterManager::add(BaseWriter* writer) 
 {
    if ( writer == nullptr )
       return;
@@ -81,7 +81,7 @@ void FilesWriter::add(BaseWriter* writer)
    _writers.insert( std::unique_ptr<BaseWriter>(writer) );
 }
 
-void FilesWriter::write()
+void FileWriterManager::write()
 {
    for (const auto& writer : _writers )
    {
