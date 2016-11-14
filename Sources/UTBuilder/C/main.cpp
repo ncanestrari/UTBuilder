@@ -40,7 +40,8 @@ int main(int argc, const char *argv[])
       clangCompiler.computeAST();
       
       // test UnitTestData
-      UnitTestData unitTestData( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
+//       UnitTestData unitTestData( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
+      UnitTestData unitTestData( clangCompiler.getASTinfo().getFunctionsToUnitTestMap(), clangCompiler.getASTinfo().getFunctionsToMockMap() );
       unitTestData.buildCollectionTree();
       
       
@@ -57,7 +58,7 @@ int main(int argc, const char *argv[])
 	 
 	 std::string outputFileName = clangCompiler.getProjectDescription().getOutputFileName();
 	 
-	 WritersManager writerManager(outputFileName, unitTestData, clangCompiler.getInstance().getSourceManager());
+	 WritersManager writerManager(outputFileName, unitTestData, clangCompiler );
 	 writerManager.add( new MockWriter() );
 	 writerManager.add( new UnitTestFileWriter() );
 	 writerManager.add( new SerializationWriter() );

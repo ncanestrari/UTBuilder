@@ -35,6 +35,8 @@ private:
    std::unique_ptr<StructVisitor>       _structVisitor;
    std::unique_ptr<MockVisitor>         _mockVisitor;
    std::unique_ptr<TypedefVisitor>	_typedefVisitor;
+   
+   ASTinfo& _info;
 
 };
 

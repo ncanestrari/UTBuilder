@@ -40,11 +40,13 @@ BaseWriter::BaseWriter() = default;
 
 void BaseWriter::init(  const std::string&         fileName,
 			const UnitTestData&           data,
-			const clang::SourceManager&   sourceMgr )
+			const ClangCompiler* compiler )
 {
    _fileName = fileName;
    _data = &data;
-   _sourceMgr = &sourceMgr;
+//    _compiler = compiler;
+   _info = &compiler->getASTinfo();
+   _sourceMgr = &compiler->getSourceManager();
 }
 
 
@@ -150,7 +152,8 @@ const Plustache::Context* MockWriter::createContext()
       const FunctionDeclNode* funcName = dynamic_cast<const FunctionDeclNode*>(childObj->getChild("_name"));
       
       if ( funcName == nullptr ){
-	
+	 std::cout << "PROBLEM: no ""_name"" field for mocks array index " << childObj->getName() << std::endl;
+	 continue;
       }
       const std::string& name = funcName->getValue();
       const clang::FunctionDecl* funcDecl = static_cast<const clang::FunctionDecl*>(funcName->getType());
@@ -186,6 +189,7 @@ const Plustache::Context* SerializationWriter::createContext()
    std::string fnameUT = fpathUT.filename().string();
    std::set<std::string> includePaths;
 
+   /*
    for (const auto& typedefDecl : results::get().typedefNameDecls) {
       // get declaration source location
       const std::string declSrcFile = Utils::getDeclSourceFile(typedefDecl, *_sourceMgr);
@@ -203,7 +207,26 @@ const Plustache::Context* SerializationWriter::createContext()
          includePaths.insert(includeFile);
       }
    }
+   */
+      
+   for (const auto& typedefDecl : _info->getTypedefNameDecls() ) {
+      // get declaration source location
+      const std::string declSrcFile = Utils::getDeclSourceFile(typedefDecl, *_sourceMgr);
+      const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
+      if (!includeFile.empty()) {
+         includePaths.insert(includeFile);
+      }
+   }
 
+   for (const auto& structDecl : _info->getStructureDecls() ) {
+      // get declaration source location
+      const std::string declSrcFile = Utils::getDeclSourceFile(structDecl, *_sourceMgr);
+      const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
+      if (!includeFile.empty()) {
+         includePaths.insert(includeFile);
+      }
+   }
+   
    
    
    Plustache::Context* context = new Plustache::Context();
@@ -223,7 +246,7 @@ const Plustache::Context* SerializationWriter::createContext()
       context->add("includes", Include);
    }
 
-
+/*
    for (const auto& typedefDecl : results::get().typedefNameDecls) {
       objectToSerialize.clear();
 
@@ -283,7 +306,68 @@ const Plustache::Context* SerializationWriter::createContext()
          context->add("typedefToSerialize", objectToSerialize);
       }
    }
+*/
+   
+   for (const auto& typedefDecl : _info->getTypedefNameDecls() ) {
+      objectToSerialize.clear();
 
+      const clang::QualType typedefQualType = typedefDecl->getUnderlyingType(); // ->getCanonicalTypeInternal();
+      // appends the row and column to the name string
+      const std::string declSrcFile = Utils::getDeclSourceFileLine(typedefDecl, *_sourceMgr);
+
+      objectToSerialize["name"] = typedefDecl->getNameAsString();
+      objectToSerialize["file"] = declSrcFile;
+
+      if (const clang::RecordType *structType = typedefQualType->getAsStructureType()) {
+         const clang::RecordDecl *structDecl = structType->getDecl();
+
+         objectToSerialize["typedefStructName"] = structDecl->getNameAsString();
+
+         out.str("");
+         for (const auto& field : structDecl->fields()) {
+            out << "   " << field->getType().getAsString() << "\t" << field->getNameAsString() << ";\n";
+         }
+
+         objectToSerialize["fieldsToSerialize"] = out.str();
+         objectToSerialize["typedefStructDeclName"] = typedefDecl->getNameAsString();
+
+         context->add("structsToSerialize", objectToSerialize);
+
+      } else if (const clang::EnumType *enumType = typedefQualType->getAs<clang::EnumType>()) {
+         const clang::EnumDecl *enumDecl = enumType->getDecl();
+         objectToSerialize["typedefEnumName"] = enumDecl->getNameAsString();
+
+         out.str("");
+         for (const auto& iter : enumDecl->enumerators()) {
+            out << "   " << iter->getNameAsString() << "\t = " << iter->getInitVal().toString(10) << ",\n";
+         }
+
+         objectToSerialize["valuesToSerialize"] = out.str();
+
+         const std::string qualTypeName = typedefQualType.getAsString();
+         const clang::QualType canonicalQualType = typedefQualType->getCanonicalTypeInternal();
+         const std::string canonicalTypeName = canonicalQualType.getAsString();
+
+         objectToSerialize["typedefEnumDeclName"] = canonicalTypeName;
+
+         context->add("enumsToSerialize", objectToSerialize);
+      }  else if (const clang::TypedefType *typedefType = typedefQualType->getAs<clang::TypedefType>()) {
+
+         const clang::QualType canonicalQualType = typedefType->getCanonicalTypeInternal();
+         const std::string canonicalTypeName = canonicalQualType.getAsString();
+
+         objectToSerialize["typedefType"] = typedefQualType.getAsString();
+         objectToSerialize["typedefDeclName"] = typedefDecl->getNameAsString();
+
+         context->add("typedefToSerialize", objectToSerialize);
+      } else if (const clang::BuiltinType *typedefType = typedefQualType->getAs<clang::BuiltinType>()) {
+         objectToSerialize["typedefType"] = typedefQualType.getAsString();
+         objectToSerialize["typedefDeclName"] = typedefDecl->getNameAsString();
+
+         context->add("typedefToSerialize", objectToSerialize);
+      }
+   }
+   
    return context;
 }
 
@@ -296,6 +380,7 @@ const Plustache::Context* StructuresToSerializeWriter::createContext()
    std::string fnameUT = fpathUT.filename().string();
    std::set<std::string> includePaths;
 
+   /*
    for (const auto& typedefDecl : results::get().typedefNameDecls) {
       // get declaration source location
       const std::string declSrcFile = Utils::getDeclSourceFile(typedefDecl, *_sourceMgr);
@@ -313,7 +398,25 @@ const Plustache::Context* StructuresToSerializeWriter::createContext()
          includePaths.insert(includeFile);
       }
    }
+*/
+   
+   for (const auto& typedefDecl : _info->getTypedefNameDecls() ) {
+      // get declaration source location
+      const std::string declSrcFile = Utils::getDeclSourceFile(typedefDecl, *_sourceMgr);
+      const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
+      if (!includeFile.empty()) {
+         includePaths.insert(includeFile);
+      }
+   }
 
+   for (const auto& structDecl : _info->getStructureDecls() ) {
+      // get declaration source location
+      const std::string declSrcFile = Utils::getDeclSourceFile(structDecl, *_sourceMgr);
+      const std::string includeFile =  boost::filesystem::path(declSrcFile).filename().string();
+      if (!includeFile.empty()) {
+         includePaths.insert(includeFile);
+      }
+   }
    
    
    Plustache::Context* context = new Plustache::Context();

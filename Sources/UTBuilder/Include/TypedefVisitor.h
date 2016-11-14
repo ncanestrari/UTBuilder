@@ -11,7 +11,9 @@ class TypedefVisitor : public Visitor<TypedefVisitor> {
 public:
 
    explicit TypedefVisitor(clang::ASTContext*               context,
-                           const std::vector<std::string>&  fileNames);
+                           const std::vector<std::string>&  fileNames,
+			   ASTinfo& info 
+  			);
    
    virtual ~TypedefVisitor() {}
    

@@ -5,7 +5,8 @@
 #include <iostream>
 
 
-
+const std::set<const clang::FunctionDecl *> ASTinfo::_emptySet = std::set<const clang::FunctionDecl *>();
+ 
 void FunctionsToUnitTest::clear()
 {
    declKeySetMap.clear();
@@ -19,7 +20,7 @@ void FunctionsToMock::clear()
    nameDeclMap.clear();
 }
 
-
+/*
 results &results::get(void)
 {
    static results instance;
@@ -34,7 +35,7 @@ void results::clear()
    includesForUnitTest.clear();
    functionDeclTypes.clear();
 }
-
+*/
 
 
 void ASTinfo::clear()
@@ -53,10 +54,23 @@ void ASTinfo::clear()
 }
 
 
-void ASTinfo::addFunctionToUnitTest(const clang::FunctionDecl* funcDecl)
+void ASTinfo::addFunctionToUnitTest(const clang::FunctionDecl* funcDecl, const clang::FunctionDecl* mockFuncDecl)
 {
-   _functionsToUnitTest.nameDeclMap[funcDecl->getNameAsString()] = funcDecl;
-   _functionsToUnitTest.declKeySetMap[funcDecl] = FunctionDeclSet();
+   // check if the function decl is already added
+//    auto iter = _functionsToUnitTest.declKeySetMap.find(funcDecl);
+//    if ( iter == _functionsToUnitTest.declKeySetMap.end() ) {
+      _functionsToUnitTest.nameDeclMap[funcDecl->getNameAsString()] = funcDecl;
+      _functionsToUnitTest.declKeySetMap[funcDecl] = FunctionDeclSet();   
+//    }
+//    else {
+//       
+//    }
+//    
+//    auto mockIter = _functionsToMock.declKeySetMap.find(mockFuncDecl);
+//    if ( mockIter  == _functionsToMock.declKeySetMap.end() ) {
+//    // add the function decl to mock
+//    // TO DO: NOT IMPLEMETED YET
+//    }
 }
 
 
@@ -81,6 +95,67 @@ void ASTinfo::addFunctionToMock(const clang::FunctionDecl* mockFuncDecl, const c
       } else {
 	 // just a temporary check to debug
 	 std::cout <<  mockFuncDecl->getNameAsString() << ": mock function caller ("<< callerFuncDecl->getNameAsString() <<") doesn't need to be tested\n";
+      }
+   }
+}
+
+
+const std::set<const clang::FunctionDecl *>& ASTinfo::getMockCalleesForFunction(const clang::FunctionDecl * funcDecl)
+{ 
+   auto iter = _functionsToUnitTest.declKeySetMap.find(funcDecl);
+   if ( iter == _functionsToUnitTest.declKeySetMap.end() )
+   {
+      return ASTinfo::_emptySet;
+   }
+   else {
+      return iter->second;
+   }
+}
+ 
+const std::set<const clang::FunctionDecl *>& ASTinfo::getFunctionCallersForMock(const clang::FunctionDecl * funcDecl)
+{ 
+   auto iter = _functionsToMock.declKeySetMap.find(funcDecl);
+   if ( iter == _functionsToMock.declKeySetMap.end() )
+   {
+      return ASTinfo::_emptySet;
+   }
+   else {
+      return iter->second;
+   }
+}
+
+
+void ASTinfo::fillFunctionQualTypes(void)
+{
+   _functionDeclTypes.clear();
+
+   //canonical Types: http://clang.llvm.org/docs/InternalsManual.html#canonical-types
+   for (auto funcToMock : _functionsToMock.declKeySetMap) {
+      const clang::FunctionDecl *funcDecl = funcToMock.first;
+      const clang::QualType returnType = funcDecl->getReturnType();
+      _functionDeclTypes.insert(returnType->getCanonicalTypeInternal().getTypePtrOrNull());
+
+      const int numParms = funcDecl->getNumParams();
+      for (int i = 0; i < numParms; ++i) {
+         const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(i);
+         const clang::QualType qualType = _currentParam->getOriginalType();
+
+         _functionDeclTypes.insert(qualType->getCanonicalTypeInternal().getTypePtrOrNull());
+      }
+   }
+
+   for (auto functionToTest : _functionsToUnitTest.declKeySetMap) {
+      const clang::FunctionDecl *funcDecl = functionToTest.first;
+      const clang::QualType returnType = funcDecl->getReturnType();
+//       results::get().functionDeclTypes.insert(returnType->getCanonicalTypeInternal().getTypePtrOrNull());
+      _functionDeclTypes.insert(returnType->getCanonicalTypeInternal().getTypePtrOrNull());
+      const int numParms = funcDecl->getNumParams();
+
+      for (int i = 0; i < numParms; ++i) {
+         const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(i);
+         const clang::QualType qualType = _currentParam->getOriginalType();
+
+         _functionDeclTypes.insert(qualType->getCanonicalTypeInternal().getTypePtrOrNull());
       }
    }
 }

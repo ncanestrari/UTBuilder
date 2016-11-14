@@ -7,8 +7,10 @@
 
 
 StructVisitor::StructVisitor(clang::ASTContext*              context,
-                             const std::vector<std::string>& fileNames)
-   : Visitor(context, fileNames)
+                             const std::vector<std::string>& fileNames,
+			     ASTinfo& info 
+ 			   )
+   : Visitor(context, fileNames, info)
 {
 }
 
@@ -31,6 +33,8 @@ bool StructVisitor::VisitDecl(clang::Decl *decl)
       }
 
       const clang::Type *declType = structdef->getTypeForDecl();
+      
+      /*
       if (results::get().functionDeclTypes.find(declType) ==  results::get().functionDeclTypes.end()) {
          return true;
       }
@@ -45,6 +49,22 @@ bool StructVisitor::VisitDecl(clang::Decl *decl)
             results::get().structDecls.insert(structure);
          }
       }
+      */
+      
+      if (_info.getFunctionDeclTypes().find(declType) ==  _info.getFunctionDeclTypes().end()) {
+         return true;
+      }
+            //  check if this RecordDecl is already in a TypedefDecl
+      for (auto typedefIter : _info.getTypedefNameDecls() ) {
+         //canonical Types: http://clang.llvm.org/docs/InternalsManual.html#canonical-types
+         const clang::QualType typedefQualType = typedefIter->getCanonicalDecl()->getUnderlyingType();
+         const clang::Type *typedefDeclType = typedefQualType->getCanonicalTypeInternal().getTypePtrOrNull();
+
+         if (declType != typedefDeclType) {
+	    _info.addStructureDecl(structure);
+         }
+      }
+      
    }
 
    return true;

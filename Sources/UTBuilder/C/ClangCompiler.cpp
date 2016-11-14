@@ -124,8 +124,9 @@ void ClangCompiler::computeAST(void)
    Consumer astConsumer(&_compiler.getASTContext(), _projectDescription.getAllFileNames(), _info);//pass source files
 
    // clear the results before parsing the AST
-   results::get().clear();
-
+//    results::get().clear();
+   _info.clear();
+   
    // Parse the AST and execute all the visitors
    ParseAST(_compiler.getPreprocessor(), &astConsumer, _compiler.getASTContext());
    

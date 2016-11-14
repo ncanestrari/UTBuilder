@@ -135,6 +135,7 @@ string Utils::removeDashes(const string &fileNamePath)
 
 void Utils::fillFunctionQualTypes(void)
 {
+   /*
    results::get().functionDeclTypes.clear();
 
    //canonical Types: http://clang.llvm.org/docs/InternalsManual.html#canonical-types
@@ -165,6 +166,7 @@ void Utils::fillFunctionQualTypes(void)
          results::get().functionDeclTypes.insert(qualType->getCanonicalTypeInternal().getTypePtrOrNull());
       }
    }
+   */
 }
 
 

@@ -10,8 +10,10 @@
 
 
 TypedefVisitor::TypedefVisitor(clang::ASTContext*              context,
-                               const std::vector<std::string>& fileNames)
-   : Visitor(context, fileNames)
+                               const std::vector<std::string>& fileNames,
+			       ASTinfo& info 
+			      )
+   : Visitor(context, fileNames, info)
 {}
 
 
@@ -43,12 +45,22 @@ bool TypedefVisitor::VisitDecl(clang::Decl *decl)
    }
 
 
+   /*
    if (results::get().functionDeclTypes.find(declType) ==  results::get().functionDeclTypes.end()) {
       return true;
    }
 
    results::get().typedefNameDecls.insert(type_def);
-
+   */
+   
+   
+   if ( _info.getFunctionDeclTypes().find(declType) ==  _info.getFunctionDeclTypes().end()) {
+      return true;
+   }
+   
+   _info.addTypedefNameDecl(type_def);
+   
+   
    return true;
 }
 

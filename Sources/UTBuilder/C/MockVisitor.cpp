@@ -11,8 +11,9 @@
 #include <vector>
 
 MockVisitor::MockVisitor(clang::ASTContext*              context,
-                         const std::vector<std::string>& fileNames)
-   : Visitor(context, fileNames)
+                         const std::vector<std::string>& fileNames,
+			 ASTinfo& info )
+   : Visitor(context, fileNames, info)
 {
 }
 
@@ -67,11 +68,12 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr *funcCall)
 
    // check if the caller (_lastFuncDecl) needs to be tested
    const std::string callerFuncName = _lastFuncDecl->getNameAsString();
+   
+   /*
    NameFunctionDeclMap::iterator funcToTestIter = FunctionsToUnitTest::get().nameDeclMap.find(callerFuncName);
    if ( FunctionsToUnitTest::get().nameDeclMap.find(callerFuncName) == FunctionsToUnitTest::get().nameDeclMap.end() ) {
       return true;
    }
-   
    
    // mock this function
    FunctionDeclKeySetMap::iterator iter = FunctionsToMock::get().declKeySetMap.find(funcDecl);
@@ -92,6 +94,16 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr *funcCall)
          std::cout <<  funcDecl->getNameAsString() << " mock function caller doesn't need to be tested\n";
       }
    }
+*/
+   
+   // check if the caller (_lastFuncDecl) needs to be tested
+   if ( _info.getFunctionsToUnitTest().find(callerFuncName) == _info.getFunctionsToUnitTest().end() ) {
+      return true;
+   }
+   
+   // mock this function
+   _info.addFunctionToMock(funcDecl, _lastFuncDecl);
+   
 
    return true;
 }

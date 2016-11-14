@@ -275,7 +275,7 @@ void UnitTestDataUtils::writeFunctionDefinition( const std::string&    		 name,
       }
    }
 
-   out << " ){";
+   out << " )\n{" << std::endl;
 
    out << "// fill the input struct with json file values" << "\n";
 

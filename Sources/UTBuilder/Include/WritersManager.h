@@ -7,7 +7,7 @@
 
 #include "UnitTestData.h"
 
-#include <clang/Basic/SourceManager.h>
+#include "ClangCompiler.h"
 
 
 class BaseWriter;
@@ -21,7 +21,7 @@ public:
    
    WritersManager(const std::string&         fileName,
 	       const UnitTestData&           data,
-	       const clang::SourceManager&   sourceMgr);
+	       const ClangCompiler& compiler);
    
    ~WritersManager();
    
@@ -33,7 +33,8 @@ private:
    
    const std::string            _fileName;
    const UnitTestData&          _data;
-   const clang::SourceManager&	_sourceMgr;
+   const ClangCompiler&		_compiler;
+//    const clang::SourceManager&	_sourceMgr;
    
    std::set< std::unique_ptr<BaseWriter> > _writers;
    

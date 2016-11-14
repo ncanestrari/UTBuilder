@@ -19,12 +19,13 @@ Consumer::Consumer(clang::ASTContext*              context,
    , _declVisitor(nullptr)
    , _typedefVisitor(nullptr)
    , _structVisitor(nullptr)
+   , _info(info)
 {
-   _mockVisitor = std::unique_ptr<MockVisitor>( new MockVisitor(context, fileNames) );
-   _defVisitor = std::unique_ptr<FuncUTDefVisitor>( new FuncUTDefVisitor(context, fileNames) );
-   _declVisitor = std::unique_ptr<FuncUTDeclVisitor>(new FuncUTDeclVisitor(context, fileNames) );
-   _typedefVisitor = std::unique_ptr<TypedefVisitor>( new TypedefVisitor(context, fileNames) );
-   _structVisitor = std::unique_ptr<StructVisitor>( new StructVisitor(context, fileNames) );
+   _mockVisitor = std::unique_ptr<MockVisitor>( new MockVisitor(context, fileNames, info) );
+   _defVisitor = std::unique_ptr<FuncUTDefVisitor>( new FuncUTDefVisitor(context, fileNames, info) );
+   _declVisitor = std::unique_ptr<FuncUTDeclVisitor>(new FuncUTDeclVisitor(context, fileNames, info) );
+   _typedefVisitor = std::unique_ptr<TypedefVisitor>( new TypedefVisitor(context, fileNames, info) );
+   _structVisitor = std::unique_ptr<StructVisitor>( new StructVisitor(context, fileNames, info) );
 }
 
 Consumer::~Consumer() = default;
@@ -40,6 +41,7 @@ void Consumer::HandleTranslationUnit(clang::ASTContext &ctx)
 
    // fill the function params set
    Utils::fillFunctionQualTypes();
+   _info.fillFunctionQualTypes();
 
    _typedefVisitor->TraverseDecl(ctx.getTranslationUnitDecl());
    _structVisitor->TraverseDecl(ctx.getTranslationUnitDecl());

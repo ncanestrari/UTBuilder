@@ -22,8 +22,8 @@ typedef std::map<const clang::FunctionDecl *, FunctionDeclSet > FunctionDeclKeyS
 typedef std::map< std::string, const clang::FunctionDecl * > NameFunctionDeclMap;
 
 
-class FunctionsToUnitTest : public Singleton<FunctionsToUnitTest> {
-
+class FunctionsToUnitTest //: public Singleton<FunctionsToUnitTest> {
+{
 public:
 
    void clear();
@@ -49,8 +49,8 @@ public:
 
 
 
-class FunctionsToMock : public Singleton<FunctionsToMock> {
-
+class FunctionsToMock //: public Singleton<FunctionsToMock> {
+{
 public:
 
    void clear();
@@ -70,7 +70,7 @@ public:
 };
 
 
-
+/*
 class results {
 
    results(void) {};
@@ -87,13 +87,15 @@ public:
    std::set<const clang::Type *>              functionDeclTypes;
 
 };
-
+*/
 
 
 
 class ASTinfo
 {
 public:
+   
+   static const std::set<const clang::FunctionDecl *> _emptySet;
    
    ASTinfo() = default;
    ~ASTinfo() = default;
@@ -106,15 +108,22 @@ public:
    void addFunctionDeclType(const clang::Type * funcDeclType) { _functionDeclTypes.insert(funcDeclType); }
    
    
-   void addFunctionToUnitTest(const clang::FunctionDecl* funcDecl);
+   void addFunctionToUnitTest(const clang::FunctionDecl* funcDecl, const clang::FunctionDecl* mockFuncDecl = nullptr );
    
    void addFunctionToMock(const clang::FunctionDecl* mockFuncDecl, const clang::FunctionDecl* callerFuncDecl);
+   
+   void fillFunctionQualTypes(void);
    
    
    const std::set<const clang::RecordDecl *>& getStructureDecls() const { return _structureDecls; }
    const std::set<const clang::TypedefNameDecl *>& getTypedefNameDecls() const { return _typedefNameDecls; }
    const std::set<std::string>& getIncludeFiles() const { return _includeFilesForUnitTest; }
    const std::set<const clang::Type *>& getFunctionDeclTypes() const { return _functionDeclTypes; }
+   
+   
+   const std::set<const clang::FunctionDecl *>& getMockCalleesForFunction(const clang::FunctionDecl * funcDecl);
+   const std::set<const clang::FunctionDecl *>& getFunctionCallersForMock(const clang::FunctionDecl * funcDecl);
+   
    
    const FunctionDeclKeySetMap& getFunctionsToUnitTestMap() const { return _functionsToUnitTest.declKeySetMap; }
    const NameFunctionDeclMap& getFunctionsToUnitTest() const { return _functionsToUnitTest.nameDeclMap; }

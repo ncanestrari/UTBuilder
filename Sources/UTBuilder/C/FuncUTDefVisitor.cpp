@@ -10,8 +10,10 @@
 #include "optionparser.h"
 
 FuncUTDefVisitor::FuncUTDefVisitor(clang::ASTContext*              context, 
-                                   const std::vector<std::string>& fileNames)
-   : Visitor(context, fileNames)
+                                   const std::vector<std::string>& fileNames,
+				   ASTinfo& info 
+ 				 )
+   : Visitor(context, fileNames, info)
 {
 }
 
@@ -49,8 +51,10 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
          }
 
          // add to map with an empty set
-         FunctionsToUnitTest::get().declKeySetMap[func] = FunctionDeclSet();
-         FunctionsToUnitTest::get().nameDeclMap[funcName] = func;
+//          FunctionsToUnitTest::get().declKeySetMap[func] = FunctionDeclSet();
+//          FunctionsToUnitTest::get().nameDeclMap[funcName] = func;
+	 
+	 _info.addFunctionToUnitTest(func);
          
       }
    }
@@ -60,8 +64,10 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
 
 
 FuncUTDeclVisitor::FuncUTDeclVisitor(clang::ASTContext*               context,
-                                     const std::vector<std::string>&  fileNames)
-   : Visitor(context, fileNames)
+                                     const std::vector<std::string>&  fileNames,
+				     ASTinfo& info
+				    )
+   : Visitor(context, fileNames, info)
 {}
 
 
@@ -77,12 +83,17 @@ bool FuncUTDeclVisitor::VisitDecl(clang::Decl *decl)
       // get declaration source location
       const std::string declSrcFile = Utils::getDeclSourceFile(func, _context->getSourceManager());
 
-      for (auto funcToUnitTest : FunctionsToUnitTest::get().declKeySetMap) {
+//       for (auto funcToUnitTest : FunctionsToUnitTest::get().declKeySetMap) {
+      for (auto funcToUnitTest : _info.getFunctionsToUnitTestMap() ) {
          const clang::FunctionDecl *funcDecl = funcToUnitTest.first;
          // check if the funcDecl is in the input argument file
          if (funcDecl->getNameInfo().getName().getAsString() == func->getNameInfo().getName().getAsString()) {
             boost::filesystem::path p(declSrcFile);
-            results::get().includesForUnitTest.insert(p.filename().string());
+            
+// 	    results::get().includesForUnitTest.insert(p.filename().string());
+	    
+	    _info.addIncludeFile(p.filename().string());
+	    
             break;
          }
       }

@@ -27,8 +27,10 @@ public:
    const ProjectDescription & getProjectDescription(void){ return _projectDescription; }
    const ProjectDescription & getProjectDescription(void) const { return _projectDescription; }
    
-   const ASTinfo& getASTinfo() { return _info; }
+   const ASTinfo& getASTinfo() const { return _info; }
    
+   const clang::SourceManager& getSourceManager() const { return _compiler.getSourceManager(); }
+
 private:
 
     

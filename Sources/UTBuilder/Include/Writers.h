@@ -2,7 +2,8 @@
 #ifndef _UTBuilder_Writers_h__
 #define _UTBuilder_Writers_h__
 
-#include <clang/Basic/SourceManager.h>
+// #include <clang/Basic/SourceManager.h>
+#include "ClangCompiler.h"
 #include "UnitTestData.h"
 #include <context.hpp>
 
@@ -18,7 +19,7 @@ public:
    
    virtual void init( const std::string&         fileName,
 		      const UnitTestData&           data,
-		      const clang::SourceManager&   sourceMgr );
+		      const ClangCompiler*   compiler );
       
    void writeTemplate(const std::string& templateFileName, const std::string& outputNameSuffix);
   
@@ -30,8 +31,11 @@ protected:
    
    virtual const Plustache::Context* createContext() = 0;
    
+//    const ClangCompiler*   _compiler;
    std::string            _fileName;
    const UnitTestData*          _data;
+   
+   const ASTinfo* 		_info;
    const clang::SourceManager*	_sourceMgr;
   
    static const std::string _templateDir;

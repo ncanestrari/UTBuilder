@@ -5,10 +5,10 @@
 
 WritersManager::WritersManager(const std::string&         fileName,
 	    const UnitTestData&           data,
-	    const clang::SourceManager&   sourceMgr)
+	    const ClangCompiler&   compiler)
 : _fileName(fileName)
 , _data(data)
-, _sourceMgr(sourceMgr)
+, _compiler(compiler)
 {
 }
 
@@ -21,7 +21,7 @@ void WritersManager::add(BaseWriter* writer)
    if ( writer == nullptr )
       return;
    
-   writer->init(_fileName, _data, _sourceMgr);
+   writer->init(_fileName, _data, &_compiler );
    _writers.insert( std::unique_ptr<BaseWriter>(writer) );
 }
 
