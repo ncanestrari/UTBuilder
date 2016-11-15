@@ -44,7 +44,7 @@ using std::string;
 using std::vector;
 
 #include "Consumer.h"
-#include "optionparser.h"
+// #include "optionparser.h"
 #include "PrecompilerOptionAST.h"
 using PrecompilerOptionAST::additionalIncludePaths;
 using PrecompilerOptionAST::additionalPredefinedMacros;
@@ -54,10 +54,12 @@ using PrecompilerOptionAST::additionalPredefinedMacros;
 
 
 
-void ClangCompiler::computeAST(void)
+void ClangCompiler::computeAST(const OptionParser& optionParser)
 {
+   _optionParser = &optionParser;
+   
    //get the files from command line args or from the json file "desc" : {"files"}
-   _projectDescription.getFromOptionParser();
+   _projectDescription.init(optionParser);
 
    //create the fare source to allow more than one source file
    _projectDescription.createFakeSource();
@@ -121,7 +123,7 @@ void ClangCompiler::computeAST(void)
    _compiler.createASTContext();
 
    // create UTBuilder consumer
-   Consumer astConsumer(&_compiler.getASTContext(), _projectDescription.getAllFileNames(), _info);//pass source files
+   Consumer astConsumer(&_compiler.getASTContext(), _projectDescription.getAllFileNames(), *this);//pass source files
 
    // clear the results before parsing the AST
 //    results::get().clear();

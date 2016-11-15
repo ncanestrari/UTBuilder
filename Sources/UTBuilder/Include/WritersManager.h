@@ -32,8 +32,8 @@ public:
 private:
    
    const std::string            _fileName;
-   const UnitTestData&          _data;
-   const ClangCompiler&		_compiler;
+   const UnitTestData*          _data;
+   const ClangCompiler*		_compiler;
 //    const clang::SourceManager&	_sourceMgr;
    
    std::set< std::unique_ptr<BaseWriter> > _writers;

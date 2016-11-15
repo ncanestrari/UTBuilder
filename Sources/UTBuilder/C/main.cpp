@@ -20,49 +20,53 @@
 
 int main(int argc, const char *argv[])
 {
+
+   OptionParser optionParser;
    
    try {
       
-      OptionParser::get().createOptionMap(argc, argv);
+      optionParser.createOptionMap(argc, argv);
       
-      if( OptionParser::get().isHelp() ){
-         OptionParser::get().printHelp();
+      if( optionParser.isHelp() ){
+         optionParser.printHelp();
          return EXIT_SUCCESS;
       }
       
-      if( OptionParser::get().isVersion() ){
-         OptionParser::get().printVersion();
+      if( optionParser.isVersion() ){
+         optionParser.printVersion();
          return EXIT_SUCCESS;
       }
       
       
       ClangCompiler clangCompiler;
-      clangCompiler.computeAST();
+      clangCompiler.computeAST( optionParser );
       
-      // test UnitTestData
-//       UnitTestData unitTestData( FunctionsToUnitTest::get().declKeySetMap, FunctionsToMock::get().declKeySetMap);
-      UnitTestData unitTestData( clangCompiler.getASTinfo().getFunctionsToUnitTestMap(), clangCompiler.getASTinfo().getFunctionsToMockMap() );
-      unitTestData.buildCollectionTree();
+      // create data from AST
+      UnitTestData unitTestData( clangCompiler.getASTinfo() );
       
       
-      if( OptionParser::get().isExampleEnabled() ) {
-	 
+      if( optionParser.isExampleEnabled() ) {
+// 	 write json example file to be filled
          JsonWriter jsonWriter( unitTestData );
          // do we have to check if OptionParser::get().getOutputName() is empty ?
-         jsonWriter.templateFile(OptionParser::get().getOutputName());
+         jsonWriter.templateFile( optionParser.getOutputName() );
       }
       else {
 
+// 	 read the json input file and write unit test files
 	 JsonReader reader(unitTestData);
-	 reader.parse( OptionParser::get().getJsonFileName() );
+	 reader.parse( optionParser.getJsonFileName() );
 	 
 	 std::string outputFileName = clangCompiler.getProjectDescription().getOutputFileName();
 	 
 	 WritersManager writerManager(outputFileName, unitTestData, clangCompiler );
+	 
+// 	 create the writers and add to the manager  
 	 writerManager.add( new MockWriter() );
 	 writerManager.add( new UnitTestFileWriter() );
 	 writerManager.add( new SerializationWriter() );
 	 writerManager.add( new StructuresToSerializeWriter() );
+	 
 	 writerManager.write();
       }
 
@@ -70,7 +74,12 @@ int main(int argc, const char *argv[])
    catch (std::exception &e) {
       
       std::cout << e.what() << std::endl;
-      OptionParser::get().printAll();
+      optionParser.printAll();
+      return EXIT_FAILURE;
+   }
+   catch ( ... ) {
+      
+      std::cout << "unhandled exception ..." << std::endl;
       return EXIT_FAILURE;
    }
    

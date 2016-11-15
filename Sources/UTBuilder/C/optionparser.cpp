@@ -85,6 +85,7 @@ static void conflicting_options(const variables_map &vm, const string &opt1, con
 
 
 
+
 /* OptionParser class method definition */
 void OptionParser::createOptionMap(int ac, const char* av[])
 {   
@@ -139,7 +140,7 @@ void OptionParser::createOptionMap(int ac, const char* av[])
 }
 
 
-void OptionParser::getFileNames(vector<string> &files)
+void OptionParser::getFileNames(vector<string> &files) const
 {
    //if dirs get the files
    set<string> sources;
@@ -162,7 +163,8 @@ void OptionParser::getFileNames(vector<string> &files)
 }
 
 
-const set<string> OptionParser::getFunctionsToTest() {
+const set<string> OptionParser::getFunctionsToTest() const
+{
    const vector<string>& functionsStr = _vm["functions"].as<CommaSeparatedVector>().values;
    return set<string>(functionsStr.begin(),functionsStr.end());
 }

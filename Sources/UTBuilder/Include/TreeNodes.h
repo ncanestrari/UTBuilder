@@ -63,6 +63,8 @@ public:
    static NameValueNode* createArrayElement(unsigned int index, const char* val = "");
    
 
+   // Prototype pattern interface
+   // it clones the type but it allows a different value to be set 
    virtual NameValueNode* clone(const char * value = "") const;
    
    
@@ -75,6 +77,7 @@ public:
    const std::string &getName(void) const { return _name; }
    const std::string &getValue(void) const { return _value; }
    
+
 
    virtual const void* getType() const { return nullptr; }
    
@@ -123,6 +126,7 @@ public:
 
    
    virtual QualTypeNode* clone(const char * value = "") const override final;
+   
    
    virtual const void* getType() const override final { return &_type; }
    

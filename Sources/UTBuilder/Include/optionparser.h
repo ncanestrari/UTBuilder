@@ -31,10 +31,10 @@ public:
 
 
 
-class OptionParser : public Singleton<OptionParser>
+class OptionParser //: public Singleton<OptionParser>
 {
 public:
-   OptionParser(void) {}
+   OptionParser() = default;
    
    OptionParser(const OptionParser& other) : 
    _vm(other._vm), 
@@ -52,15 +52,15 @@ public:
    bool isExampleEnabled(void) { return _vm.count("example"); }
    bool isUnitTest(void) { return (_vm.count("files") && _vm["files"].as<CommaSeparatedVector>().values.size() > 1) || _vm.count("dirs"); }
    bool isModuleTest(void) { return !isUnitTest(); }
-   bool isFunctionToTestEnabled(void){ return _vm.count("functions"); }
-   bool isJsonFileNameEnabled(void) { return _vm.count("json"); }
+   bool isFunctionToTestEnabled(void) const { return _vm.count("functions"); }
+   bool isJsonFileNameEnabled(void) const { return _vm.count("json"); }
    
 //    const std::vector<std::string>& getFunctionsToTest(void) { return _vm["functions"].as<CommaSeparatedVector>().values; }
-   const std::string & getOutputName(void) { return _vm["output"].as<std::string>(); }
-   const std::string & getJsonFileName(void) { return _vm["json"].as<std::string>(); }
-   void getFileNames(std::vector<std::string>&);
+   const std::string & getOutputName(void) const { return _vm["output"].as<std::string>(); }
+   const std::string & getJsonFileName(void) const { return _vm["json"].as<std::string>(); }
+   void getFileNames(std::vector<std::string>&) const;
 //    void getFunctionsToTest(std::set<std::string>&);
-   const std::set<std::string> getFunctionsToTest();
+   const std::set<std::string> getFunctionsToTest() const;
    
 protected:
 

@@ -12,20 +12,20 @@
 
 Consumer::Consumer(clang::ASTContext*              context,
                    const std::vector<std::string>& fileNames,
-		   ASTinfo& info )
+		   ClangCompiler& compiler )
    : ASTConsumer()
    , _mockVisitor(nullptr)
    , _defVisitor(nullptr)
    , _declVisitor(nullptr)
    , _typedefVisitor(nullptr)
    , _structVisitor(nullptr)
-   , _info(info)
+   , _info(compiler.getASTinfo())
 {
-   _mockVisitor = std::unique_ptr<MockVisitor>( new MockVisitor(context, fileNames, info) );
-   _defVisitor = std::unique_ptr<FuncUTDefVisitor>( new FuncUTDefVisitor(context, fileNames, info) );
-   _declVisitor = std::unique_ptr<FuncUTDeclVisitor>(new FuncUTDeclVisitor(context, fileNames, info) );
-   _typedefVisitor = std::unique_ptr<TypedefVisitor>( new TypedefVisitor(context, fileNames, info) );
-   _structVisitor = std::unique_ptr<StructVisitor>( new StructVisitor(context, fileNames, info) );
+   _mockVisitor = std::unique_ptr<MockVisitor>( new MockVisitor(context, fileNames, compiler) );
+   _defVisitor = std::unique_ptr<FuncUTDefVisitor>( new FuncUTDefVisitor(context, fileNames, compiler) );
+   _declVisitor = std::unique_ptr<FuncUTDeclVisitor>(new FuncUTDeclVisitor(context, fileNames, compiler) );
+   _typedefVisitor = std::unique_ptr<TypedefVisitor>( new TypedefVisitor(context, fileNames, compiler) );
+   _structVisitor = std::unique_ptr<StructVisitor>( new StructVisitor(context, fileNames, compiler) );
 }
 
 Consumer::~Consumer() = default;

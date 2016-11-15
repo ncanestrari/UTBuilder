@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "ClangCompiler.h"
 #include "Results.h"
 
 class FuncUTDefVisitor;
@@ -20,7 +21,7 @@ class Consumer : public clang::ASTConsumer {
 public:
    Consumer(clang::ASTContext*               context,
             const std::vector<std::string>&  fileNames,
-	    ASTinfo& info
+	    ClangCompiler& compiler
   	 );
    
    ~Consumer();

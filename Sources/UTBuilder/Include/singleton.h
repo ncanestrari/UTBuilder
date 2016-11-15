@@ -1,7 +1,6 @@
 #ifndef __SINGLETON_H_
 #define __SINGLETON_H_
 
-#include <cstddef>  // defines NULL
 
 
 template <typename T>

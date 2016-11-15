@@ -16,7 +16,7 @@ class MockVisitor : public Visitor<MockVisitor> {
 public:
    MockVisitor(clang::ASTContext*               context,
                const std::vector<std::string>&  fileNames,
-	       ASTinfo& info );
+	       ClangCompiler& compiler );
 
    bool VisitCallExpr(clang::CallExpr *call);
 

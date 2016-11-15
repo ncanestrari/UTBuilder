@@ -18,7 +18,7 @@ public:
    virtual ~BaseWriter() {}
    
    virtual void init( const std::string&         fileName,
-		      const UnitTestData&           data,
+		      const UnitTestData*           data,
 		      const ClangCompiler*   compiler );
       
    void writeTemplate(const std::string& templateFileName, const std::string& outputNameSuffix);
@@ -62,6 +62,7 @@ protected:
 };
 
 
+
 class SerializationWriter : public BaseWriter 
 {
    public:
@@ -79,6 +80,8 @@ protected:
    static const std::string _templateSuffix;
 };
 
+
+
 class StructuresToSerializeWriter : public BaseWriter 
 {
    public:
@@ -95,6 +98,7 @@ protected:
    static const std::string _templateName;
    static const std::string _templateSuffix;
 };
+
 
 
 class UnitTestFileWriter : public BaseWriter 

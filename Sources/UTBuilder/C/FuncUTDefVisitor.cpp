@@ -11,9 +11,10 @@
 
 FuncUTDefVisitor::FuncUTDefVisitor(clang::ASTContext*              context, 
                                    const std::vector<std::string>& fileNames,
-				   ASTinfo& info 
+				   ClangCompiler& compiler 
  				 )
-   : Visitor(context, fileNames, info)
+   : Visitor(context, fileNames, compiler)
+   , _optionParser( compiler.getOptionParser() )
 {
 }
 
@@ -41,10 +42,10 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
          }
          
          
-         if ( OptionParser::get().isFunctionToTestEnabled() ) {
+         if ( _optionParser->isFunctionToTestEnabled() ) {
             /* one more check: is the funcDecl in the command line Option Parser -functions list ? */
             /* initialized only once */
-            static std::set<std::string>  functionToTestFromOptionParser = OptionParser::get().getFunctionsToTest();
+            static std::set<std::string>  functionToTestFromOptionParser = _optionParser->getFunctionsToTest();
             if ( functionToTestFromOptionParser.find(funcName) == functionToTestFromOptionParser.end() ) {
                continue;
             }
@@ -54,7 +55,7 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
 //          FunctionsToUnitTest::get().declKeySetMap[func] = FunctionDeclSet();
 //          FunctionsToUnitTest::get().nameDeclMap[funcName] = func;
 	 
-	 _info.addFunctionToUnitTest(func);
+	 _info->addFunctionToUnitTest(func);
          
       }
    }
@@ -65,9 +66,9 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
 
 FuncUTDeclVisitor::FuncUTDeclVisitor(clang::ASTContext*               context,
                                      const std::vector<std::string>&  fileNames,
-				     ASTinfo& info
+				     ClangCompiler& compiler
 				    )
-   : Visitor(context, fileNames, info)
+   : Visitor(context, fileNames, compiler)
 {}
 
 
@@ -84,7 +85,7 @@ bool FuncUTDeclVisitor::VisitDecl(clang::Decl *decl)
       const std::string declSrcFile = Utils::getDeclSourceFile(func, _context->getSourceManager());
 
 //       for (auto funcToUnitTest : FunctionsToUnitTest::get().declKeySetMap) {
-      for (auto funcToUnitTest : _info.getFunctionsToUnitTestMap() ) {
+      for (auto funcToUnitTest : _info->getFunctionsToUnitTestMap() ) {
          const clang::FunctionDecl *funcDecl = funcToUnitTest.first;
          // check if the funcDecl is in the input argument file
          if (funcDecl->getNameInfo().getName().getAsString() == func->getNameInfo().getName().getAsString()) {
@@ -92,7 +93,7 @@ bool FuncUTDeclVisitor::VisitDecl(clang::Decl *decl)
             
 // 	    results::get().includesForUnitTest.insert(p.filename().string());
 	    
-	    _info.addIncludeFile(p.filename().string());
+	    _info->addIncludeFile(p.filename().string());
 	    
             break;
          }

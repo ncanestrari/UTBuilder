@@ -17,7 +17,7 @@ public:
    ClangCompiler() = default;
    ~ClangCompiler() = default;
    
-   void computeAST(void);
+   void computeAST(const OptionParser& optionParser);
 
       
    //getters
@@ -27,7 +27,10 @@ public:
    const ProjectDescription & getProjectDescription(void){ return _projectDescription; }
    const ProjectDescription & getProjectDescription(void) const { return _projectDescription; }
    
-   const ASTinfo& getASTinfo() const { return _info; }
+   const OptionParser* getOptionParser() const { return _optionParser;}
+   
+   ASTinfo& getASTinfo()  { return _info; }
+   const ASTinfo& getASTinfo()  const { return _info; }
    
    const clang::SourceManager& getSourceManager() const { return _compiler.getSourceManager(); }
 
@@ -38,6 +41,8 @@ private:
    ProjectDescription _projectDescription;
    
    ASTinfo _info;
+   
+   const OptionParser* _optionParser;
 };
 
 

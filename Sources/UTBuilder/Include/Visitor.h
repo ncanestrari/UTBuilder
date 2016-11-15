@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "ClangCompiler.h"
 #include "Results.h"
 
 template <typename Derived>
@@ -15,10 +16,10 @@ class Visitor : public clang::RecursiveASTVisitor<Derived> {
 public:
    explicit Visitor(clang::ASTContext*              context,
                     const std::vector<std::string>& fileNames,
-		    ASTinfo& info  ) 
+		    ClangCompiler& compiler  ) 
    :  _context(context)
    , _fileNames(fileNames)
-   , _info(info)
+   , _info( &compiler.getASTinfo() )
    {};
 
    virtual ~Visitor() = default;
@@ -26,7 +27,7 @@ public:
 protected:
    clang::ASTContext*              _context;
    const std::vector<std::string>& _fileNames;
-   ASTinfo& _info;
+   ASTinfo* _info;
 };
 
 #endif // UTBUILDER_VISITOR_H_

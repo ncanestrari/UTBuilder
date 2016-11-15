@@ -11,9 +11,9 @@
 
 TypedefVisitor::TypedefVisitor(clang::ASTContext*              context,
                                const std::vector<std::string>& fileNames,
-			       ASTinfo& info 
+			       ClangCompiler& compiler 
 			      )
-   : Visitor(context, fileNames, info)
+   : Visitor(context, fileNames, compiler)
 {}
 
 
@@ -54,11 +54,11 @@ bool TypedefVisitor::VisitDecl(clang::Decl *decl)
    */
    
    
-   if ( _info.getFunctionDeclTypes().find(declType) ==  _info.getFunctionDeclTypes().end()) {
+   if ( _info->getFunctionDeclTypes().find(declType) ==  _info->getFunctionDeclTypes().end()) {
       return true;
    }
    
-   _info.addTypedefNameDecl(type_def);
+   _info->addTypedefNameDecl(type_def);
    
    
    return true;

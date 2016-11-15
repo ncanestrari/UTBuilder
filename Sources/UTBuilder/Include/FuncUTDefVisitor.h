@@ -10,10 +10,14 @@ public:
 
    explicit FuncUTDefVisitor(clang::ASTContext*               context,
                              const std::vector<std::string>&  fileNames,
-			     ASTinfo& info   );
+			     ClangCompiler& compiler   );
 
    bool VisitDecl(clang::Decl *decl);
 
+private:
+   
+   const OptionParser* _optionParser;
+   
 };
 
 
@@ -24,7 +28,7 @@ public:
 
    explicit FuncUTDeclVisitor(clang::ASTContext*               context,
                               const std::vector<std::string>&  fileNames,
-			      ASTinfo& info   );
+			      ClangCompiler& compiler   );
 
    bool VisitDecl(clang::Decl *decl);
 

@@ -12,7 +12,7 @@ public:
 
    explicit TypedefVisitor(clang::ASTContext*               context,
                            const std::vector<std::string>&  fileNames,
-			   ASTinfo& info 
+			   ClangCompiler& compiler 
   			);
    
    virtual ~TypedefVisitor() {}

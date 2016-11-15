@@ -22,6 +22,8 @@ typedef std::map<const clang::FunctionDecl *, FunctionDeclSet > FunctionDeclKeyS
 typedef std::map< std::string, const clang::FunctionDecl * > NameFunctionDeclMap;
 
 
+// these are the same class but with different meanings for its member vars
+
 class FunctionsToUnitTest //: public Singleton<FunctionsToUnitTest> {
 {
 public:
@@ -40,10 +42,10 @@ public:
     * 2nd step: the mockVisitor::VisitCallExpr function
     * for each key of FunctionDecl* to unit test the set is filled with the FunctionDecl* of functions to mock
     */
-   FunctionDeclKeySetMap declKeySetMap; //functionsToUnitTestMap;
+   FunctionDeclKeySetMap _declKeySetMap; //functionsToUnitTestMap;
 
    // only for C: no overloaded and overriden functions
-   NameFunctionDeclMap   nameDeclMap; //functionsToUnitTestName;
+   NameFunctionDeclMap   _nameDeclMap; //functionsToUnitTestName;
 
 };
 
@@ -62,10 +64,10 @@ public:
     */
    
    // functionsToMockMap;
-   FunctionDeclKeySetMap  declKeySetMap;
+   FunctionDeclKeySetMap  _declKeySetMap;
 
    // only for C: no overloaded and overriden functions
-   NameFunctionDeclMap    nameDeclMap;
+   NameFunctionDeclMap    _nameDeclMap;
 
 };
 
@@ -125,11 +127,11 @@ public:
    const std::set<const clang::FunctionDecl *>& getFunctionCallersForMock(const clang::FunctionDecl * funcDecl);
    
    
-   const FunctionDeclKeySetMap& getFunctionsToUnitTestMap() const { return _functionsToUnitTest.declKeySetMap; }
-   const NameFunctionDeclMap& getFunctionsToUnitTest() const { return _functionsToUnitTest.nameDeclMap; }
+   const FunctionDeclKeySetMap& getFunctionsToUnitTestMap() const { return _functionsToUnitTest._declKeySetMap; }
+   const NameFunctionDeclMap& getFunctionsToUnitTest() const { return _functionsToUnitTest._nameDeclMap; }
    
-   const FunctionDeclKeySetMap& getFunctionsToMockMap() const { return _functionsToMock.declKeySetMap; }
-   const NameFunctionDeclMap& getFunctionsMock() const { return _functionsToMock.nameDeclMap; }
+   const FunctionDeclKeySetMap& getFunctionsToMockMap() const { return _functionsToMock._declKeySetMap; }
+   const NameFunctionDeclMap& getFunctionsMock() const { return _functionsToMock._nameDeclMap; }
    
    
 private:

@@ -8,6 +8,8 @@
 #include <vector>
 #include <json/json.h>
 
+#include "optionparser.h"
+
 
 class ProjectDescription 
 {
@@ -22,9 +24,9 @@ public:
    void deSerializeJson(const Json::Value &jsonRoot, const void *refData = nullptr);
    
    void clear(void);
-   void init(void);
+   void init(const OptionParser& optionParser );
    void createFakeSource(void); // might go to utils...
-   void getFromOptionParser(void);
+   void getFromOptionParser(const OptionParser& optionParser);
    
    //getters 
    const std::vector<std::string>&  getAllFileNames(void){ return _fileNames; }
@@ -54,6 +56,8 @@ public:
    
    
 protected:   
+   
+   // read from json "desc" object
    std::vector<std::string> _fileNames;
    std::vector<std::string> _dirNames;
    std::vector<std::string> _includePaths;
@@ -66,6 +70,8 @@ protected:
    std::set<boost::filesystem::path> _packages;
    std::set<boost::filesystem::path> _include_dirs;
    std::set<boost::filesystem::path> _sources_dirs;
+   
+   const OptionParser* _optionParser;
    
 };
 

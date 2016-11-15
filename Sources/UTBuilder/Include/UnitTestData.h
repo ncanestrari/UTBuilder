@@ -20,11 +20,8 @@ class UnitTestData
 
 public:
    
-//    UnitTestData( const clang::FunctionDecl *funcDecl,
-//              const std::set<const clang::FunctionDecl *> &mockFuncs = std::set<const clang::FunctionDecl *>());
    
-   UnitTestData(const FunctionDeclKeySetMap   &funcDeclsMap,
-                const FunctionDeclKeySetMap   &mockDeclsMap);
+   UnitTestData(const ASTinfo& _info);
    
    UnitTestData(const UnitTestData&) = delete;
    
@@ -36,7 +33,7 @@ public:
    void deSerializeJson(const Json::Value &jsonRoot );
 
    
-   NameValueNode* buildCollectionTree();
+   NameValueNode* buildTreeFromAST();
 
    const NameValueNode* getTreeData() const { return _treeData.get(); }
    
@@ -44,8 +41,8 @@ public:
    const NameValueNode* getFuncsData() const { return _treeData->getChild("funcs"); }
    const NameValueNode* getMocksData() const { return _treeData->getChild("mocks"); }
    
-   const FunctionDeclKeySetMap& getFunctionToTest() const { return _funcDeclsMap; }
-   const FunctionDeclKeySetMap& getFunctionToMock() const { return _mockDeclsMap; }
+   const FunctionDeclKeySetMap* getFunctionToTest() const { return _funcDeclsMap; }
+   const FunctionDeclKeySetMap* getFunctionToMock() const { return _mockDeclsMap; }
    
 private:
 
@@ -61,8 +58,7 @@ private:
                                             const std::set<const clang::FunctionDecl *>& funcs );
 
    
-   
-   bool buildValidateData(const NameValueNode* tempTreeFromJson);
+   bool buildTreeData(const NameValueNode* tempTreeFromJson);
    
    NameValueNode* createValidatedNode(const NameValueNode* refQualTypeNode,const NameValueNode* jsonNode );
    
@@ -71,9 +67,11 @@ private:
    std::unique_ptr<NameValueNode> _treeData;
    
    
-   const FunctionDeclKeySetMap& _funcDeclsMap;
-   const FunctionDeclKeySetMap& _mockDeclsMap;
+   // store these const references from ASTinfo
+   const FunctionDeclKeySetMap* _funcDeclsMap;
+   const FunctionDeclKeySetMap* _mockDeclsMap;
   
+   
    static const unsigned int _defaultExampleContentSize;
    
 };

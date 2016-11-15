@@ -14,14 +14,15 @@ const unsigned int UnitTestData::_defaultExampleContentSize = 2;
 
 
 
-UnitTestData::UnitTestData(const FunctionDeclKeySetMap& funcDeclsMap,
-                           const FunctionDeclKeySetMap& mockDeclsMap)
-: _funcDeclsMap(funcDeclsMap)
-, _mockDeclsMap(mockDeclsMap)
+UnitTestData::UnitTestData(const ASTinfo& _info)
+: _funcDeclsMap(&_info.getFunctionsToUnitTestMap())
+, _mockDeclsMap(&_info.getFunctionsToMockMap())
 {
+//    build the _treeFromAST
+   buildTreeFromAST();
 }
-
-
+ 
+ 
 UnitTestData::~UnitTestData() = default;
 
 
@@ -30,7 +31,7 @@ void UnitTestData::clear()
 }
 
 
-NameValueNode* UnitTestData::buildCollectionTree()
+NameValueNode* UnitTestData::buildTreeFromAST()
 {
    _treeFromAST = std::unique_ptr<NameValueNode>( NameValueNode::createObject("dataAST") );
  
@@ -46,10 +47,10 @@ NameValueNode* UnitTestData::buildCollectionTree()
    NameValueNode* descNode = buildDescTree();
    _treeFromAST->addChild(descNode);
    
-   NameValueNode* mocksNode = buildTree("mocks", _mockDeclsMap);
+   NameValueNode* mocksNode = buildTree("mocks", *_mockDeclsMap);
    _treeFromAST->addChild(mocksNode);
    
-   NameValueNode* funcsNode = buildTree("funcs", _funcDeclsMap);
+   NameValueNode* funcsNode = buildTree("funcs", *_funcDeclsMap);
    _treeFromAST->addChild(funcsNode); 
    
 }
@@ -279,6 +280,7 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot )
    
    // temp tree node created while parsng the json file
    // it  contains only NameValueNode and no specialized Node (QualTypeNode,FunctionDeclNode)
+   // no checks are performed on tempTreeFromJson
    std::unique_ptr<NameValueNode> tempTreeFromJson;
    
    if ( jsonRoot.isObject() == true ) {
@@ -364,9 +366,9 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot )
 
    } 
    
-   // create the data tree adding specialized node (QualTypeNode,FunctionDeclNode)
+   // create the data tree _treeData adding specialized node (QualTypeNode,FunctionDeclNode)
    if ( tempTreeFromJson ) {
-      buildValidateData( tempTreeFromJson.get() );
+      buildTreeData( tempTreeFromJson.get() );
    }
    
 //    testActions();
@@ -419,7 +421,7 @@ NameValueNode* UnitTestData::createValidatedNode(const NameValueNode* refChildNo
 }
 
 
-bool UnitTestData::buildValidateData( const NameValueNode* tempTreeFromJson)
+bool UnitTestData::buildTreeData( const NameValueNode* tempTreeFromJson)
 {
    
    typedef std::tuple<const NameValueNode*, const NameValueNode*, NameValueNode* > treeNodeTuple;

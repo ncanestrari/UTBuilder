@@ -40,12 +40,12 @@ void FillWithArrayOfStringFromField(vector<string> &vstr, const Value &rootValue
 
 void ProjectDescription::serializeJson(Json::Value &jsonRoot ) const
 {
-   if ( ! OptionParser::get().isJsonFileNameEnabled() ) {
-      jsonRoot["output"] =  OptionParser::get().getOutputName();
+   if ( ! _optionParser->isJsonFileNameEnabled() ) {
+      jsonRoot["output"] =  _optionParser->getOutputName();
       jsonRoot["files"] = Json::Value(Json::arrayValue);
       
       vector<string> fileNames;
-      OptionParser::get().getFileNames(fileNames);
+      _optionParser->getFileNames(fileNames);
       for (unsigned int i = 0; i < fileNames.size(); ++i) {
          jsonRoot["files"][i] = fileNames[i];
       }
@@ -55,6 +55,15 @@ void ProjectDescription::serializeJson(Json::Value &jsonRoot ) const
 
 void ProjectDescription::deSerializeJson(const Value &rootDesc, const void * )
 {
+   /**
+    *  "desc" 
+    *      {
+    *      "files" : {}   array
+    *      "dirs" : {}  array
+    *      "output" : []  value
+    *       }
+    */
+   
    FillWithArrayOfStringFromField(_fileNames, rootDesc, "files");
    FillWithArrayOfStringFromField(_dirNames,  rootDesc, "dirs");
    _outputFileName = rootDesc["output"].asString();
@@ -80,8 +89,13 @@ void ProjectDescription::clear(void)
 }
 
 
-void ProjectDescription::init(void)
+void ProjectDescription::init(const OptionParser& optionParser)
 {
+   
+   _optionParser = &optionParser;
+   
+   getFromOptionParser(optionParser);
+   
    /**
     * Clever HACK
     * include the source file directories to allow multiple files:
@@ -126,12 +140,12 @@ void ProjectDescription::createFakeSource(void)
 }
 
 
-void ProjectDescription::getFromOptionParser(void)
+void ProjectDescription::getFromOptionParser(const OptionParser& optionParser)
 {
    
-   if ( OptionParser::get().isJsonFileNameEnabled() ) {
+   if ( optionParser.isJsonFileNameEnabled() ) {
       // we need to fil _fileNames form the input args or from the json file "desc" : {"files"}
-      const string jsonFileName = OptionParser::get().getJsonFileName();
+      const string jsonFileName = optionParser.getJsonFileName();
       ifstream jsonFile;
       jsonFile.open(jsonFileName);
       
@@ -146,8 +160,8 @@ void ProjectDescription::getFromOptionParser(void)
       
    } else {
        //add from command line instead of desc
-      OptionParser::get().getFileNames(_fileNames);
+      optionParser.getFileNames(_fileNames);
    }
-   init();
+
 }
 

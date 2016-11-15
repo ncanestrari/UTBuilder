@@ -9,7 +9,7 @@ class StructVisitor : public Visitor<StructVisitor> {
 public:
    explicit StructVisitor(clang::ASTContext*               context,
                           const std::vector<std::string>&  fileNames,
-			  ASTinfo& info 
+			  ClangCompiler& compiler 
  			);
 
    bool VisitDecl(clang::Decl *decl);

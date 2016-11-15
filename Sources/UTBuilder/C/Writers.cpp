@@ -39,11 +39,11 @@ const std::string UnitTestFileWriter::_templateSuffix = std::string("-ugtest.cpp
 BaseWriter::BaseWriter() = default;
 
 void BaseWriter::init(  const std::string&         fileName,
-			const UnitTestData&           data,
+			const UnitTestData*           data,
 			const ClangCompiler* compiler )
 {
    _fileName = fileName;
-   _data = &data;
+   _data = data;
 //    _compiler = compiler;
    _info = &compiler->getASTinfo();
    _sourceMgr = &compiler->getSourceManager();
@@ -102,7 +102,7 @@ const Plustache::Context* MockWriter::createContext()
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   const FunctionDeclKeySetMap& funcsToMock = _data->getFunctionToMock();
+   const FunctionDeclKeySetMap& funcsToMock = *_data->getFunctionToMock();
    for (const auto& funcToMock : funcsToMock ) {
       
       const clang::FunctionDecl *funcDecl = funcToMock.first;
@@ -437,7 +437,7 @@ const Plustache::Context* StructuresToSerializeWriter::createContext()
    context->add("newline", "\n");
 
    
-   const FunctionDeclKeySetMap&  funcDeclsMap = _data->getFunctionToTest();
+   const FunctionDeclKeySetMap&  funcDeclsMap = *_data->getFunctionToTest();
    for (const std::pair<const clang::FunctionDecl *, FunctionDeclSet >& iter : funcDeclsMap) {
       
       out.str("");
@@ -464,7 +464,8 @@ const Plustache::Context* UnitTestFileWriter::createContext()
    std::set<std::string> includePaths;
 
    // look for paths to include in the mock file
-   for (const auto& funcToUnitTest : _data->getFunctionToTest() ) { /*FunctionsToUnitTest::get().declKeySetMap) {*/
+   const FunctionDeclKeySetMap&  funcDeclsMap = *_data->getFunctionToTest();
+   for (const auto& funcToUnitTest : funcDeclsMap ) { /*FunctionsToUnitTest::get().declKeySetMap) {*/
       const clang::FunctionDecl *funcDecl = funcToUnitTest.first;
       // get declaration source location
       const std::string declSrcFile = Utils::getDeclSourceFile(funcDecl, *_sourceMgr);

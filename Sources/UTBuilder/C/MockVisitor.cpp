@@ -12,8 +12,8 @@
 
 MockVisitor::MockVisitor(clang::ASTContext*              context,
                          const std::vector<std::string>& fileNames,
-			 ASTinfo& info )
-   : Visitor(context, fileNames, info)
+			 ClangCompiler& compiler )
+   : Visitor(context, fileNames, compiler)
 {
 }
 
@@ -97,12 +97,12 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr *funcCall)
 */
    
    // check if the caller (_lastFuncDecl) needs to be tested
-   if ( _info.getFunctionsToUnitTest().find(callerFuncName) == _info.getFunctionsToUnitTest().end() ) {
+   if ( _info->getFunctionsToUnitTest().find(callerFuncName) == _info->getFunctionsToUnitTest().end() ) {
       return true;
    }
    
    // mock this function
-   _info.addFunctionToMock(funcDecl, _lastFuncDecl);
+   _info->addFunctionToMock(funcDecl, _lastFuncDecl);
    
 
    return true;
