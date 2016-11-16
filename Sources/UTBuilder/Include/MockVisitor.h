@@ -14,6 +14,7 @@ class MockVisitor : public Visitor<MockVisitor> {
    const clang::FunctionDecl *_lastFuncDecl;
 
 public:
+   
    MockVisitor(clang::ASTContext*               context,
                const std::vector<std::string>&  fileNames,
 	       ClangCompiler& compiler );

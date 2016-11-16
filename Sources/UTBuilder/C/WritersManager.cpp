@@ -3,9 +3,9 @@
 #include "Writers.h"
 
 
-WritersManager::WritersManager(const std::string&         fileName,
-	    const UnitTestData&           data,
-	    const ClangCompiler&   compiler)
+WritersManager::WritersManager(	const std::string&    fileName,
+				const UnitTestData&    data,
+				const ClangCompiler&   compiler)
 : _fileName(fileName)
 , _data(&data)
 , _compiler(&compiler)

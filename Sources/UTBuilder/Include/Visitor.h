@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "ClangCompiler.h"
-#include "Results.h"
+#include "ASTinfo.h"
 
 template <typename Derived>
 class Visitor : public clang::RecursiveASTVisitor<Derived> {

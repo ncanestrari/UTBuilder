@@ -20,10 +20,6 @@ public:
 private:
 
    std::string  _fileName;
-   /* This are not used ... */
-   Json::Value _funcsRoot;
-   Json::Value _mocksRoot;
-   Json::Value _descRoot;
    
    UnitTestData& _unitTestData;
 

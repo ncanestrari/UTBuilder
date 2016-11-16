@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "ClangCompiler.h"
-#include "Results.h"
+#include "ASTinfo.h"
 
 class FuncUTDefVisitor;
 class FuncUTDeclVisitor;
@@ -37,7 +37,7 @@ private:
    std::unique_ptr<MockVisitor>         _mockVisitor;
    std::unique_ptr<TypedefVisitor>	_typedefVisitor;
    
-   ASTinfo& _info;
+   ASTinfo* _info;
 
 };
 

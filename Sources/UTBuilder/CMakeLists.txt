@@ -16,7 +16,7 @@ set ( HEADER_FILES
    Include/TreeNodes.h
    Include/PrecompilerOptionAST.h
    Include/ProjectDescription.h
-   Include/Results.h
+   Include/ASTinfo.h
    Include/StructVisitor.h
    Include/TypedefVisitor.h
    Include/globber.h
@@ -38,7 +38,7 @@ set ( SOURCE_FILES
    C/MockVisitor.cpp
    C/TreeNodes.cpp
    C/ProjectDescription.cpp
-   C/Results.cpp
+   C/ASTinfo.cpp
    C/StructVisitor.cpp
    C/TypedefVisitor.cpp
    C/globber.cpp

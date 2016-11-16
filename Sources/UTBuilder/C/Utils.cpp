@@ -1,7 +1,7 @@
 
 #include "Utils.h"
 #include "globber.h"
-#include "Results.h"
+#include "ASTinfo.h"
 
 #include <boost/filesystem/convenience.hpp>
 #include <clang/AST/Decl.h>
@@ -133,41 +133,6 @@ string Utils::removeDashes(const string &fileNamePath)
 }
 
 
-void Utils::fillFunctionQualTypes(void)
-{
-   /*
-   results::get().functionDeclTypes.clear();
-
-   //canonical Types: http://clang.llvm.org/docs/InternalsManual.html#canonical-types
-   for (auto funcToMock : FunctionsToMock::get().declKeySetMap) {
-      const clang::FunctionDecl *funcDecl = funcToMock.first;
-      const clang::QualType returnType = funcDecl->getReturnType();
-      results::get().functionDeclTypes.insert(returnType->getCanonicalTypeInternal().getTypePtrOrNull());
-
-      const int numParms = funcDecl->getNumParams();
-      for (int i = 0; i < numParms; ++i) {
-         const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(i);
-         const clang::QualType qualType = _currentParam->getOriginalType();
-
-         results::get().functionDeclTypes.insert(qualType->getCanonicalTypeInternal().getTypePtrOrNull());
-      }
-   }
-
-   for (auto functionToTest : FunctionsToUnitTest::get().declKeySetMap) {
-      const clang::FunctionDecl *funcDecl = functionToTest.first;
-      const clang::QualType returnType = funcDecl->getReturnType();
-      results::get().functionDeclTypes.insert(returnType->getCanonicalTypeInternal().getTypePtrOrNull());
-      const int numParms = funcDecl->getNumParams();
-
-      for (int i = 0; i < numParms; ++i) {
-         const clang::ParmVarDecl *_currentParam = funcDecl->getParamDecl(i);
-         const clang::QualType qualType = _currentParam->getOriginalType();
-
-         results::get().functionDeclTypes.insert(qualType->getCanonicalTypeInternal().getTypePtrOrNull());
-      }
-   }
-   */
-}
 
 
 std::string Utils::getDeclSourceFile(const clang::Decl *decl, const clang::SourceManager &srcMgr)

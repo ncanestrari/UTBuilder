@@ -8,6 +8,8 @@
 #include <iostream>
 #include <exception>
 
+#include "Patterns.h"
+
 #define DECIMAL_BASE (10)
 
 
@@ -16,7 +18,9 @@
 // class OneNodeVisitor;
 
 
-class NameValueNode {
+// Prototype pattern interface inheritance is useless. Only to remind a clone function is defined
+class NameValueNode : public Prototype
+{
 
    /** 
     * if this node is an object _name is empty
@@ -65,7 +69,7 @@ public:
 
    // Prototype pattern interface
    // it clones the type but it allows a different value to be set 
-   virtual NameValueNode* clone(const char * value = "") const;
+   virtual NameValueNode* clone(const char * value = "") const override;
    
    
    

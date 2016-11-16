@@ -26,7 +26,6 @@ public:
                                           const std::string &newExtension);
    static std::string removeDashes(const std::string &fileNamePath);
 
-   static void fillFunctionQualTypes(void);
    static std::string getDeclSourceFile(const clang::Decl *decl, const clang::SourceManager &srcMgr);
 
    // append the row and column to the file name name string

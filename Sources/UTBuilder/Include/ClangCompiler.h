@@ -7,7 +7,7 @@
 #include <json/json.h>
 
 #include "ProjectDescription.h"
-#include "Results.h"
+#include "ASTinfo.h"
 
 
 class ClangCompiler
@@ -34,10 +34,11 @@ public:
    
    const clang::SourceManager& getSourceManager() const { return _compiler.getSourceManager(); }
 
+   
 private:
 
-    
    clang::CompilerInstance _compiler;
+   
    ProjectDescription _projectDescription;
    
    ASTinfo _info;

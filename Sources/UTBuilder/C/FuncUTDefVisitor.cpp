@@ -5,7 +5,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <clang/AST/ASTContext.h>
 
-#include "Results.h"
+#include "ASTinfo.h"
 #include "Utils.h"
 #include "optionparser.h"
 

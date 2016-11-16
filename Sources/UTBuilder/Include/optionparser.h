@@ -13,7 +13,7 @@
 #include <string>
 #include <iostream>
 
-#include "singleton.h"
+
 #include "Utils.h"
 
 #define VERSION "0.1 beta"
@@ -31,7 +31,7 @@ public:
 
 
 
-class OptionParser //: public Singleton<OptionParser>
+class OptionParser
 {
 public:
    OptionParser() = default;

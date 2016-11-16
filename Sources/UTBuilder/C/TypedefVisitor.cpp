@@ -1,7 +1,7 @@
 
 #include "TypedefVisitor.h"
 
-#include "Results.h"
+#include "ASTinfo.h"
 #include "Utils.h"
 
 #include <boost/filesystem.hpp>

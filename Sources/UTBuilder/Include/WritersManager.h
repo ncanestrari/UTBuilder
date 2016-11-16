@@ -31,12 +31,15 @@ public:
    
 private:
    
+//    keep a unique_ptr ref of the Writers   
+   std::set< std::unique_ptr<BaseWriter> > _writers;
+      
+      
+   // store all these vars and pass them to each Writers as argument when the Writers are added to the WritersManager
    const std::string            _fileName;
    const UnitTestData*          _data;
    const ClangCompiler*		_compiler;
 //    const clang::SourceManager&	_sourceMgr;
-   
-   std::set< std::unique_ptr<BaseWriter> > _writers;
    
 };
 

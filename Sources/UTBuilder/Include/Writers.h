@@ -13,9 +13,8 @@ class BaseWriter {
    
 public:
   
-   BaseWriter();
-   
-   virtual ~BaseWriter() {}
+   BaseWriter() = default;
+   virtual ~BaseWriter() = default;
    
    virtual void init( const std::string&         fileName,
 		      const UnitTestData*           data,
@@ -138,10 +137,12 @@ class CMakeFileWriter : public BaseWriter
    CMakeFileWriter();
    virtual ~CMakeFileWriter() = default;
    
+   
    virtual void init( const std::string&         fileName,
 		      const UnitTestData*           data,
 		      const ClangCompiler*   compiler ) override final;
    
+		      
    virtual const std::string& getTemplateName() const { return _templateName; }
    virtual const std::string& getTemplateSuffix() const { return _templateSuffix; }
    

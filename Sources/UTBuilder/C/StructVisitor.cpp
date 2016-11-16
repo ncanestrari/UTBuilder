@@ -3,7 +3,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include "Results.h"
+#include "ASTinfo.h"
 
 
 StructVisitor::StructVisitor(clang::ASTContext*              context,

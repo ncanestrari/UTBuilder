@@ -1,13 +1,11 @@
-
-#ifndef _UTBuilder_Results_h__
-#define _UTBuilder_Results_h__
+#ifndef _UTBuilder_ASTinfo_h__
+#define _UTBuilder_ASTinfo_h__
 
 #include <string>
 #include <set>
 #include <map>
 
 
-#include "singleton.h"
 
 namespace clang {
 class FunctionDecl;
@@ -22,9 +20,9 @@ typedef std::map<const clang::FunctionDecl *, FunctionDeclSet > FunctionDeclKeyS
 typedef std::map< std::string, const clang::FunctionDecl * > NameFunctionDeclMap;
 
 
-// these are the same class but with different meanings for its member vars
+// FunctionsToUnitTest and FunctionsToMock are the same class but with different meanings for its member vars
 
-class FunctionsToUnitTest //: public Singleton<FunctionsToUnitTest> {
+class FunctionsToUnitTest
 {
 public:
 
@@ -51,7 +49,7 @@ public:
 
 
 
-class FunctionsToMock //: public Singleton<FunctionsToMock> {
+class FunctionsToMock
 {
 public:
 
@@ -70,26 +68,6 @@ public:
    NameFunctionDeclMap    _nameDeclMap;
 
 };
-
-
-/*
-class results {
-
-   results(void) {};
-   ~results(void) {};
-
-public:
-
-   static results &get(void);
-   void clear();
-
-   std::set<const clang::RecordDecl *>        structDecls;
-   std::set<const clang::TypedefNameDecl *>   typedefNameDecls;
-   std::set<std::string>                      includesForUnitTest;
-   std::set<const clang::Type *>              functionDeclTypes;
-
-};
-*/
 
 
 
@@ -114,6 +92,8 @@ public:
    
    void addFunctionToMock(const clang::FunctionDecl* mockFuncDecl, const clang::FunctionDecl* callerFuncDecl);
    
+//    IMPORTANT: call this function after the _functionsToUnitTest and _functionsToMock are set
+//    this is called in Consumer::HandleTranslationUnit()
    void fillFunctionQualTypes(void);
    
    
@@ -136,7 +116,7 @@ public:
    
 private:
    
-   FunctionsToUnitTest _functionsToUnitTest;
+   FunctionsToUnitTest  _functionsToUnitTest;
    FunctionsToMock	_functionsToMock;
    
    std::set<const clang::RecordDecl *>        _structureDecls;
@@ -146,4 +126,4 @@ private:
    
 };
 
-#endif // _UTBuilder_Results_h__
+#endif // _UTBuilder_ASTinfo_h__
