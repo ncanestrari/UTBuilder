@@ -1,0 +1,54 @@
+cmake_minimum_required(VERSION 3.0.2)
+
+
+project( {{ProjectName}} )
+
+
+set(CMAKE_C_COMPILER "gcc-4.8")
+set(CMAKE_C_COMPILER_VERSION "4.8")
+set(CMAKE_C_FLAGS "-fmax-errors=10")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpermissive")
+
+set(CMAKE_CXX_COMPILER "g++-4.8")
+set(CMAKE_CXX_COMPILER_VERSION "4.8")
+set(CMAKE_CXX_FLAGS "-fmax-errors=10")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+
+
+add_definitions( -D__LINUX64__)
+add_definitions( -D__UNIX64__)
+add_definitions( -D__64BIT__)
+
+
+set ( HEADER_FILES
+
+   )
+
+   
+set ( SOURCE_FILES
+  
+    {{TestFileName}}
+    {{# sources}}
+    {{source}} {{newline}}
+    {{/ sources}}
+   )
+
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
+
+set ( INCLUDES 
+      /./usr/include      
+      {{# includes}}
+      {{include}} {{newline}}
+      {{/ includes}}
+)
+
+include_directories( ${INCLUDES} )
+
+add_executable( {{ProjectName}} ${SOURCE_FILES} )
+
+link_directories("/./usr/lib64")
+target_link_libraries( {{ProjectName}}  ${GTEST_LIBRARIES} pthread )
+

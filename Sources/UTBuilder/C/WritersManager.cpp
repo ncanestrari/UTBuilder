@@ -30,7 +30,7 @@ void WritersManager::write()
 {
    for (const auto& writer : _writers )
    {
-      writer->writeTemplate( writer->getTeamplateName(), writer->getTeamplateSuffix() );
+      writer->writeTemplate( writer->getTemplateName(), writer->getTemplateSuffix() );
    }
 }
    

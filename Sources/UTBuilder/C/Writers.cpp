@@ -34,6 +34,9 @@ const std::string StructuresToSerializeWriter::_templateSuffix = std::string("-s
 const std::string UnitTestFileWriter::_templateName = BaseWriter::_templateDir + std::string("/UT.template");
 const std::string UnitTestFileWriter::_templateSuffix = std::string("-ugtest.cpp");
     
+const std::string CMakeFileWriter::_templateName = BaseWriter::_templateDir + std::string("/CMakeFile.template");
+const std::string CMakeFileWriter::_templateSuffix = std::string("");
+
 
 
 BaseWriter::BaseWriter() = default;
@@ -528,3 +531,62 @@ const Plustache::Context* UnitTestFileWriter::createContext()
 
    return context; 
 }
+
+
+CMakeFileWriter::CMakeFileWriter() = default;
+
+void CMakeFileWriter::init(  const std::string&         fileName,
+			const UnitTestData*           data,
+			const ClangCompiler* compiler )
+{
+   
+   _testFileName = boost::filesystem::path(fileName).filename().string() + UnitTestFileWriter::_templateSuffix;
+ 
+   const std::string outputFileName = compiler->getProjectDescription().getOutputFileName();
+   _fileName = boost::filesystem::path(outputFileName).parent_path().string() + "/" + "CMakeLists.txt";
+   _data = data;
+//    _compiler = compiler;
+   _info = &compiler->getASTinfo();
+   _sourceMgr = &compiler->getSourceManager();
+   
+   _sources = &compiler->getProjectDescription().getSources();
+   _includePaths = &compiler->getProjectDescription().getIncludePaths();
+}
+
+const Plustache::Context* CMakeFileWriter::createContext() 
+{
+   
+   std::string projectName = Utils::changeFileExtension(boost::filesystem::path(_testFileName).filename().string(), "");
+   //boost::filesystem::path(_sourceFileName).filename().string();
+   
+   Plustache::Context* context = new Plustache::Context();
+   
+   PlustacheTypes::ObjectType   objType;
+
+   boost::filesystem::path cwd = boost::filesystem::current_path();
+
+   for (const boost::filesystem::path& iter : *_includePaths) {
+      objType["include"] = cwd.string() + "/" + iter.string();
+      context->add("includes", objType);
+   }
+
+   objType.clear();
+   
+   for (const boost::filesystem::path& iter : *_sources) {
+      objType["source"] = cwd.string() + "/" + iter.string();
+      context->add("sources", objType);
+   }
+   
+//    // create a C++ class name from the fileName
+//    std::string TestFilename = boost::filesystem::path(_fileName).filename().string();
+//    TestFilename = Utils::removeDashes(TestFilename);
+//    TestFilename = Utils::removeFileExtension(TestFilename);
+
+   context->add("ProjectName", projectName);
+   context->add("TestFileName", _testFileName);
+   context->add("newline", "\n");
+   
+
+   return context; 
+}
+

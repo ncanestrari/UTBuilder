@@ -66,6 +66,7 @@ int main(int argc, const char *argv[])
 	 writerManager.add( new UnitTestFileWriter() );
 	 writerManager.add( new SerializationWriter() );
 	 writerManager.add( new StructuresToSerializeWriter() );
+	 writerManager.add( new CMakeFileWriter() );
 	 
 	 writerManager.write();
       }
