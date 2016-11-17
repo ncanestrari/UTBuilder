@@ -15,7 +15,7 @@
 #include "fqtype.h"
 
 
-#include "fff.h"
+#include <fff/fff.h>
 
 {{# includes}}
 #include "{{include}}" {{newline}}
