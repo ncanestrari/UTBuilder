@@ -12,7 +12,7 @@
 
 Consumer::Consumer(clang::ASTContext*              context,
                    const std::vector<std::string>& fileNames,
-		   ClangCompiler& compiler )
+                   ClangCompiler&                  compiler )
    : ASTConsumer()
    , _mockVisitor(nullptr)
    , _defVisitor(nullptr)

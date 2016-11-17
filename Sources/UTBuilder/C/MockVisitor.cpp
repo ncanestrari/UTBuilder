@@ -12,7 +12,7 @@
 
 MockVisitor::MockVisitor(clang::ASTContext*              context,
                          const std::vector<std::string>& fileNames,
-			 ClangCompiler& compiler )
+                         ClangCompiler& compiler )
    : Visitor(context, fileNames, compiler)
 {
 }
@@ -60,7 +60,6 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr *funcCall)
    // TODO: fix this
    // temporary check
    // WEAK CHECK if declaration is in CommercialCode path
-//    if (declSrcFile.find("CommercialCode") == std::string::npos && declSrcFile.find("commercialcode") == std::string::npos ) {
    if (declSrcFile.find(boost::filesystem::current_path().string()) == std::string::npos) {
       // this is (probably) a system function
       return true;
@@ -69,32 +68,6 @@ bool MockVisitor::VisitCallExpr(clang::CallExpr *funcCall)
    // check if the caller (_lastFuncDecl) needs to be tested
    const std::string callerFuncName = _lastFuncDecl->getNameAsString();
    
-   /*
-   NameFunctionDeclMap::iterator funcToTestIter = FunctionsToUnitTest::get().nameDeclMap.find(callerFuncName);
-   if ( FunctionsToUnitTest::get().nameDeclMap.find(callerFuncName) == FunctionsToUnitTest::get().nameDeclMap.end() ) {
-      return true;
-   }
-   
-   // mock this function
-   FunctionDeclKeySetMap::iterator iter = FunctionsToMock::get().declKeySetMap.find(funcDecl);
-   if (iter != FunctionsToMock::get().declKeySetMap.end()) {
-      // already in the map. add the caller
-      iter->second.insert(_lastFuncDecl);
-   } else {
-      FunctionsToMock::get().declKeySetMap[funcDecl] = FunctionDeclSet();
-      FunctionsToMock::get().nameDeclMap[funcDecl->getNameAsString()] = funcDecl;
-   }
-
-   if (FunctionsToUnitTest::get().declKeySetMap.size() > 0) {
-      iter = FunctionsToUnitTest::get().declKeySetMap.find(_lastFuncDecl);
-      if (iter != FunctionsToUnitTest::get().declKeySetMap.end()) {
-         iter->second.insert(funcDecl);
-      } else {
-         // just a temporary check to debug
-         std::cout <<  funcDecl->getNameAsString() << " mock function caller doesn't need to be tested\n";
-      }
-   }
-*/
    
    // check if the caller (_lastFuncDecl) needs to be tested
    if ( _info->getFunctionsToUnitTest().find(callerFuncName) == _info->getFunctionsToUnitTest().end() ) {

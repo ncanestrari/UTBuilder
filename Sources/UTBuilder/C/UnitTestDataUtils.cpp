@@ -1,3 +1,4 @@
+
 #include "UnitTestDataUtils.h"
 
 #include "TreeNodes.h"
@@ -88,11 +89,6 @@ static const char * getStructureFieldRecursive(std::ostringstream &os, const cla
    size_t pos = 0;
 
    std::string typestr = qualType.getUnqualifiedType().getAsString();
-//    pos = typestr.find("*", pos);
-//    while (pos != std::string::npos) {
-//       typestr = typestr.erase(pos, 1);
-//       pos = typestr.find("*", pos);
-//    }
 
    return typestr.c_str();
 }
@@ -120,8 +116,6 @@ void UnitTestDataUtils::writeGoogleTest(std::ostringstream &os, const clang::Fun
 
    const std::string name = funcDecl->getNameAsString(); 
    const std::string structName = name + "_params";
-//    structName.append("_params");
-
 
    //    input declaration
    os << "// input structure declaration" << "\n";
@@ -174,7 +168,6 @@ void UnitTestDataUtils::writeGoogleTest(std::ostringstream &os, const clang::Fun
          const clang::ParmVarDecl *currentParam = funcDecl->getParamDecl(ii);
          if (currentParam->getOriginalType()->isAnyPointerType()) { 
             //need to be improved
-//             os  << ", &input." << currentParam->getNameAsString();
             os  << ", input." << currentParam->getNameAsString();
          } else {
             os  << ", input." << currentParam->getNameAsString();
@@ -182,8 +175,6 @@ void UnitTestDataUtils::writeGoogleTest(std::ostringstream &os, const clang::Fun
       }
    }
    os << ");\n\n";
-
-   
    os << "// check conditions" << "\n";
    
    const NameValueNode* outputTree = contentElement->getChild("output");
@@ -200,15 +191,15 @@ void UnitTestDataUtils::writeGoogleTest(std::ostringstream &os, const clang::Fun
 
 
 
-void UnitTestDataUtils::writeMockValue(	std::ostringstream &os,
-					const NameValueNode*  tree,
-					const std::string &name)
+void UnitTestDataUtils::writeMockValue(   std::ostringstream &os,
+               const NameValueNode*  tree,
+               const std::string &name)
 {
    
    std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
 
    if ( tree->isArray() ) {
-//    this is a pointer to allocate: write the memory allocation line
+      // this is a pointer to allocate: write the memory allocation line
       if (tree->getNumChildern() > 0) {
          // move in utils::
          size_t pos = 0;
@@ -221,7 +212,6 @@ void UnitTestDataUtils::writeMockValue(	std::ostringstream &os,
          }
 
          os << "   " << structName << " = static_cast<"<< qualType.getAsString() << ">(calloc(" << tree->getNumChildern() << ", sizeof(" << typestr << ")));\n";
-//          os << "   " << "memset(&" << structName <<" ,0, " << tree->getNumChildern() << "*sizeof(" << typestr << "));\n";
       }
    }
    
@@ -249,10 +239,10 @@ void UnitTestDataUtils::writeMockValue(	std::ostringstream &os,
 }
 
 
-void UnitTestDataUtils::writeFunctionDefinition( const std::string&    		 name,
-						const clang::FunctionDecl* 	 funcDecl,
-						const NameValueNode*		 outTree,
-						std::ostringstream& 		out)
+void UnitTestDataUtils::writeFunctionDefinition( const std::string&         name,
+                  const clang::FunctionDecl*     funcDecl,
+                  const NameValueNode*     outTree,
+                  std::ostringstream&     out)
 {
    std::string returnType = funcDecl->getReturnType().getAsString();
    std::string isVariadic;
@@ -308,8 +298,8 @@ void UnitTestDataUtils::writeFunctionDefinition( const std::string&    		 name,
 
 
 void UnitTestDataUtils::writeMockFunctionFFF(const clang::FunctionDecl*  funcDecl,
-					     const clang::SourceManager*  _sourceMgr,
-					     std::ostringstream&	  out)
+                    const clang::SourceManager*  _sourceMgr,
+                    std::ostringstream&     out)
 {
    const std::string declSrcFile = Utils::getDeclSourceFileLine(funcDecl, *_sourceMgr);
 
@@ -349,15 +339,15 @@ void UnitTestDataUtils::writeMockFunctionFFF(const clang::FunctionDecl*  funcDec
 }
 
 
-void UnitTestDataUtils::writeStructureValue( std::ostringstream &os,
-                                             const NameValueNode* tree,
-                                             const std::string &name,
-                                             const std::string &indent)
+void UnitTestDataUtils::writeStructureValue(std::ostringstream&  os,
+                                            const NameValueNode* tree,
+                                            const std::string&   name,
+                                            const std::string&   indent)
 {
    std::string structName = tree->isArrayElement() ? name + "[" + tree->getName() + "]" : name + tree->getName();
    
    if ( tree->isArray() ) {
-//    this is a pointer to allocate: write the memory allocation line
+      // this is a pointer to allocate: write the memory allocation line
       if (tree->getNumChildern() > 0) {
          // move in utils::
          size_t pos = 0;
@@ -414,3 +404,4 @@ void UnitTestDataUtils::writeStructureComparison(std::ostringstream &os,
    }
 
 }
+

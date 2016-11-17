@@ -1,3 +1,4 @@
+
 #include "WritersManager.h"
 
 #include "Writers.h"
@@ -10,9 +11,9 @@ using boost::filesystem::is_directory;
 using boost::filesystem::path;
 
 
-WritersManager::WritersManager(	const std::string&     fileName,
-				const UnitTestData&    data,
-				const ClangCompiler&   compiler)
+WritersManager::WritersManager(const std::string&     fileName,
+                               const UnitTestData&    data,
+                               const ClangCompiler&   compiler)
 : _fileName(fileName)
 , _data(&data)
 , _compiler(&compiler)
@@ -49,7 +50,4 @@ void WritersManager::write()
    
    current_path(ci);
 }
-   
-   
- 
 

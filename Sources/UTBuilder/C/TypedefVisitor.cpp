@@ -11,15 +11,13 @@
 
 TypedefVisitor::TypedefVisitor(clang::ASTContext*              context,
                                const std::vector<std::string>& fileNames,
-			       ClangCompiler& compiler 
-			      )
+                               ClangCompiler&                  compiler)
    : Visitor(context, fileNames, compiler)
 {}
 
 
 bool TypedefVisitor::VisitDecl(clang::Decl *decl)
 {
-
    const clang::TypedefNameDecl *type_def = llvm::dyn_cast<clang::TypedefNameDecl>(decl);
    if (type_def == nullptr) {
       return true;
@@ -39,27 +37,15 @@ bool TypedefVisitor::VisitDecl(clang::Decl *decl)
    // TODO: fix this
    // temporary check
    // WEAK CHECK if declaration is in CommercialCode path
-//    if (declSrcFile.find("CommercialCode") == std::string::npos) {
    if (declSrcFile.find(boost::filesystem::current_path().string()) == std::string::npos) {
       return true;
    }
 
-
-   /*
-   if (results::get().functionDeclTypes.find(declType) ==  results::get().functionDeclTypes.end()) {
-      return true;
-   }
-
-   results::get().typedefNameDecls.insert(type_def);
-   */
-   
-   
    if ( _info->getFunctionDeclTypes().find(declType) ==  _info->getFunctionDeclTypes().end()) {
       return true;
    }
    
    _info->addTypedefNameDecl(type_def);
-   
    
    return true;
 }

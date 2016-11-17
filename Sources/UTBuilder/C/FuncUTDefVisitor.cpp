@@ -11,8 +11,7 @@
 
 FuncUTDefVisitor::FuncUTDefVisitor(clang::ASTContext*              context, 
                                    const std::vector<std::string>& fileNames,
-				   ClangCompiler& compiler 
- 				 )
+                                   ClangCompiler&                  compiler)
    : Visitor(context, fileNames, compiler)
    , _optionParser( compiler.getOptionParser() )
 {
@@ -54,8 +53,8 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
          // add to map with an empty set
 //          FunctionsToUnitTest::get().declKeySetMap[func] = FunctionDeclSet();
 //          FunctionsToUnitTest::get().nameDeclMap[funcName] = func;
-	 
-	 _info->addFunctionToUnitTest(func);
+    
+    _info->addFunctionToUnitTest(func);
          
       }
    }
@@ -66,8 +65,8 @@ bool FuncUTDefVisitor::VisitDecl(clang::Decl *decl)
 
 FuncUTDeclVisitor::FuncUTDeclVisitor(clang::ASTContext*               context,
                                      const std::vector<std::string>&  fileNames,
-				     ClangCompiler& compiler
-				    )
+                 ClangCompiler& compiler
+                )
    : Visitor(context, fileNames, compiler)
 {}
 
@@ -91,10 +90,10 @@ bool FuncUTDeclVisitor::VisitDecl(clang::Decl *decl)
          if (funcDecl->getNameInfo().getName().getAsString() == func->getNameInfo().getName().getAsString()) {
             boost::filesystem::path p(declSrcFile);
             
-// 	    results::get().includesForUnitTest.insert(p.filename().string());
-	    
-	    _info->addIncludeFile(p.filename().string());
-	    
+//        results::get().includesForUnitTest.insert(p.filename().string());
+       
+       _info->addIncludeFile(p.filename().string());
+       
             break;
          }
       }

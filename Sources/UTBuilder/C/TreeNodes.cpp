@@ -73,26 +73,6 @@ NameValueNode* NameValueNode::clone(const char * value) const
 }   
    
    
-// void NameValueNode::visit( NodeVisitor* visitor) 
-// {
-//     visitor->process( this );
-// }
-//    
-// bool NameValueNode::execute( NodeAction* action)
-// {
-//    return action->run(this);
-// }
-// 
-// bool NameValueNode::execute( OneNodeVisitor* action )
-// {
-//    if ( action->run(this) ) {
-// 
-//       for (const auto& child : _children ) {
-// 	  child.second.get()->execute(action);
-//       }
-//    }
-// }
-
 int NameValueNode::getIndex(void) const
 {
    if ( isArrayElement() ) {
@@ -147,26 +127,6 @@ QualTypeNode* QualTypeNode::clone(const char * value) const
    }
 }
    
-// void QualTypeNode::visit( NodeVisitor* visitor )
-// {
-//    visitor->process( this );
-// }
-// 
-// bool QualTypeNode::execute( NodeAction* action )
-// {
-//    return action->run(this);
-// }
-//    
-// bool QualTypeNode::execute( OneNodeVisitor* action )
-// {
-//    if ( action->run(this) ) {
-// 
-//       for (const auto& child : _children ) {
-// 	  child.second.get()->execute(action);
-//       }
-//    }
-// }
-
 
 FunctionDeclNode::FunctionDeclNode(const FunctionDeclNode& other)
 : NameValueNode(other)
@@ -193,27 +153,6 @@ FunctionDeclNode* FunctionDeclNode::clone(const char * value) const
       return new FunctionDeclNode( this->getName().c_str(), this->_type, value);
    }
 }
-   
-// void FunctionDeclNode::visit( NodeVisitor* visitor )
-// {
-//    visitor->process( this );
-// }
-// 
-// bool FunctionDeclNode::execute( NodeAction* action )
-// {
-//    return action->run(this);
-// }
-//   
-// bool FunctionDeclNode::execute( OneNodeVisitor* action )
-// {
-//    
-//    if ( action->run(this) ) {
-// 
-//       for (const auto& child : _children ) {
-// 	  child.second.get()->execute(action);
-//       }
-//    }
-// }
    
 
 QualTypeNode* QualTypeNode::create(const char* name, const clang::QualType& qualType, const char* value ) 

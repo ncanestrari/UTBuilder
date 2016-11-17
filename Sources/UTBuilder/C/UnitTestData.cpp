@@ -91,21 +91,6 @@ NameValueNode* UnitTestData::buildTree(const char* treeName, const FunctionDeclK
 {
   NameValueNode* arrayNode = NameValueNode::createArray(treeName);
    
-//   "mocks" and "funcs" have the same structure and this function is used to create both
-  
-   /**
-    *    "mocks" : // array of "funcs"
-    *   [
-    *      { //object 0
-    *         "_name" : "mock function name 1", // value
-    *         "content" : []                    // array
-    *      },
-    *      { // object 1
-    *         "_name" : "mock function name 2",  // value
-    *         "content" : []                     // array
-    *      }
-    *   ],
-    */
    
    size_t objectCounter = 0;
    for (const auto& objIter : declMap) {
@@ -121,7 +106,6 @@ NameValueNode* UnitTestData::buildTree(const char* treeName, const FunctionDeclK
       auto* nameNode = FunctionDeclNode::create("_name", funcDecl, name.c_str());
       objectNode->addChild(nameNode);
       
-//       NameValueNode* contentObjNode = buildMockContentTree(funcDecl, mockDeclSet); //NameValueNode::createArrayNode("content");
       NameValueNode* contentObjNode = buildContentTree(funcDecl, mockDeclSet);
       objectNode->addChild(contentObjNode);      
    }   
@@ -185,22 +169,18 @@ NameValueNode* UnitTestData::buildContentTree( const clang::FunctionDecl *funcDe
       auto* retvalNode = QualTypeNode::create("retval", funcDecl->getReturnType(), "");
       outputNode->addChild(retvalNode);
       
-      
 //       mock-funcs-call
       NameValueNode* mocksNode = NameValueNode::createObject("mock-funcs-call");
       contentElemArray->addChild(mocksNode);
 	 
-      if ( funcs.size() > 0 )
-      {         
+      if ( funcs.size() > 0 ){         
          std::string value;
          for (const clang::FunctionDecl* iter : funcs) {
             value = iter->getNameAsString() + "_" + NameValueNode::_arrayIndex[indexCounter];
             auto* child = FunctionDeclNode::create(iter->getNameAsString().c_str(), iter, value.c_str());
             mocksNode->addChild(child);
          }
-         
       }
-      
    }
    
    return contentArray;
@@ -386,7 +366,6 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot )
       buildTreeData( tempTreeFromJson.get() );
    }
    
-//    testActions();
 }
 
 
@@ -402,35 +381,6 @@ NameValueNode* UnitTestData::createValidatedNode(const NameValueNode* refChildNo
 //       is it a value ?
       newNode = jsonNode->clone();
    }
-   
-   
-   /*
-   
-   if ( auto refQualTypeNode = dynamic_cast<const QualTypeNode* >(refChildNode) ) {
-   
-      newNode = QualTypeNode::create( refChildNode->getName().c_str(),
-                                                            *static_cast<const clang::QualType*>(refQualTypeNode->getType()), 
-                                                            jsonNode->getValue().c_str() );           
-   }
-   else if ( auto refFuncDeclNode = dynamic_cast<const FunctionDeclNode*>(refChildNode) ) {
-
-      newNode = FunctionDeclNode::create( refChildNode->getName().c_str(),
-                                          static_cast<const clang::FunctionDecl*>(refFuncDeclNode->getType()), 
-                                          jsonNode->getValue().c_str() );    
-   }
-   else {
-      if ( jsonNode->isArray() ) {
-	 newNode = NameValueNode::createObject( jsonNode->getName().c_str() );
-      }
-      else if ( jsonNode->isObject()) {
-         newNode = NameValueNode::createObject( jsonNode->getName().c_str() );
-      }
-      else {
-//          is it a value ?
-         newNode = NameValueNode::createValue(jsonNode->getName().c_str(), jsonNode->getValue().c_str() );
-      }
-   }
-   */
    
    return newNode;
 }
@@ -473,8 +423,6 @@ bool UnitTestData::buildTreeData( const NameValueNode* tempTreeFromJson)
 // 	       continue;
             }
          }
-         
-
          
          if ( childJsonNode->isObject() ) {
             
@@ -527,8 +475,4 @@ bool UnitTestData::buildTreeData( const NameValueNode* tempTreeFromJson)
 
 void UnitTestData::testActions() const
 {
-//    PrintAction action;
-//    NodeVisitor visitor( &action );
-//    _treeFromAST->visit( &visitor);
-   
 }

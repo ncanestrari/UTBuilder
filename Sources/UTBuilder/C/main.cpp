@@ -10,9 +10,7 @@
 #include "UnitTestData.h"
 
 #include <iostream>
-#include <fstream>
 #include <string>
-#include <vector>
 #include <cstdlib>
 #include <exception>
 
@@ -46,29 +44,29 @@ int main(int argc, const char *argv[])
       
       
       if( optionParser.isExampleEnabled() ) {
-// 	 write json example file to be filled
+         //write json example file to be filled
          JsonWriter jsonWriter( unitTestData );
          // do we have to check if OptionParser::get().getOutputName() is empty ?
          jsonWriter.templateFile( optionParser.getOutputName() );
       }
       else {
 
-// 	 read the json input file and write unit test files
-	 JsonReader reader(unitTestData);
-	 reader.parse( optionParser.getJsonFileName() );
-	 
-	 std::string outputFileName = clangCompiler.getProjectDescription().getOutputFileName();
-	 
-	 WritersManager writerManager(outputFileName, unitTestData, clangCompiler );
-	 
-// 	 create the writers and add to the manager  
-	 writerManager.add( new MockWriter() );
-	 writerManager.add( new UnitTestFileWriter() );
-	 writerManager.add( new SerializationWriter() );
-	 writerManager.add( new StructuresToSerializeWriter() );
-	 writerManager.add( new CMakeFileWriter() );
-	 
-	 writerManager.write();
+         //read the json input file and write unit test files
+         JsonReader reader(unitTestData);
+         reader.parse( optionParser.getJsonFileName() );
+
+         std::string outputFileName = clangCompiler.getProjectDescription().getOutputFileName();
+ 
+         WritersManager writerManager(outputFileName, unitTestData, clangCompiler );
+ 
+         //create the writers and add to the manager  
+         writerManager.add( new MockWriter() );
+         writerManager.add( new UnitTestFileWriter() );
+         writerManager.add( new SerializationWriter() );
+         writerManager.add( new StructuresToSerializeWriter() );
+         writerManager.add( new CMakeFileWriter() );
+
+         writerManager.write();
       }
 
    } 
@@ -84,8 +82,6 @@ int main(int argc, const char *argv[])
       return EXIT_FAILURE;
    }
    
-   //check if temporary files are still there, close them and rm them
-   //rm the fakesource.c 
    return EXIT_SUCCESS;   
    
 }

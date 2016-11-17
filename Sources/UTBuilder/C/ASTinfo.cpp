@@ -20,23 +20,6 @@ void FunctionsToMock::clear()
    _nameDeclMap.clear();
 }
 
-/*
-results &results::get(void)
-{
-   static results instance;
-   return instance;
-};
-
-
-void results::clear()
-{
-   structDecls.clear();
-   typedefNameDecls.clear();
-   includesForUnitTest.clear();
-   functionDeclTypes.clear();
-}
-*/
-
 
 void ASTinfo::clear()
 {
@@ -56,21 +39,9 @@ void ASTinfo::clear()
 
 void ASTinfo::addFunctionToUnitTest(const clang::FunctionDecl* funcDecl, const clang::FunctionDecl* mockFuncDecl)
 {
-   // check if the function decl is already added
-//    auto iter = _functionsToUnitTest.declKeySetMap.find(funcDecl);
-//    if ( iter == _functionsToUnitTest.declKeySetMap.end() ) {
+      // check if the function decl is already added
       _functionsToUnitTest._nameDeclMap[funcDecl->getNameAsString()] = funcDecl;
       _functionsToUnitTest._declKeySetMap[funcDecl] = FunctionDeclSet();   
-//    }
-//    else {
-//       
-//    }
-//    
-//    auto mockIter = _functionsToMock.declKeySetMap.find(mockFuncDecl);
-//    if ( mockIter  == _functionsToMock.declKeySetMap.end() ) {
-//    // add the function decl to mock
-//    // TO DO: NOT IMPLEMETED YET
-//    }
 }
 
 
@@ -91,10 +62,10 @@ void ASTinfo::addFunctionToMock(const clang::FunctionDecl* mockFuncDecl, const c
    if (_functionsToUnitTest._declKeySetMap.size() > 0) {
       iter = _functionsToUnitTest._declKeySetMap.find(callerFuncDecl);
       if (iter != _functionsToUnitTest._declKeySetMap.end()) {
-	 iter->second.insert(mockFuncDecl);
+    iter->second.insert(mockFuncDecl);
       } else {
-	 // just a temporary check to debug
-	 std::cout <<  mockFuncDecl->getNameAsString() << ": mock function caller ("<< callerFuncDecl->getNameAsString() <<") doesn't need to be tested\n";
+    // just a temporary check to debug
+    std::cout <<  mockFuncDecl->getNameAsString() << ": mock function caller ("<< callerFuncDecl->getNameAsString() <<") doesn't need to be tested\n";
       }
    }
 }
@@ -147,7 +118,6 @@ void ASTinfo::fillFunctionQualTypes(void)
    for (auto functionToTest : _functionsToUnitTest._declKeySetMap) {
       const clang::FunctionDecl *funcDecl = functionToTest.first;
       const clang::QualType returnType = funcDecl->getReturnType();
-//       results::get().functionDeclTypes.insert(returnType->getCanonicalTypeInternal().getTypePtrOrNull());
       _functionDeclTypes.insert(returnType->getCanonicalTypeInternal().getTypePtrOrNull());
       const int numParms = funcDecl->getNumParams();
 
@@ -159,3 +129,4 @@ void ASTinfo::fillFunctionQualTypes(void)
       }
    }
 }
+

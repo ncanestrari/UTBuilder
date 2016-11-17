@@ -1,3 +1,4 @@
+
 #include "TreeNodesActions.h"
 
 #include "TreeNodes.h"
@@ -46,3 +47,4 @@ bool PrintJsonAction::run(FunctionDeclNode* node)
    std::cout << "name=" << node->getName() << "\tvalue=" << node->getName() << "\tconst FunctionDecl*=" << type->getNameAsString() << std::endl;
    return true;
 }
+

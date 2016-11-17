@@ -7,10 +7,10 @@
 
 
 StructVisitor::StructVisitor(clang::ASTContext*              context,
-                             const std::vector<std::string>& fileNames,
-			     ClangCompiler& compiler 
- 			   )
-   : Visitor(context, fileNames, compiler)
+      const std::vector<std::string>& fileNames,
+      ClangCompiler& compiler 
+      )
+: Visitor(context, fileNames, compiler)
 {
 }
 
@@ -33,38 +33,22 @@ bool StructVisitor::VisitDecl(clang::Decl *decl)
       }
 
       const clang::Type *declType = structdef->getTypeForDecl();
-      
-      /*
-      if (results::get().functionDeclTypes.find(declType) ==  results::get().functionDeclTypes.end()) {
-         return true;
-      }
 
-      //  check if this RecordDecl is already in a TypedefDecl
-      for (auto typedefIter : results::get().typedefNameDecls) {
-         //canonical Types: http://clang.llvm.org/docs/InternalsManual.html#canonical-types
-         const clang::QualType typedefQualType = typedefIter->getCanonicalDecl()->getUnderlyingType();
-         const clang::Type *typedefDeclType = typedefQualType->getCanonicalTypeInternal().getTypePtrOrNull();
 
-         if (declType != typedefDeclType) {
-            results::get().structDecls.insert(structure);
-         }
-      }
-      */
-      
       if (_info->getFunctionDeclTypes().find(declType) ==  _info->getFunctionDeclTypes().end()) {
          return true;
       }
-            //  check if this RecordDecl is already in a TypedefDecl
+      //  check if this RecordDecl is already in a TypedefDecl
       for (auto typedefIter : _info->getTypedefNameDecls() ) {
          //canonical Types: http://clang.llvm.org/docs/InternalsManual.html#canonical-types
          const clang::QualType typedefQualType = typedefIter->getCanonicalDecl()->getUnderlyingType();
          const clang::Type *typedefDeclType = typedefQualType->getCanonicalTypeInternal().getTypePtrOrNull();
 
          if (declType != typedefDeclType) {
-	    _info->addStructureDecl(structure);
+            _info->addStructureDecl(structure);
          }
       }
-      
+
    }
 
    return true;

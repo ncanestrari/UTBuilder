@@ -46,7 +46,6 @@ void BaseWriter::init(const std::string&    fileName,
 {
    _fileName = fileName;
    _data = data;
-//    _compiler = compiler;
    _info = &compiler->getASTinfo();
    _sourceMgr = &compiler->getSourceManager();
 }
@@ -130,7 +129,6 @@ const Plustache::Context* MockWriter::createContext()
       context->add("includes", Include);
    }
 
-//    const FunctionDeclKeySetMap& funcsToMock = _data->getFunctionToMock();
    for (const auto& iter : funcsToMock) {
 
       const clang::FunctionDecl *funcDecl = iter.first;
@@ -335,7 +333,6 @@ const Plustache::Context* StructuresToSerializeWriter::createContext()
       Include["include"] = iter;
       context->add("includes", Include);
    }
-   //Include["include"] = Include["include"] = utils::changeFileExtension(boost::filesystem::path(_fileName).filename().string(), "h");
    context->add("includes", Include);
 
    context->add("filename", _fileName);
