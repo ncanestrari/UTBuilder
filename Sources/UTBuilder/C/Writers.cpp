@@ -40,9 +40,9 @@ const std::string CMakeFileWriter::_templateSuffix = std::string("");
 
 
 
-void BaseWriter::init(  const std::string&         fileName,
-			const UnitTestData*           data,
-			const ClangCompiler* compiler )
+void BaseWriter::init(const std::string&    fileName,
+                      const UnitTestData*   data,
+                      const ClangCompiler*  compiler )
 {
    _fileName = fileName;
    _data = data;
@@ -155,8 +155,8 @@ const Plustache::Context* MockWriter::createContext()
       const FunctionDeclNode* funcName = dynamic_cast<const FunctionDeclNode*>(childObj->getChild("_name"));
       
       if ( funcName == nullptr ){
-	 std::cout << "PROBLEM: no ""_name"" field for mocks array index " << childObj->getName() << std::endl;
-	 continue;
+         std::cout << "PROBLEM: no ""_name"" field for mocks array index " << childObj->getName() << std::endl;
+         continue;
       }
       const std::string& name = funcName->getValue();
       const clang::FunctionDecl* funcDecl = static_cast<const clang::FunctionDecl*>(funcName->getType());
@@ -439,9 +439,9 @@ const Plustache::Context* UnitTestFileWriter::createContext()
 CMakeFileWriter::CMakeFileWriter() = default;
 
 
-void CMakeFileWriter::init(  const std::string&         fileName,
-			const UnitTestData*           data,
-			const ClangCompiler* compiler )
+void CMakeFileWriter::init(const std::string&    fileName,
+                           const UnitTestData*   data,
+                           const ClangCompiler*  compiler )
 {
    
    //    _compiler = compiler;
@@ -451,32 +451,29 @@ void CMakeFileWriter::init(  const std::string&         fileName,
    _testFileName = boost::filesystem::path(fileName).filename().string() + UnitTestFileWriter::_templateSuffix;
  
    const std::string outputFileName = compiler->getProjectDescription().getOutputFileName();
-   _fileName = boost::filesystem::path(outputFileName).parent_path().string() + "/" + "CMakeLists.txt";
+   _fileName = "CMakeLists.txt";
    _data = data;
   
    _sources = &compiler->getProjectDescription().getSources();
    _includePaths = &compiler->getProjectDescription().getIncludePaths();
+   _workspace = &compiler->getProjectDescription().getWorkspace();
 }
 
 
 const Plustache::Context* CMakeFileWriter::createContext() 
 {
-   
    Plustache::Context* context = new Plustache::Context();
-   
    PlustacheTypes::ObjectType   objType;
 
-   boost::filesystem::path cwd = boost::filesystem::current_path();
-
    for (const boost::filesystem::path& iter : *_includePaths) {
-      objType["include"] = cwd.string() + "/" + iter.string();
+      objType["include"] = (*_workspace / iter).string();
       context->add("includes", objType);
    }
 
    objType.clear();
    
    for (const boost::filesystem::path& iter : *_sources) {
-      objType["source"] = cwd.string() + "/" + iter.string();
+      objType["source"] = (*_workspace / iter).string();
       context->add("sources", objType);
    }
 

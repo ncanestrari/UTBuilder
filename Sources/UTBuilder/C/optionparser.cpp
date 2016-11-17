@@ -13,8 +13,10 @@ using boost::any;
 using boost::any_cast;
 using boost::char_separator;
 using boost::tokenizer;
+using boost::filesystem::create_directory;
 using boost::filesystem::current_path;
 using boost::filesystem::exists;
+using boost::filesystem::is_directory;
 using boost::filesystem::path;
 using boost::program_options::notify;
 using boost::program_options::options_description;
@@ -136,7 +138,6 @@ void OptionParser::createOptionMap(int ac, const char* av[])
       }
       current_path(p);
    }
-   
 }
 
 

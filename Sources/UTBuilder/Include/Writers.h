@@ -160,7 +160,7 @@ private:
    
    const std::set<boost::filesystem::path>* _sources;
    const std::set<boost::filesystem::path>* _includePaths;
-   
+   const boost::filesystem::path* _workspace;
 };
 
 

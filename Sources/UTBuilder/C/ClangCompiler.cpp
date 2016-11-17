@@ -4,6 +4,7 @@
 #include <boost/filesystem.hpp>
 using boost::filesystem::current_path;
 using boost::filesystem::path;
+using boost::filesystem::remove;
 
 #include <clang/Basic/TargetInfo.h>
 #include <clang/Basic/TargetOptions.h>
@@ -126,11 +127,11 @@ void ClangCompiler::computeAST(const OptionParser& optionParser)
    Consumer astConsumer(&_compiler.getASTContext(), _projectDescription.getAllFileNames(), *this);//pass source files
 
    // clear the results before parsing the AST
-//    results::get().clear();
    _info.clear();
    
    // Parse the AST and execute all the visitors
    ParseAST(_compiler.getPreprocessor(), &astConsumer, _compiler.getASTContext());
    
-
+   //end of task for FakeSource cleaning up
+   remove(path("fakesource.c"));
 }

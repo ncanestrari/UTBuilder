@@ -13,6 +13,7 @@ namespace clang{
 }
 
 class NameValueNode;
+class ClangCompiler;
 
 
 class UnitTestData
@@ -21,7 +22,7 @@ class UnitTestData
 public:
    
    
-   UnitTestData(const ASTinfo& _info);
+   UnitTestData(const ClangCompiler* compiler );
    
    UnitTestData(const UnitTestData&) = delete;
    
@@ -71,7 +72,9 @@ private:
    const FunctionDeclKeySetMap* _funcDeclsMap;
    const FunctionDeclKeySetMap* _mockDeclsMap;
   
-   
+   const std::vector<std::string>& _descFileNames;
+   const std::string& _outputFileName;
+    
    static const unsigned int _defaultExampleContentSize;
    
 };

@@ -9,7 +9,7 @@
 #include <json/json.h>
 
 #include "optionparser.h"
-
+#include <boost/filesystem.hpp>
 
 class ProjectDescription 
 {
@@ -26,6 +26,7 @@ public:
    void clear(void);
    void init(const OptionParser& optionParser );
    void createFakeSource(void); // might go to utils...
+   void removeFakeSource(void) { boost::filesystem::remove(boost::filesystem::path(_inputFileName)); }
    void getFromOptionParser(const OptionParser& optionParser);
    
    //getters 
@@ -40,6 +41,9 @@ public:
    
    const std::string & getOutputFileName(void) { return _outputFileName; }
    const std::string & getOutputFileName(void) const { return _outputFileName; }
+   
+   const boost::filesystem::path & getWorkspace(void) { return _workspace; }
+   const boost::filesystem::path & getWorkspace(void) const { return _workspace; }
    
    const std::set<boost::filesystem::path> & getSources(void) { return _sources; }
    const std::set<boost::filesystem::path> & getSources(void) const { return _sources; }
@@ -62,10 +66,10 @@ protected:
    std::vector<std::string> _dirNames;
    std::vector<std::string> _includePaths;
    
-   std::string _inputFileName;
+   static const std::string _inputFileName;
    std::string _outputFileName;
-   std::string _workspace;
    
+   boost::filesystem::path _workspace;
    std::set<boost::filesystem::path> _sources;
    std::set<boost::filesystem::path> _packages;
    std::set<boost::filesystem::path> _include_dirs;

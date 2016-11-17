@@ -37,10 +37,10 @@ public:
    OptionParser() = default;
    
    OptionParser(const OptionParser& other) : 
-   _vm(other._vm), 
-   _all(other._all) {}
+      _vm(other._vm), 
+      _all(other._all) {}
    
-   ~OptionParser(){}
+   ~OptionParser() = default;
 
    void createOptionMap(int ac, const char* av[]);
    void printHelp(void) { std::cout << _visible << std::endl; }
@@ -56,7 +56,7 @@ public:
    bool isJsonFileNameEnabled(void) const { return _vm.count("json"); }
    
 //    const std::vector<std::string>& getFunctionsToTest(void) { return _vm["functions"].as<CommaSeparatedVector>().values; }
-   const std::string & getOutputName(void) const { return _vm["output"].as<std::string>(); }
+   const std::string getOutputName(void) const { return _vm.count("output") ? _vm["output"].as<std::string>() : ""; }
    const std::string & getJsonFileName(void) const { return _vm["json"].as<std::string>(); }
    void getFileNames(std::vector<std::string>&) const;
 //    void getFunctionsToTest(std::set<std::string>&);

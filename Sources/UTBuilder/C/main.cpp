@@ -42,7 +42,7 @@ int main(int argc, const char *argv[])
       clangCompiler.computeAST( optionParser );
       
       // create data from AST
-      UnitTestData unitTestData( clangCompiler.getASTinfo() );
+      UnitTestData unitTestData( &clangCompiler );
       
       
       if( optionParser.isExampleEnabled() ) {

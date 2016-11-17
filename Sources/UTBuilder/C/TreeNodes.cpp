@@ -54,7 +54,7 @@ NameValueNode* NameValueNode::createArray(const char *name)
 
 NameValueNode* NameValueNode::createArrayElement(unsigned int index, const char* val)
 {
-   if ( val == "") {
+   if ( val == nullptr ) {
       val = NameValueNode::_arrayElementObject;
    }
    return new NameValueNode( std::to_string(index).c_str(), val );

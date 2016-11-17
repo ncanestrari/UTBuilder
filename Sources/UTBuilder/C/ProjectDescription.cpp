@@ -3,6 +3,7 @@
 #include "ProjectDescription.h"
 
 #include <boost/filesystem/convenience.hpp> 
+using boost::filesystem::current_path;
 using boost::filesystem::exists;
 using boost::filesystem::path;
 
@@ -26,7 +27,7 @@ using Json::Value;
 #include "optionparser.h"
 #include "Utils.h"
 
-
+const std::string ProjectDescription::_inputFileName = "fakesource.c";
 
 void FillWithArrayOfStringFromField(vector<string> &vstr, const Value &rootValue, const char *key)
 {
@@ -79,7 +80,7 @@ void ProjectDescription::deSerializeJson(const Value &rootDesc, const void * )
 
 void ProjectDescription::clear(void)
 {
-   _outputFileName = "";
+   _outputFileName.clear();
    _fileNames.clear();
    _dirNames.clear();
    _sources.clear();
@@ -107,7 +108,8 @@ void ProjectDescription::init(const OptionParser& optionParser)
     * AND preserve the file origin and position of each declarations.
     * 
     */
-   _inputFileName = "fakesource.c";
+   
+   _workspace = current_path();
    
    for (const string & fname : _fileNames){
       path p = path(fname);
@@ -123,6 +125,7 @@ void ProjectDescription::init(const OptionParser& optionParser)
 
    Utils::getIncludePaths(_packages, _include_dirs);
    Utils::getSourcesPaths(_packages, _sources_dirs);
+   
 }
 
 
@@ -161,6 +164,7 @@ void ProjectDescription::getFromOptionParser(const OptionParser& optionParser)
    } else {
        //add from command line instead of desc
       optionParser.getFileNames(_fileNames);
+      _outputFileName = optionParser.getOutputName();
    }
 
 }

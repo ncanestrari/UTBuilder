@@ -7,6 +7,8 @@
 #include "TreeNodes.h"
 #include "UnitTestDataUtils.h"
 
+#include "ClangCompiler.h"
+
 // #include "NameValueTypeActions.h"
 // #include "NameValueTypeVisitor.h"
 
@@ -14,9 +16,11 @@ const unsigned int UnitTestData::_defaultExampleContentSize = 2;
 
 
 
-UnitTestData::UnitTestData(const ASTinfo& _info)
-: _funcDeclsMap(&_info.getFunctionsToUnitTestMap())
-, _mockDeclsMap(&_info.getFunctionsToMockMap())
+UnitTestData::UnitTestData(const ClangCompiler* compiler)
+: _funcDeclsMap(&compiler->getASTinfo().getFunctionsToUnitTestMap() )
+, _mockDeclsMap(&compiler->getASTinfo().getFunctionsToMockMap() )
+, _descFileNames( compiler->getProjectDescription().getAllFileNames() )
+, _outputFileName( compiler->getProjectDescription().getOutputFileName() ) 
 {
 //    build the _treeFromAST
    buildTreeFromAST();
@@ -62,16 +66,23 @@ NameValueNode* UnitTestData::buildDescTree()
 //    files
    NameValueNode* filesChildNode = NameValueNode::createArray("files");
    descNode->addChild(filesChildNode);
+   
+   unsigned int counter = 0;
+   for ( const auto& file : _descFileNames ) {
+      NameValueNode* childNode = NameValueNode::createArrayElement( counter, file.c_str());
+      filesChildNode->addChild(childNode);
+      counter++;
+   }
       
 //    dirs
    NameValueNode* dirsChildNode = NameValueNode::createArray("dirs");
    descNode->addChild(dirsChildNode);
    
 //    output
-   NameValueNode* outputChildNode = NameValueNode::createValue("output");
+   NameValueNode* outputChildNode = NameValueNode::createValue("output", _outputFileName.c_str());
    descNode->addChild(outputChildNode);            
-                
-   
+       
+ 
    return descNode;
 }
 
@@ -237,10 +248,10 @@ void UnitTestData::serializeJson(Json::Value &jsonRoot, const NameValueNode* dat
             
             currentJson[name] = Json::Value(Json::arrayValue);
             UnitTestDataUtils::addJsonArrayComment(currentJson[name], childNode);
-            
+	    
             Stack.push( JsonTreeNodePair(currentJson[name], childNode) ); 
          }
-         else if (childNode->isArrayElement() ) {
+         else if (childNode->isArrayElementObject() ) {
             
             const int index = childNode->getIndex();
             currentJson[index] = Json::Value(Json::objectValue);         
@@ -248,6 +259,10 @@ void UnitTestData::serializeJson(Json::Value &jsonRoot, const NameValueNode* dat
    
             Stack.push( JsonTreeNodePair(currentJson[index], childNode) ); 
          }
+         else if (childNode->isArrayElementValue()) {
+	    const int index = childNode->getIndex();
+            currentJson[index] = childNode->getValue();         
+	 }
          else { 
             
             // if childNode is a struct {} keep recursing            

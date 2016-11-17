@@ -64,7 +64,7 @@ public:
    
    static NameValueNode* createArray(const char *name);
    
-   static NameValueNode* createArrayElement(unsigned int index, const char* val = "");
+   static NameValueNode* createArrayElement(unsigned int index, const char* val = nullptr);
    
 
    // Prototype pattern interface
@@ -89,9 +89,9 @@ public:
    bool isArray() const { return (_value == "array" ); }
    bool isObject() const { return (_value == "object" );}
    
-   const bool isArrayElement(void) const { return (_value == NameValueNode::_arrayElementObject || _isNameInteger() ); }
-   const bool isArrayElementObject(void) const { return (_value == NameValueNode::_arrayElementObject ); }
-   const bool isArrayElementValue(void) const { return ( _isNameInteger() ); }
+   const bool isArrayElement(void) const { return  _isNameInteger(); }
+   const bool isArrayElementObject(void) const { return ( isArrayElement() && _value == NameValueNode::_arrayElementObject ); }
+   const bool isArrayElementValue(void) const { return ( isArrayElement() && _value != NameValueNode::_arrayElementObject ); }
    
    
    int getIndex(void) const;
