@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "-fmax-errors=10")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set ( HEADER_FILES
+   Include/AllTypesVisitor.h
    Include/Consumer.h
    Include/FuncUTDefVisitor.h
    Include/ClangCompiler.h
@@ -29,6 +30,7 @@ set ( HEADER_FILES
    )
 
 set ( SOURCE_FILES
+   C/AllTypesVisitor.cpp
    C/main.cpp
    C/Consumer.cpp
    C/FuncUTDefVisitor.cpp

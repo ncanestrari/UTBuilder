@@ -5,6 +5,8 @@
 #include "FuncUTDefVisitor.h"
 #include "StructVisitor.h"
 #include "TypedefVisitor.h"
+#include "AllTypesVisitor.h"
+
 #include "Utils.h"
 
 #include <clang/AST/ASTContext.h>
@@ -19,6 +21,7 @@ Consumer::Consumer(clang::ASTContext*              context,
    , _declVisitor(nullptr)
    , _typedefVisitor(nullptr)
    , _structVisitor(nullptr)
+   , _allTypesVisitor(nullptr)
    , _info( &compiler.getASTinfo() )
 {
    _mockVisitor = std::unique_ptr<MockVisitor>( new MockVisitor(context, fileNames, compiler) );
@@ -26,6 +29,7 @@ Consumer::Consumer(clang::ASTContext*              context,
    _declVisitor = std::unique_ptr<FuncUTDeclVisitor>(new FuncUTDeclVisitor(context, fileNames, compiler) );
    _typedefVisitor = std::unique_ptr<TypedefVisitor>( new TypedefVisitor(context, fileNames, compiler) );
    _structVisitor = std::unique_ptr<StructVisitor>( new StructVisitor(context, fileNames, compiler) );
+   _allTypesVisitor = std::unique_ptr<AllTypesVisitor>( new AllTypesVisitor(context, fileNames, compiler) );
 }
 
 Consumer::~Consumer() = default;
@@ -44,5 +48,7 @@ void Consumer::HandleTranslationUnit(clang::ASTContext &ctx)
 
    _typedefVisitor->TraverseDecl(ctx.getTranslationUnitDecl());
    _structVisitor->TraverseDecl(ctx.getTranslationUnitDecl());
+   
+   _allTypesVisitor->TraverseDecl(ctx.getTranslationUnitDecl());
 }
 

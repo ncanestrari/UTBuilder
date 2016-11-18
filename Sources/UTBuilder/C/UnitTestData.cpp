@@ -4,10 +4,14 @@
 
 #include <stack>
 
+#include <stdexcept>
+using std::logic_error;
+
 #include "TreeNodes.h"
 #include "UnitTestDataUtils.h"
 
 #include "ClangCompiler.h"
+
 
 // #include "NameValueTypeActions.h"
 // #include "NameValueTypeVisitor.h"
@@ -17,7 +21,8 @@ const unsigned int UnitTestData::_defaultExampleContentSize = 2;
 
 
 UnitTestData::UnitTestData(const ClangCompiler* compiler)
-: _funcDeclsMap(&compiler->getASTinfo().getFunctionsToUnitTestMap() )
+: _allTypesMap(&compiler->getASTinfo().getAllTypesMap() )
+, _funcDeclsMap(&compiler->getASTinfo().getFunctionsToUnitTestMap() )
 , _mockDeclsMap(&compiler->getASTinfo().getFunctionsToMockMap() )
 , _descFileNames( compiler->getProjectDescription().getAllFileNames() )
 , _outputFileName( compiler->getProjectDescription().getOutputFileName() ) 
@@ -57,6 +62,9 @@ NameValueNode* UnitTestData::buildTreeFromAST()
    NameValueNode* funcsNode = buildTree("funcs", *_funcDeclsMap);
    _treeFromAST->addChild(funcsNode); 
    
+   NameValueNode* globalsNode = buildGlobalsTree();
+   _treeFromAST->addChild(globalsNode);
+   
 }
    
 NameValueNode* UnitTestData::buildDescTree()
@@ -86,6 +94,10 @@ NameValueNode* UnitTestData::buildDescTree()
    return descNode;
 }
 
+NameValueNode* UnitTestData::buildGlobalsTree()
+{
+   NameValueNode* descNode = NameValueNode::createArray("globals");
+}
 
 NameValueNode* UnitTestData::buildTree(const char* treeName, const FunctionDeclKeySetMap& declMap )
 {
@@ -114,8 +126,8 @@ NameValueNode* UnitTestData::buildTree(const char* treeName, const FunctionDeclK
 }
 
 
-NameValueNode* UnitTestData::buildContentTree( const clang::FunctionDecl *funcDecl,
-                                                   const std::set<const clang::FunctionDecl *> &funcs)
+NameValueNode* UnitTestData::buildContentTree(const clang::FunctionDecl*                   funcDecl,
+                                              const std::set<const clang::FunctionDecl *>& funcs)
 {
    NameValueNode* contentArray = NameValueNode::createArray("content");
    
@@ -363,7 +375,16 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot )
    
    // create the data tree _treeData adding specialized node (QualTypeNode,FunctionDeclNode)
    if ( tempTreeFromJson ) {
+      
       buildTreeData( tempTreeFromJson.get() );
+      
+      NameValueNode* globalsTreeData = buildGlobalsTreeData(tempTreeFromJson.get());
+      
+      if ( globalsTreeData != nullptr ) {
+//          add globals tree node branch
+         _treeData->addChild(globalsTreeData);
+      }
+      
    }
    
 }
@@ -409,7 +430,7 @@ bool UnitTestData::buildTreeData( const NameValueNode* tempTreeFromJson)
          continue;
       
       const std::map< std::string, std::unique_ptr<NameValueNode> >& children = currentJsonNode->getChildren();
-      for (auto child=children.rbegin(); child!=children.rend(); ++child) {
+      for ( auto child=children.rbegin(); child!=children.rend(); ++child) {
          
          const std::string& childJsonName = child->first;
          const NameValueNode* childJsonNode = child->second.get();
@@ -441,11 +462,12 @@ bool UnitTestData::buildTreeData( const NameValueNode* tempTreeFromJson)
             NameValueNode* newArrayElementNode = NameValueNode::createArrayElement(childJsonNode->getIndex());
             currentDataNode->addChild(newArrayElementNode);
             
-            if ( currentJsonNode->getName()=="funcs" || currentJsonNode->getName()=="mocks" ) {
+            if ( currentJsonNode->getName()=="funcs" || 
+                 currentJsonNode->getName()=="mocks") {
                
                const NameValueNode* nameField = childJsonNode->getChild("_name");
                if ( nameField== nullptr ) {
-                  std::cout << "ERROR: array object with index" << childJsonNode->getName() << " has no _name fieldt\n";
+                  throw logic_error("ERROR: array object with index " + childJsonNode->getName() + " has no _name field");
                }
                
                 
@@ -456,8 +478,6 @@ bool UnitTestData::buildTreeData( const NameValueNode* tempTreeFromJson)
                      break;
                   }
                }
-               
-               
             }
             
             Stack.push( treeNodeTuple( refChildNode, childJsonNode, newArrayElementNode) );  
@@ -470,6 +490,211 @@ bool UnitTestData::buildTreeData( const NameValueNode* tempTreeFromJson)
          
       }
    }
+}
+
+
+NameValueNode*  UnitTestData::buildGlobalsTreeData( const NameValueNode* tempTreeFromJson)
+{
+   const NameValueNode* tempGlobalsFromJson = tempTreeFromJson->getChild("globals");
+   if ( tempGlobalsFromJson == nullptr )
+      return false;
+   
+   NameValueNode* _globalsTreeNodeData = NameValueNode::createArray("globals");
+   
+   unsigned int arrayIndex = 0;
+   
+   const std::map< std::string, std::unique_ptr<NameValueNode> >& children = tempGlobalsFromJson->getChildren();
+   for ( auto child=children.rbegin(); child!=children.rend(); ++child) {
+         
+      const NameValueNode* childJsonNode = child->second.get();
+      
+      if ( childJsonNode->isArrayElementObject() == false ) {
+         continue;
+      }
+      
+      NameValueNode* newArrayElementNode = NameValueNode::createArrayElement( arrayIndex );
+      _globalsTreeNodeData->addChild(newArrayElementNode);
+            
+      
+      const NameValueNode* typeNode = childJsonNode->getChild("_type");
+      if ( typeNode== nullptr ) {
+         throw logic_error("ERROR: array object with index " + childJsonNode->getName() + " has no _type field");
+      }
+      
+      const NameValueNode* nameNode = childJsonNode->getChild("_name");
+      if ( nameNode== nullptr ) {
+         throw logic_error("ERROR: array object with index " + childJsonNode->getName() + " has no _name field");
+      }
+      // TODO Process Value to strip all qualifiers (const, static, *, ...)
+      const auto& qualTypeIter = _allTypesMap->find(typeNode->getValue()) ;
+      if ( qualTypeIter == _allTypesMap->end() ) {
+         throw logic_error("ERROR: array object with index " + childJsonNode->getName() + " set type " + typeNode->getValue() + " which is not defined");
+      }
+      
+      const NameValueNode* contentJsonNode = childJsonNode->getChild("content");
+      if ( contentJsonNode== nullptr ) {
+         throw logic_error("ERROR: array object with index " + contentJsonNode->getName() + " has no content field");
+      }
+      
+      
+      QualTypeNode* childQualTypeNode = nullptr;
+      
+      const std::map< std::string, std::unique_ptr<NameValueNode> >& contentChildren = contentJsonNode->getChildren();
+      for ( auto contentChild=contentChildren.begin(); contentChild!=contentChildren.end(); ++contentChild)  {
+         
+         const std::string& typeName =  qualTypeIter->first;
+         const clang::QualType& qualType = qualTypeIter->second;
+         const NameValueNode* contentChildNode = contentChild->second.get();
+         
+         const clang::RecordType * structType = qualType->getAsStructureType();
+
+         childQualTypeNode = QualTypeNode::create( typeName.c_str(), qualType );
+//             Stack.push( treeNodeTuple( qualType, child.second.get(), childQualTypeNode) ); 
+         
+         typedef std::tuple< const NameValueNode*, const clang::QualType&, NameValueNode* > treeNodeTuple;
+         std::stack< treeNodeTuple > Stack;
+
+         Stack.push( treeNodeTuple( contentChildNode, qualType, childQualTypeNode) );
+         
+         while ( Stack.empty() )
+         {
+            const treeNodeTuple& top = Stack.top();
+            Stack.pop();
+            
+            const NameValueNode* currentJsonNode = std::get<0>(top);
+            const clang::QualType& refQualType = std::get<1>(top);
+            NameValueNode* currentDataNode = std::get<2>(top);
+            
+            
+            const std::string& refQualTypeName = refQualType.getAsString();
+            
+            const NameValueNode* fieldChildNode = currentJsonNode->getChild( refQualTypeName.c_str() );
+            if ( fieldChildNode == nullptr) {                  
+               throw logic_error("ERROR:  " + childJsonNode->getName() + " has no _name field");
+            }
+               
+            QualTypeNode* newChildQualTypeNode = nullptr;
+            
+            const clang::RecordType *structType = refQualType->getAsStructureType();
+            if (structType == nullptr) {
+               
+               newChildQualTypeNode = QualTypeNode::create( refQualTypeName.c_str(), refQualType, fieldChildNode->getValue().c_str() ); 
+            }
+            else {
+               
+               newChildQualTypeNode = QualTypeNode::create( refQualTypeName.c_str(), refQualType );
+               Stack.push( treeNodeTuple( fieldChildNode, refQualType, newChildQualTypeNode) );                  
+            }
+            
+            currentDataNode->addChild(newChildQualTypeNode);
+         }
+      
+      
+         newArrayElementNode->addChild(childQualTypeNode);          
+      }
+         
+   }
+      
+      
+   return _globalsTreeNodeData;
+   
+   /*
+   typedef std::tuple<const QualTypeNode*, const NameValueNode*, NameValueNode* > treeNodeTuple;
+   std::stack< treeNodeTuple > Stack;
+   
+   
+   
+   
+   Stack.push( treeNodeTuple( QualTypeNode::create(), tempTreeFromJson, _treeData.get()) );
+   
+   while ( !Stack.empty() ) {
+      
+      const treeNodeTuple& top = Stack.top();
+      Stack.pop();
+      
+      const QualTypeNode* RefQualTypeNode = std::get<0>(top);
+      const NameValueNode* currentJsonNode = std::get<1>(top);
+      NameValueNode* currentDataNode = std::get<2>(top);
+      
+      
+      const std::map< std::string, std::unique_ptr<NameValueNode> >& children = currentJsonNode->getChildren();
+      for (auto child=children.rbegin(); child!=children.rend(); ++child) {
+         
+         const std::string& childJsonName = child->first;
+         const NameValueNode* childJsonNode = child->second.get();
+         QualTypeNode* childQualTypeNode = nullptr;
+         
+         if ( childJsonNode->isObject() ) {
+            QualTypeNode* newObjectNode = QualTypeNode::create(childJsonNode->getValue());
+            currentDataNode->addChild(newObjectNode);
+            Stack.push( treeNodeTuple( refChildNode, childJsonNode, newObjectNode) );    
+         }
+         else if ( childJsonNode->isArray() ) {
+            
+            NameValueNode* newArrayNode = NameValueNode::createArray(childJsonName.c_str());
+            currentDataNode->addChild(newArrayNode);
+            Stack.push( treeNodeTuple( refChildNode, childJsonNode, newArrayNode) );  
+         }
+         else if (childJsonNode->isArrayElement() ) {
+            
+            NameValueNode* newArrayElementNode = NameValueNode::createArrayElement(childJsonNode->getIndex());
+            currentDataNode->addChild(newArrayElementNode);
+            
+            if( currentJsonNode->getName()=="globals" ){
+               //check and update type
+               const NameValueNode* typeField = childJsonNode->getChild("_type");
+               if ( typeField== nullptr ) {
+                  throw logic_error("ERROR: array object with index " + childJsonNode->getName() + " has no _type field");
+               }
+               
+               const NameValueNode* nameField = childJsonNode->getChild("_name");
+               if ( nameField== nullptr ) {
+                  throw logic_error("ERROR: array object with index " + childJsonNode->getName() + " has no _name field");
+               }
+               // TODO Process Value to strip all qualifiers (const, static, *, ...)
+               const auto& iter = _allTypesMap->find(typeField->getValue()) ;
+               if ( iter == _allTypesMap->end() ) {
+                  throw logic_error("ERROR: array object with index " + childJsonNode->getName() + " set type " + typeField->getValue() + " which is not defined");
+               }
+               
+                const NameValueNode* contentField = childJsonNode->getChild("content");
+               if ( content== nullptr ) {
+                  throw logic_error("ERROR: array object with index " + childJsonNode->getName() + " has no content field");
+               }
+               
+               
+               const std::map< std::string, std::unique_ptr<NameValueNode> >& children = contentField->getChildren();
+               for ( const auto& child=children.begin(); child!=children.end(); ++child)  {
+                  
+                  const QualType& qualType = iter->second;
+                  const clang::RecordType * structType = qualType->getAsStructureType();
+                  if ( structType == nullptr) {
+                     childQualTypeNode = QualTypeNode::create( iter->first, qualType, child.second.getValue() ); 
+                  }
+                  else {
+                     childQualTypeNode = QualTypeNode::create( iter->first, qualType );
+                     Stack.push( treeNodeTuple( qualType, child.second.get(), childQualTypeNode) );                     
+                  }
+                  
+                  currentDataNode->addChild(newObjectNode); 
+                  
+
+                  
+               }
+               
+            }
+//             Stack.push( treeNodeTuple( childQualTypeNode, childJsonNode, newArrayElementNode) );  
+         }
+         else {
+            
+            NameValueNode* newDataNode = createValidatedNode(refChildNode, childJsonNode );
+            currentDataNode->addChild(newDataNode); 
+         }
+               
+   }
+   */
+   
+   
 }
 
 

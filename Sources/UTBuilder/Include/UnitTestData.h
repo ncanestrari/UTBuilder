@@ -54,12 +54,15 @@ private:
    
    
    NameValueNode* buildDescTree();
+   NameValueNode* buildGlobalsTree();
    NameValueNode* buildTree(const char* treeName, const FunctionDeclKeySetMap& declMap );
-   NameValueNode* buildContentTree( const clang::FunctionDecl *funcDecl,
-                                            const std::set<const clang::FunctionDecl *>& funcs );
+   NameValueNode* buildContentTree(const clang::FunctionDecl*                   funcDecl,
+                                   const std::set<const clang::FunctionDecl *>& funcs );
 
    
    bool buildTreeData(const NameValueNode* tempTreeFromJson);
+   NameValueNode*  buildGlobalsTreeData( const NameValueNode* tempTreeFromJson);
+
    
    NameValueNode* createValidatedNode(const NameValueNode* refQualTypeNode,const NameValueNode* jsonNode );
    
@@ -69,6 +72,7 @@ private:
    
    
    // store these const references from ASTinfo
+   const std::map<std::string, clang::QualType>* _allTypesMap;
    const FunctionDeclKeySetMap* _funcDeclsMap;
    const FunctionDeclKeySetMap* _mockDeclsMap;
   

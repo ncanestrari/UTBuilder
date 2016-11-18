@@ -15,6 +15,8 @@ class FuncUTDeclVisitor;
 class StructVisitor;
 class TypedefVisitor;
 class MockVisitor;
+class AllTypesVisitor;
+
 
 class Consumer : public clang::ASTConsumer {
 
@@ -36,6 +38,7 @@ private:
    std::unique_ptr<StructVisitor>       _structVisitor;
    std::unique_ptr<MockVisitor>         _mockVisitor;
    std::unique_ptr<TypedefVisitor>	_typedefVisitor;
+   std::unique_ptr<AllTypesVisitor>      _allTypesVisitor;
    
    ASTinfo* _info;
 

@@ -4,15 +4,16 @@
 #include <string>
 #include <set>
 #include <map>
+#include <unordered_map>
 
+#include <clang/AST/Decl.h>
 
-
-namespace clang {
-class FunctionDecl;
-class RecordDecl;
-class TypedefNameDecl;
-class Type;
-}
+// namespace clang {
+// class FunctionDecl;
+// class RecordDecl;
+// class TypedefNameDecl;
+// class Type;
+// }
 
 
 typedef std::set<const clang::FunctionDecl *> FunctionDeclSet;
@@ -91,6 +92,8 @@ public:
    void addFunctionToUnitTest(const clang::FunctionDecl* funcDecl, const clang::FunctionDecl* mockFuncDecl = nullptr );
    
    void addFunctionToMock(const clang::FunctionDecl* mockFuncDecl, const clang::FunctionDecl* callerFuncDecl);
+
+   void addAllTypes(const clang::QualType& qualType) { _allTypesMap[qualType.getAsString()] = qualType; }
    
 //    IMPORTANT: call this function after the _functionsToUnitTest and _functionsToMock are set
 //    this is called in Consumer::HandleTranslationUnit()
@@ -112,8 +115,7 @@ public:
    
    const FunctionDeclKeySetMap& getFunctionsToMockMap() const { return _functionsToMock._declKeySetMap; }
    const NameFunctionDeclMap& getFunctionsMock() const { return _functionsToMock._nameDeclMap; }
-   
-   
+   const std::map<std::string, clang::QualType>& getAllTypesMap(void) const { return _allTypesMap; }
 private:
    
    FunctionsToUnitTest  _functionsToUnitTest;
@@ -123,6 +125,7 @@ private:
    std::set<const clang::TypedefNameDecl *>   _typedefNameDecls;
    std::set<std::string>                      _includeFilesForUnitTest;
    std::set<const clang::Type *>              _functionDeclTypes;
+   std::map<std::string, clang::QualType> _allTypesMap;
    
 };
 
