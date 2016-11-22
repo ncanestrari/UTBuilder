@@ -93,7 +93,7 @@ public:
    
    void addFunctionToMock(const clang::FunctionDecl* mockFuncDecl, const clang::FunctionDecl* callerFuncDecl);
 
-   void addAllTypes(const clang::QualType& qualType) { _allTypesMap[qualType.getAsString()] = qualType; }
+   void addAllTypes(const std::string& name, const clang::QualType& qualType) { _allTypesMap[name] = qualType; }
    
 //    IMPORTANT: call this function after the _functionsToUnitTest and _functionsToMock are set
 //    this is called in Consumer::HandleTranslationUnit()

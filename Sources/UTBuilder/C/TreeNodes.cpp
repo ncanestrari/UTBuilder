@@ -167,7 +167,7 @@ QualTypeNode* QualTypeNode::create(const char* name, const clang::QualType& qual
       node = new QualTypeNode(name, qualType, structName.c_str() );
   
       const clang::RecordDecl *structDecl = structType->getDecl();
-      for (const auto field : structDecl->fields()) {
+      for (const auto& field : structDecl->fields()) {
          auto* child = QualTypeNode::create(field->getNameAsString().c_str(), field->getType(), "");
          node->addChild(child);
       }

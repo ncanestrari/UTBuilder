@@ -27,11 +27,14 @@ bool AllTypesVisitor::VisitDecl(clang::Decl *decl)
    const clang::QualType qualType = type_def->getUnderlyingType(); //getCanonicalDecl()->getUnderlyingType();
    const clang::Type *declType = qualType->getCanonicalTypeInternal().getTypePtrOrNull();
 
-   if (declType == nullptr) {
-      return true;
-   }   
+//    if (declType == nullptr) {
+//       return true;
+//    }   
    
-   _info->addAllTypes( qualType );
+   const std::string name = type_def->getNameAsString();
+   std::cout << "type:\t" << qualType.getAsString() << std::endl;
+   
+   _info->addAllTypes( name, qualType );
 
    return true;
 }

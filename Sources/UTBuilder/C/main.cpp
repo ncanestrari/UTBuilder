@@ -39,6 +39,8 @@ int main(int argc, const char *argv[])
       ClangCompiler clangCompiler;
       clangCompiler.computeAST( optionParser );
       
+      
+      
       // create data from AST
       UnitTestData unitTestData( &clangCompiler );
       
