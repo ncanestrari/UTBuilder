@@ -34,7 +34,7 @@ bool AllTypesVisitor::VisitDecl(clang::Decl *decl)
    const std::string name = type_def->getNameAsString();
    std::cout << "type:\t" << qualType.getAsString() << std::endl;
    
-   _info->addAllTypes( name, qualType );
+   _info->addAllTypes( name, type_def );
 
    return true;
 }

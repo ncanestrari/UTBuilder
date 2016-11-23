@@ -58,7 +58,7 @@ bool JsonReader::parse( const string  &fileName)
    
    Json::Value jsonRoot;
  
-   _unitTestData.serializeJson(jsonRoot);
+   _unitTestData.serializeJson(jsonRoot, _unitTestData.getTreeData() );
 
    std::ofstream outputFile;
    boost::filesystem::path tmp("Tests");

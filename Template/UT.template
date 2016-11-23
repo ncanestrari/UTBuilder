@@ -20,6 +20,7 @@ protected:
    
    void SetUp(){
       reset_all_mocks();
+      globals_init();
    }
    
    void TearDown(){

@@ -41,6 +41,7 @@ public:
    const NameValueNode* getDescData() const { return _treeData->getChild("desc"); }
    const NameValueNode* getFuncsData() const { return _treeData->getChild("funcs"); }
    const NameValueNode* getMocksData() const { return _treeData->getChild("mocks"); }
+   const NameValueNode* getGlobalsData() const { return _treeData->getChild("globals"); } 
    
    const FunctionDeclKeySetMap* getFunctionToTest() const { return _funcDeclsMap; }
    const FunctionDeclKeySetMap* getFunctionToMock() const { return _mockDeclsMap; }
@@ -52,15 +53,15 @@ private:
    // temp
    void testActions() const;
    
-   
-   NameValueNode* buildDescTree();
-   NameValueNode* buildGlobalsTree();
-   NameValueNode* buildTree(const char* treeName, const FunctionDeclKeySetMap& declMap );
-   NameValueNode* buildContentTree(const clang::FunctionDecl*                   funcDecl,
-                                   const std::set<const clang::FunctionDecl *>& funcs );
+   // functions to build the example tree
+   NameValueNode* buildDescTreeFromAST();
+   NameValueNode* buildGlobalsTreeFromAST();
+   NameValueNode* buildFuncsTreeFromAST(const char* treeName, const FunctionDeclKeySetMap& declMap );
+   NameValueNode* buildContentTreeFromAST(const clang::FunctionDecl*                   funcDecl,
+                                          const std::set<const clang::FunctionDecl *>& funcs );
 
    
-   bool buildTreeData(const NameValueNode* tempTreeFromJson);
+   NameValueNode*  buildTreeData(const NameValueNode* tempTreeFromJson);
    NameValueNode*  buildGlobalsTreeData( const NameValueNode* tempTreeFromJson);
 
    
@@ -72,7 +73,7 @@ private:
    
    
    // store these const references from ASTinfo
-   const std::map<std::string, clang::QualType>* _allTypesMap;
+   const std::map<std::string, const clang::TypedefNameDecl *>* _allTypesMap;
    const FunctionDeclKeySetMap* _funcDeclsMap;
    const FunctionDeclKeySetMap* _mockDeclsMap;
   

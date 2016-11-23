@@ -2,43 +2,12 @@
 #ifndef _UTBuilder_Writers_h__
 #define _UTBuilder_Writers_h__
 
+#include "WritersManager.h"
+
 // #include <clang/Basic/SourceManager.h>
-#include "ClangCompiler.h"
-#include "UnitTestData.h"
-#include <context.hpp>
 
 
 
-class BaseWriter {
-   
-public:
-  
-   BaseWriter() = default;
-   virtual ~BaseWriter() = default;
-   
-   virtual void init( const std::string&         fileName,
-		      const UnitTestData*           data,
-		      const ClangCompiler*   compiler );
-      
-   void writeTemplate(const std::string& templateFileName, const std::string& outputNameSuffix);
-  
-   
-   virtual const std::string& getTemplateName() const = 0;
-   virtual const std::string& getTemplateSuffix() const = 0;
-   
-protected:
-   
-   virtual const Plustache::Context* createContext() = 0;
-   
-//    const ClangCompiler*   _compiler;
-   std::string            _fileName;
-   const UnitTestData*          _data;
-   
-   const ASTinfo* 		_info;
-   const clang::SourceManager*	_sourceMgr;
-  
-   static const std::string _templateDir;
-};
 
 
 
@@ -161,6 +130,30 @@ private:
    const std::set<boost::filesystem::path>* _sources;
    const std::set<boost::filesystem::path>* _includePaths;
    const boost::filesystem::path* _workspace;
+};
+
+
+
+
+class GlobalsWriter : public BaseWriter 
+{
+   public:
+  
+   GlobalsWriter();
+   virtual ~GlobalsWriter() = default;
+   
+   virtual const std::string& getTemplateName() const  override final { return _templateName; }
+   virtual const std::string& getTemplateSuffix() const  override final { return _templateSuffix; }
+   
+   static const std::string _templateSuffix;
+   
+protected:
+   
+   virtual const Plustache::Context* createContext() override final;
+   
+   static const std::string _templateName;
+    
+    
 };
 
 

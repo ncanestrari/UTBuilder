@@ -20,7 +20,6 @@ using Plustache::Context;
 using Plustache::template_t;
 
 
-const std::string BaseWriter::_templateDir =  std::getenv("TEMPLATE_DIR");
 
 const std::string MockWriter::_templateName = BaseWriter::_templateDir + std::string("/mock.template");
 const std::string MockWriter::_templateSuffix = std::string("-mocks.h");
@@ -37,62 +36,8 @@ const std::string UnitTestFileWriter::_templateSuffix = std::string("-ugtest.cpp
 const std::string CMakeFileWriter::_templateName = BaseWriter::_templateDir + std::string("/CMakeFile.template");
 const std::string CMakeFileWriter::_templateSuffix = std::string("");
 
-
-
-
-void BaseWriter::init(const std::string&    fileName,
-                      const UnitTestData*   data,
-                      const ClangCompiler*  compiler )
-{
-   _fileName = fileName;
-   _data = data;
-   _info = &compiler->getASTinfo();
-   _sourceMgr = &compiler->getSourceManager();
-}
-
-
-void BaseWriter::writeTemplate(const std::string& templateFileName, const std::string& outputNameSuffix)
-{
-   
-   auto context = std::unique_ptr<const Plustache::Context>( createContext() );
-   
-   if ( context == nullptr ) {
-      std::cout << "WARNING: BaseWriter::WriteTemplate() _context has not been created" << std::endl;
-      return;
-   }
-   
-   template_t     t;
-   stringstream   buffer;
-   string         result;
-
-   boost::filesystem::path full_path(boost::filesystem::current_path());
-   ifstream template_file( templateFileName );
-
-   if (template_file.fail()) {
-      std::cout << "template file for mock functions not found";
-      return;
-   }
-
-   buffer << template_file.rdbuf();
-   string         template_buff(buffer.str());
-
-   
-   result = t.render(template_buff, *context);
-
-   std::ofstream outputFile;
-   std::string outputFileName = _fileName + outputNameSuffix;
-   outputFile.open(outputFileName, std::fstream::out);
-   if ( outputFile.is_open() ){
-     outputFile << result;
-     std::cout << "file written: " << outputFileName << std::endl;
-   }
-   else {
-     std::cout << "ERROR: opening path to write: " << outputFileName << " doesn't exist" << std::endl;
-   }
-   outputFile.close();
-
-   
-}
+const std::string GlobalsWriter::_templateName = BaseWriter::_templateDir + std::string("/globals.template");
+const std::string GlobalsWriter::_templateSuffix = std::string("-globals.h");
 
 
 
@@ -387,11 +332,13 @@ const Plustache::Context* UnitTestFileWriter::createContext()
       context->add("includes", Include);
    }
    // add mock file in includes list
-   Include["include"] = boost::filesystem::path(_fileName).filename().string() + "-mocks.h";
+   Include["include"] = boost::filesystem::path(_fileName).filename().string() + MockWriter::_templateSuffix;
    context->add("includes", Include);
-   Include["include"] = boost::filesystem::path(_fileName).filename().string() + "-serialization-struct.h";
+   Include["include"] = boost::filesystem::path(_fileName).filename().string() + StructuresToSerializeWriter::_templateSuffix;
    context->add("includes", Include);
-
+   Include["include"] = boost::filesystem::path(_fileName).filename().string() + GlobalsWriter::_templateSuffix;
+   context->add("includes", Include);
+   
    std::ostringstream    code;
    
    const NameValueNode* funcsToTest = _data->getFuncsData();
@@ -482,4 +429,63 @@ const Plustache::Context* CMakeFileWriter::createContext()
   
    return context; 
 }
+
+
+GlobalsWriter::GlobalsWriter() = default;
+   
+
+const Plustache::Context* GlobalsWriter::createContext() 
+{   
+   const NameValueNode* globalsNode = _data->getGlobalsData();
+   
+   std::set<std::string> includePaths;
+   
+   const std::map< std::string, std::unique_ptr<NameValueNode> >&  globalsChildren = globalsNode->getChildren();
+   for (const auto& globalIter : globalsChildren ) {
+      const NameValueNode* typeNode = globalIter.second->getChild("_type");
+      const clang::TypedefNameDecl * typeDefName = _info->getAllTypesMap().find(typeNode->getValue())->second;
+      //It MUST be there
+      const std::string declSrcFile = Utils::getDeclSourceFile(typeDefName, *_sourceMgr);
+      includePaths.insert(boost::filesystem::path(declSrcFile).filename().string());
+//      includePaths.insert( Utils::getDeclSourceFileLine( typeDefName, *_sourceMgr) );
+   }
+   
+   Plustache::Context* context = new Plustache::Context();
+
+   ObjectType   Include;
+   ObjectType   GlobalToSet;
+
+   for (const std::string& iter : includePaths) {
+      Include["include"] = iter;
+      context->add("includes", Include);
+   }   
+   
+   std::ostringstream    out;
+
+
+   for (const auto& globalIter : globalsChildren) {
+      std::string globalName = globalIter.second->getChild("_name")->getValue();
+      std::string globalType = globalIter.second->getChild("_type")->getValue();
+      const NameValueNode* contentNode = globalIter.second->getChild("content");
+      const std::map< std::string, std::unique_ptr<NameValueNode> >&  contentChildren = contentNode->getChildren();
+      std::string globalSize = std::to_string( contentChildren.size() );
+      for (const auto& contentIter : contentChildren ) {
+         UnitTestDataUtils::writeGlobalsContent(out, globalName, contentIter.second.get());
+      }
+      
+      GlobalToSet["name"] = globalName;
+      GlobalToSet["type"] = globalType;
+      GlobalToSet["size"] = globalSize;
+      
+      GlobalToSet["definition"] = out.str();
+      context->add("globals", GlobalToSet);
+
+      out.str("");
+   }
+   context->add("newline", "\n");
+   return context;   
+}
+
+
+
 

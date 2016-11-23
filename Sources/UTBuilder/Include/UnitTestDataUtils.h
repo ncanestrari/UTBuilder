@@ -32,7 +32,7 @@ public:
 
    static void writeFunctionDeclAsStructure(std::ostringstream &os, const clang::FunctionDecl* funcDecl );
    static void writeGoogleTest(std::ostringstream &os,  const clang::FunctionDecl* funcDecl, const NameValueNode* contentElement );
-   
+   static void writeGlobalsContent(std::ostringstream &os, const std::string& name, const NameValueNode* contentElement);
   
    static void writeFunctionDefinition( const std::string&           name,
 				        const clang::FunctionDecl*   funcDecl,

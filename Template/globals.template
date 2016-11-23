@@ -1,0 +1,31 @@
+/* @owner TODO */
+/**
+ * @file  {{filename}} 
+ * @brief TODO.
+ *
+ */
+
+
+extern "C"{
+{{# includes }}
+#include "{{ include }}" {{newline}} 
+{{/ includes }}}
+
+{{# globals }}
+{{type}} {{name}}[{{size}}]; {{newline}}
+{{/ globals }}
+
+{{# globals }}
+void {{name}}_init(void){
+   memset({{name}}, 0, {{size}}*sizeof({{name}}) );{{newline}}
+{{definition}}{{newline}}
+}{{newline}}
+{{newline}}
+{{/ globals }}
+
+
+void globals_init(void){
+{{# globals }}
+   {{name}}_init();{{newline}}
+{{/ globals }}
+}

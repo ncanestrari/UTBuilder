@@ -58,18 +58,18 @@ public:
    virtual ~NameValueNode() {}
    
    
-   static NameValueNode* createValue(const char *name, const char *value = "");
+   static NameValueNode* createValue(const char *name, const char* value = nullptr);
    
    static NameValueNode* createObject(const char *name);
    
    static NameValueNode* createArray(const char *name);
    
-   static NameValueNode* createArrayElement(unsigned int index, const char* val = nullptr);
+   static NameValueNode* createArrayElement(const unsigned int index, const char* val = nullptr);
    
 
    // Prototype pattern interface
    // it clones the type but it allows a different value to be set 
-   virtual NameValueNode* clone(const char * value = "") const override;
+   virtual NameValueNode* clone(const char * value = nullptr) const override;
    
    
    
@@ -115,7 +115,7 @@ class QualTypeNode : public NameValueNode
    
 protected:
    
-   explicit QualTypeNode(const char *name, const clang::QualType& type, const char *value = "\0");
+   explicit QualTypeNode(const char *name, const clang::QualType& type, const char *value = nullptr);
    
    QualTypeNode() = delete;
    
@@ -126,10 +126,12 @@ public:
    
    virtual ~QualTypeNode() {}
   
-   static QualTypeNode* create(const char *name, const clang::QualType& type = QualTypeNode::_defaultType, const char *value = "\0");
+   static QualTypeNode* create(const char *name, const clang::QualType& type = QualTypeNode::_defaultType, const char* value = nullptr);
 
+   static QualTypeNode* createArrayElement(const unsigned int index, const clang::QualType& type = QualTypeNode::_defaultType, const char* value = nullptr );
    
-   virtual QualTypeNode* clone(const char * value = "") const override final;
+   
+   virtual QualTypeNode* clone(const char * value = nullptr) const override final;
    
    
    virtual const void* getType() const override final { return &_type; }
@@ -154,7 +156,7 @@ protected:
    
    FunctionDeclNode(const FunctionDeclNode& other);
    
-   explicit FunctionDeclNode(const char *name, const clang::FunctionDecl* type, const char *value = "\0");
+   explicit FunctionDeclNode(const char *name, const clang::FunctionDecl* type, const char* value = nullptr);
    
    
 public:
@@ -166,9 +168,9 @@ public:
    virtual const void* getType() const override final{ return _type; }
    
    
-   static FunctionDeclNode* create(const char *name, const clang::FunctionDecl* type = FunctionDeclNode::_defaultType, const char *value = "\0");
+   static FunctionDeclNode* create(const char *name, const clang::FunctionDecl* type = FunctionDeclNode::_defaultType, const char* value = nullptr);
    
-   virtual FunctionDeclNode* clone(const char * value = "") const override final;
+   virtual FunctionDeclNode* clone(const char * value = nullptr) const override final;
  
    
 //    virtual void visit( NodeVisitor* visitor ) override final;

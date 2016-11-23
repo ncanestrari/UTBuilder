@@ -53,21 +53,21 @@ NameValueNode* UnitTestData::buildTreeFromAST()
     *       }
     */
       
-   NameValueNode* descNode = buildDescTree();
+   NameValueNode* descNode = buildDescTreeFromAST();
    _treeFromAST->addChild(descNode);
    
-   NameValueNode* mocksNode = buildTree("mocks", *_mockDeclsMap);
+   NameValueNode* mocksNode = buildFuncsTreeFromAST("mocks", *_mockDeclsMap);
    _treeFromAST->addChild(mocksNode);
    
-   NameValueNode* funcsNode = buildTree("funcs", *_funcDeclsMap);
+   NameValueNode* funcsNode = buildFuncsTreeFromAST("funcs", *_funcDeclsMap);
    _treeFromAST->addChild(funcsNode); 
    
-   NameValueNode* globalsNode = buildGlobalsTree();
+   NameValueNode* globalsNode = buildGlobalsTreeFromAST();
    _treeFromAST->addChild(globalsNode);
    
 }
    
-NameValueNode* UnitTestData::buildDescTree()
+NameValueNode* UnitTestData::buildDescTreeFromAST()
 {
    NameValueNode* descNode = NameValueNode::createObject("desc");
    
@@ -94,12 +94,13 @@ NameValueNode* UnitTestData::buildDescTree()
    return descNode;
 }
 
-NameValueNode* UnitTestData::buildGlobalsTree()
+NameValueNode* UnitTestData::buildGlobalsTreeFromAST()
 {
-   NameValueNode* descNode = NameValueNode::createArray("globals");
+//    just add a "globals" array node
+   return NameValueNode::createArray("globals");
 }
 
-NameValueNode* UnitTestData::buildTree(const char* treeName, const FunctionDeclKeySetMap& declMap )
+NameValueNode* UnitTestData::buildFuncsTreeFromAST(const char* treeName, const FunctionDeclKeySetMap& declMap )
 {
   NameValueNode* arrayNode = NameValueNode::createArray(treeName);
    
@@ -118,7 +119,7 @@ NameValueNode* UnitTestData::buildTree(const char* treeName, const FunctionDeclK
       auto* nameNode = FunctionDeclNode::create("_name", funcDecl, name.c_str());
       objectNode->addChild(nameNode);
       
-      NameValueNode* contentObjNode = buildContentTree(funcDecl, mockDeclSet);
+      NameValueNode* contentObjNode = buildContentTreeFromAST(funcDecl, mockDeclSet);
       objectNode->addChild(contentObjNode);      
    }   
    
@@ -126,7 +127,7 @@ NameValueNode* UnitTestData::buildTree(const char* treeName, const FunctionDeclK
 }
 
 
-NameValueNode* UnitTestData::buildContentTree(const clang::FunctionDecl*                   funcDecl,
+NameValueNode* UnitTestData::buildContentTreeFromAST(const clang::FunctionDecl*                   funcDecl,
                                               const std::set<const clang::FunctionDecl *>& funcs)
 {
    NameValueNode* contentArray = NameValueNode::createArray("content");
@@ -376,15 +377,13 @@ void UnitTestData::deSerializeJson(const Json::Value &jsonRoot )
    // create the data tree _treeData adding specialized node (QualTypeNode,FunctionDeclNode)
    if ( tempTreeFromJson ) {
       
-      buildTreeData( tempTreeFromJson.get() );
+      _treeData = std::unique_ptr<NameValueNode>( buildTreeData( tempTreeFromJson.get() ) );
       
+//       build the "globals" branch
       NameValueNode* globalsTreeData = buildGlobalsTreeData(tempTreeFromJson.get());
       
-      if ( globalsTreeData != nullptr ) {
-//          add globals tree node branch
-         _treeData->addChild(globalsTreeData);
-      }
-      
+//    add globals tree node branch
+      _treeData->addChild(globalsTreeData);      
    }
    
 }
@@ -407,15 +406,15 @@ NameValueNode* UnitTestData::createValidatedNode(const NameValueNode* refChildNo
 }
 
 
-bool UnitTestData::buildTreeData( const NameValueNode* tempTreeFromJson)
+NameValueNode* UnitTestData::buildTreeData( const NameValueNode* tempTreeFromJson)
 {
    
    typedef std::tuple<const NameValueNode*, const NameValueNode*, NameValueNode* > treeNodeTuple;
    std::stack< treeNodeTuple > Stack;
    
-   _treeData = std::unique_ptr<NameValueNode>( NameValueNode::createObject("data") );
+   NameValueNode* treeData =  NameValueNode::createObject("data"); //std::unique_ptr<NameValueNode>( NameValueNode::createObject("data") );
    
-   Stack.push( treeNodeTuple(_treeFromAST.get(), tempTreeFromJson, _treeData.get()) );
+   Stack.push( treeNodeTuple(_treeFromAST.get(), tempTreeFromJson, treeData) );
    
    while ( !Stack.empty() ) {
       
@@ -490,10 +489,12 @@ bool UnitTestData::buildTreeData( const NameValueNode* tempTreeFromJson)
          
       }
    }
+   
+   return treeData;
 }
 
 
-NameValueNode*  UnitTestData::buildGlobalsTreeData( const NameValueNode* tempTreeFromJson)
+NameValueNode*  UnitTestData::buildGlobalsTreeData( const NameValueNode* treeFromJson)
 {
    
    /**
@@ -505,6 +506,7 @@ NameValueNode*  UnitTestData::buildGlobalsTreeData( const NameValueNode* tempTre
     *                 "content" :        // array
     *                  [
     *                      {   // object if _type is struct or value if _type is not a struct
+    *                           "name" : "value"
     *                      }
     *                      {
     *                      }
@@ -523,11 +525,11 @@ NameValueNode*  UnitTestData::buildGlobalsTreeData( const NameValueNode* tempTre
     */
         
         
-   const NameValueNode* tempGlobalsFromJson = tempTreeFromJson->getChild("globals");
+   const NameValueNode* tempGlobalsFromJson = treeFromJson->getChild("globals");
    if ( tempGlobalsFromJson == nullptr )
       return false;
    
-   NameValueNode* _globalsTreeNodeData = NameValueNode::createArray("globals");
+   NameValueNode* globalsTreeNodeData = NameValueNode::createArray("globals");
    
    unsigned int globalsArrayIndex = 0;
    
@@ -537,7 +539,7 @@ NameValueNode*  UnitTestData::buildGlobalsTreeData( const NameValueNode* tempTre
          
       
       NameValueNode* newGlobalsArrayElementNode = NameValueNode::createArrayElement( globalsArrayIndex );
-      _globalsTreeNodeData->addChild(newGlobalsArrayElementNode);
+      globalsTreeNodeData->addChild(newGlobalsArrayElementNode);
       ++globalsArrayIndex;
       
       
@@ -573,13 +575,13 @@ NameValueNode*  UnitTestData::buildGlobalsTreeData( const NameValueNode* tempTre
       newGlobalsArrayElementNode->addChild(newTypeNode);
       
       QualTypeNode* newQualTypeNode = nullptr;
-      NameValueNode* newContentNode = nullptr;
+
       
       const NameValueNode* contentJsonNode = globalsArrayElement->getChild("content");
       if ( contentJsonNode == nullptr ) {
          throw logic_error("ERROR: array object with index " + contentJsonNode->getName() + " has no content field");
       }
-      newContentNode = contentJsonNode->clone();
+      NameValueNode* newContentNode = contentJsonNode->clone();
       newGlobalsArrayElementNode->addChild(newContentNode);
          
       
@@ -591,20 +593,21 @@ NameValueNode*  UnitTestData::buildGlobalsTreeData( const NameValueNode* tempTre
       for ( auto contentArrayIterator=contentChildren.begin(); contentArrayIterator!=contentChildren.end(); ++contentArrayIterator) 
       {
          
-         NameValueNode* newContentArrayElementNode = NameValueNode::createArrayElement( contentArrayIndex );
-         newContentNode->addChild(newContentArrayElementNode);
-         ++contentArrayIndex;
+//          NameValueNode* newContentArrayElementNode = NameValueNode::createArrayElement( contentArrayIndex );
+//          newContentNode->addChild(newContentArrayElementNode);
+//          ++contentArrayIndex;
       
       
          const std::string& typeName =  qualTypeIter->first;
-         const clang::QualType& qualType = qualTypeIter->second;
+         const clang::QualType& qualType = qualTypeIter->second->getUnderlyingType();
          const NameValueNode* contentChildNode = contentArrayIterator->second.get();
          
 //          if qualType is not a struct set the value and continue iterating on contentChildren
          const clang::RecordType* structType = qualType->getAsStructureType();
          if (structType == nullptr) {
-            childQualTypeNode = QualTypeNode::create( typeName.c_str(), qualType, contentChildNode->getValue().c_str() );
-            newContentArrayElementNode->addChild(childQualTypeNode);
+            childQualTypeNode = QualTypeNode::createArrayElement( contentArrayIndex, qualType, contentChildNode->getValue().c_str() );
+            newContentNode->addChild(childQualTypeNode);
+            ++contentArrayIndex;
             continue;
          }
 
@@ -615,8 +618,10 @@ NameValueNode*  UnitTestData::buildGlobalsTreeData( const NameValueNode* tempTre
 //          iterate recursively the contentArrayIterator hierachy 
 //          validate the struct member name
 //          add the value to newQualTypeNode tree
-         childQualTypeNode = QualTypeNode::create( typeName.c_str(), qualType );
-         newContentArrayElementNode->addChild(childQualTypeNode);
+//          childQualTypeNode = referenceTempQualTypeNode->clone(); 
+         childQualTypeNode = QualTypeNode::createArrayElement( contentArrayIndex, qualType );
+         newContentNode->addChild(childQualTypeNode);
+         ++contentArrayIndex;
          
          
          typedef std::tuple<const NameValueNode*, const NameValueNode*, NameValueNode* > TreeNodesTuple;
@@ -660,7 +665,7 @@ NameValueNode*  UnitTestData::buildGlobalsTreeData( const NameValueNode* tempTre
 //          
    }
       
-   return _globalsTreeNodeData;      
+   return globalsTreeNodeData;      
 }
 
 

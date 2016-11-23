@@ -67,6 +67,7 @@ int main(int argc, const char *argv[])
          writerManager.add( new SerializationWriter() );
          writerManager.add( new StructuresToSerializeWriter() );
          writerManager.add( new CMakeFileWriter() );
+         writerManager.add( new GlobalsWriter() );
 
          writerManager.write();
       }

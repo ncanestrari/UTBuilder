@@ -190,6 +190,18 @@ void UnitTestDataUtils::writeGoogleTest(std::ostringstream &os, const clang::Fun
 }
 
 
+void UnitTestDataUtils::writeGlobalsContent(std::ostringstream &os, const std::string& name, const NameValueNode* contentElement)
+{
+   writeStructureValue(os, contentElement, name, "   ");
+//    if ( contentElement->isArrayElementObject() ) {
+//       const auto& children = contentElement->getChildren();
+//       for (const auto& child : children ) {
+//          writeStructureValue(os, contentElement, name, "");         
+//       }
+//    } else {
+//       writeStructureValue(os, contentElement, name, ""); 
+//    }   
+}
 
 void UnitTestDataUtils::writeMockValue(   std::ostringstream &os,
                const NameValueNode*  tree,

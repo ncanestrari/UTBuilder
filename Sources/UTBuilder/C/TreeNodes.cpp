@@ -52,18 +52,18 @@ NameValueNode* NameValueNode::createArray(const char *name)
    return new NameValueNode(name, "array");
 }
 
-NameValueNode* NameValueNode::createArrayElement(unsigned int index, const char* val)
+NameValueNode* NameValueNode::createArrayElement(const unsigned int index, const char* value)
 {
-   if ( val == nullptr ) {
-      val = NameValueNode::_arrayElementObject;
+   if ( value == nullptr ) {
+      value = NameValueNode::_arrayElementObject;
    }
-   return new NameValueNode( std::to_string(index).c_str(), val );
+   return new NameValueNode( std::to_string(index).c_str(), value );
 }
 
 
-NameValueNode* NameValueNode::clone(const char * value) const
+NameValueNode* NameValueNode::clone(const char * value ) const
 {
-   if (value == "") {
+   if (value == nullptr) {
       return new NameValueNode(*this);
    }
    else {
@@ -89,6 +89,10 @@ int NameValueNode::getIndex(void) const
 
 void NameValueNode::addChild(NameValueNode* child) 
 { 
+   if ( child == nullptr ) {
+      return;
+   }
+   
    _children[child->_name] = std::unique_ptr<NameValueNode>(child); 
 }
    
@@ -116,9 +120,64 @@ QualTypeNode::QualTypeNode(const char *name, const clang::QualType& type, const 
 {}
    
    
+
+QualTypeNode* QualTypeNode::create(const char* name, const clang::QualType& qualType, const char* value ) 
+{
+   QualTypeNode* node = nullptr;
+   
+   const clang::RecordType *structType = qualType->getAsStructureType();
+   if (structType != nullptr) {
+      // not useful , value can be "" for struct 
+      const std::string structName = qualType.getAsString();
+      
+      node = new QualTypeNode(name, qualType, structName.c_str() );
+  
+      const clang::RecordDecl *structDecl = structType->getDecl();
+      for (const auto& field : structDecl->fields()) {
+         auto* child = QualTypeNode::create(field->getNameAsString().c_str(), field->getType(), "");
+         node->addChild(child);
+      }
+   }
+   else {
+    
+      node = new QualTypeNode(name, qualType, value );
+   }
+   
+   return node;
+}
+
+QualTypeNode* QualTypeNode::createArrayElement(const unsigned int index, const clang::QualType& qualType, const char* value  )
+{   
+   QualTypeNode* node = nullptr;
+   
+   if ( value == nullptr ) {
+      value = NameValueNode::_arrayElementObject;
+   }
+   
+   const clang::RecordType *structType = qualType->getAsStructureType();
+   if (structType != nullptr) {
+      // not useful , value can be "" for struct 
+      const std::string structName = qualType.getAsString();
+      
+      node = new QualTypeNode( std::to_string(index).c_str(), qualType, value );
+  
+      const clang::RecordDecl *structDecl = structType->getDecl();
+      for (const auto& field : structDecl->fields()) {
+         auto* child = QualTypeNode::create(field->getNameAsString().c_str(), field->getType(), "");
+         node->addChild(child);
+      }
+   }
+   else {
+    
+      node = new QualTypeNode( std::to_string(index).c_str(), qualType, value );
+   }
+   
+   return node;
+}
+
 QualTypeNode* QualTypeNode::clone(const char * value) const
 {
-   if (value == "") {
+   if (value == nullptr) {
       return new QualTypeNode(*this);
    }
    else {
@@ -146,7 +205,7 @@ FunctionDeclNode* FunctionDeclNode::create(const char *name, const clang::Functi
    
 FunctionDeclNode* FunctionDeclNode::clone(const char * value) const
 {
-   if (value == "") {
+   if (value == nullptr) {
       return new FunctionDeclNode(*this);
    }
    else {
@@ -155,27 +214,3 @@ FunctionDeclNode* FunctionDeclNode::clone(const char * value) const
 }
    
 
-QualTypeNode* QualTypeNode::create(const char* name, const clang::QualType& qualType, const char* value ) 
-{
-   QualTypeNode* node = nullptr;
-   
-   const clang::RecordType *structType = qualType->getAsStructureType();
-   if (structType != nullptr) {
-      // not useful , value can be "" for struct 
-      const std::string structName = qualType.getAsString();
-      
-      node = new QualTypeNode(name, qualType, structName.c_str() );
-  
-      const clang::RecordDecl *structDecl = structType->getDecl();
-      for (const auto& field : structDecl->fields()) {
-         auto* child = QualTypeNode::create(field->getNameAsString().c_str(), field->getType(), "");
-         node->addChild(child);
-      }
-   }
-   else {
-    
-      node = new QualTypeNode(name, qualType, value );
-   }
-   
-   return node;
-}
